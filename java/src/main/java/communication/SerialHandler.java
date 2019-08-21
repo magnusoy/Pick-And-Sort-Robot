@@ -1,16 +1,16 @@
-package main.java;
+package main.java.communication;
 
 import com.fazecast.jSerialComm.SerialPort;
 
 import java.io.IOException;
 
-public class SerialCommunication extends Thread {
+public class SerialHandler extends Thread {
 
     private int baudrate;
     private String port;
     private SerialPort serialPort;
 
-    public SerialCommunication(int baudrate, String port) {
+    public SerialHandler(int baudrate, String port) {
         this.baudrate = baudrate;
         this.port = port;
         this.serialPort = SerialPort.getCommPort(this.port);
