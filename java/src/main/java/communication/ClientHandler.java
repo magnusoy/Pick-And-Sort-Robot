@@ -9,8 +9,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class ClientHandler extends Thread {
-    private DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
-    private DateFormat timeFormat = new SimpleDateFormat("hh:mm:ss");
     private final DataInputStream dataInputStream;
     private final DataOutputStream dataOutputStream;
     private final Socket socket;
@@ -46,13 +44,13 @@ public class ClientHandler extends Thread {
                 // answer from the client
                 switch (received) {
 
-                    case "Date" :
-                        toReturn = this.dateFormat.format(date);
+                    case "Welcome" :
+                        toReturn = "Hello, how are you?";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
-                    case "Time" :
-                        toReturn = this.timeFormat.format(date);
+                    case "Goodbye" :
+                        toReturn = "Goodbye to you too.";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
