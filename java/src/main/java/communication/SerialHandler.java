@@ -4,12 +4,20 @@ import com.fazecast.jSerialComm.SerialPort;
 
 import java.io.IOException;
 
+/**
+ *
+ */
 public class SerialHandler extends Thread {
 
     private int baudrate;
     private String port;
     private SerialPort serialPort;
 
+    /**
+     *
+     * @param baudrate
+     * @param port
+     */
     public SerialHandler(int baudrate, String port) {
         this.baudrate = baudrate;
         this.port = port;
@@ -18,6 +26,11 @@ public class SerialHandler extends Thread {
         this.serialPort.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
     }
 
+    /**
+     *
+     * @param data
+     * @return
+     */
     public boolean write(String data) {
         if (this.serialPort.isOpen()) {
             try {

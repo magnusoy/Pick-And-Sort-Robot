@@ -4,14 +4,25 @@ import java.io.*;
 import java.net.*;
 import java.util.Scanner;
 
+/**
+ *
+ */
 public class Client {
 
+    // Define socket and input, output streams
     private InetAddress ip;
     private final Scanner in;
     private final DataInputStream dataInputStream;
     private final DataOutputStream dataOutputStream;
     private Socket socket;
 
+    /**
+     * Client constructor.
+     *
+     * @param host where to connect
+     * @param port communication port
+     * @throws IOException
+     */
     public Client(String host, int port) throws IOException {
         this.in = new Scanner(System.in);
         try {
@@ -19,12 +30,19 @@ public class Client {
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
-
-        this.socket = new Socket(this.ip, port);
+        try {
+            this.socket = new Socket(this.ip, port);
+        } catch (ConnectException ce) {
+            ce.printStackTrace();
+        }
         this.dataInputStream = new DataInputStream(this.socket.getInputStream());
         this.dataOutputStream = new DataOutputStream(this.socket.getOutputStream());
     }
 
+    /**
+     * Establishing connection and
+     * communication with the server is now possible.
+     */
     public void connect()  {
         try {
             while (true) {
