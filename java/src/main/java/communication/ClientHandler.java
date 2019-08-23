@@ -2,10 +2,9 @@ package main.java.communication;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
-import java.net.SocketException;
+
 
 /**
  *
@@ -54,16 +53,31 @@ public class ClientHandler extends Thread {
                     break;
                 }
 
-                // write on output stream based on the
+                // Write on outputstream based on the
                 // answer from the client
                 switch (received) {
-                    case "Hello" :
-                        toReturn = "Hello, how are you?";
+                    case "GET/Status" :
+                        toReturn = "GET/Status was called.";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
-                    case "Goodbye" :
-                        toReturn = "Goodbye to you too.";
+                    case "GET/ArduinoData" :
+                        toReturn = "GET/ArduinoData was called.";
+                        this.dataOutputStream.writeUTF(toReturn);
+                        break;
+
+                    case "GET/Objects":
+                        toReturn = "GET/Objects was called.";
+                        this.dataOutputStream.writeUTF(toReturn);
+                        break;
+
+                    case "POST/UpdateGUI":
+                        toReturn = "POST/UpdateGUI was called.";
+                        this.dataOutputStream.writeUTF(toReturn);
+                        break;
+
+                    case "help":
+                        toReturn = "help was called.";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 

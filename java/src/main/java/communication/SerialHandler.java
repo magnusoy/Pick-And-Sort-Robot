@@ -7,7 +7,7 @@ import java.io.IOException;
 /**
  *
  */
-public class SerialHandler extends Thread {
+public class SerialHandler{
 
     private int baudrate;
     private String port;

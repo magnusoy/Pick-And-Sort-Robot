@@ -1,0 +1,12 @@
+[
+    {"object": 0, "type": "circle", "x": 433, "y": 546},
+    {"object": 1, "type": "circle", "x": 433, "y": 546},
+    {"object": 2, "type": "triangle", "x": 433, "y": 546},
+    {"object": 3, "type": "square", "x": 433, "y": 546},
+    {"object": 4, "type": "circle", "x": 433, "y": 546},
+    {"object": 5, "type": "triangle", "x": 433, "y": 546},
+    {"object": 6, "type": "square", "x": 433, "y": 546},
+    {"object": 7, "type": "square", "x": 433, "y": 546},
+    {"object": 8, "type": "circle", "x": 433, "y": 546},
+    {"object": 9, "type": "triangle", "x": 433, "y": 546}
+]
