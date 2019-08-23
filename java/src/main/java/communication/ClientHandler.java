@@ -2,6 +2,7 @@ package main.java.communication;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
@@ -37,11 +38,12 @@ public class ClientHandler extends Thread {
     public void run() {
         String received = "";
         String toReturn = "";
+        int packageNumber = 0;
 
 
-        while (true) {
+        while (this.socket.isConnected()) {
             try {
-                this.dataOutputStream.writeUTF("ACK");
+                this.dataOutputStream.writeUTF("ACK " + packageNumber);
                 received = this.dataInputStream.readUTF();
 
                 if (received.equals("Exit")) {
@@ -69,12 +71,18 @@ public class ClientHandler extends Thread {
                         this.dataOutputStream.writeUTF("Invalid input");
                         break;
                 }
-            } catch (SocketException se) {
-                se.printStackTrace();
+                packageNumber ++;
+            } catch (Exception e) {
+                try {
+                    this.dataInputStream.close();
+                    this.dataOutputStream.close();
+                    this.socket.close();
+                    System.err.println("Lost connection: " + this.socket);
+                    break;
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
             }
-            catch (IOException ioe) {
-                ioe.printStackTrace();
-        }
     }
         try {
             this.dataInputStream.close();
@@ -83,5 +91,7 @@ public class ClientHandler extends Thread {
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
+
     }
+
 }

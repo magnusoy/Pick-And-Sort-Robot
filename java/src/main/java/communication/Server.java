@@ -46,7 +46,7 @@ public class Server {
                 DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
                 DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
 
-                System.out.println("Assigning new thread for this client");
+                // Assigning new thread for this client
                 Thread clientThread = new ClientHandler(socket, dataInputStream, dataOutputStream);
 
                 clientThread.start();
