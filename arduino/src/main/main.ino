@@ -6,6 +6,7 @@
   Odrive - https://github.com/madcowswe/ODrive/tree/master/Arduino/ODriveArduino
   Wire - https://github.com/arduino/ArduinoCore-avr/tree/master/libraries/Wire
   SoftwareSerial - https://github.com/arduino/ArduinoCore-avr/tree/master/libraries/SoftwareSerial
+  DigitalWriteFast - https://github.com/NicksonYap/digitalWriteFast
   -----------------------------------------------------------
   Code by: Magnus Kvendseth Øye,
   Date: 24.08-2019
@@ -13,10 +14,14 @@
   Website: https://github.com/magnusoy/Pick-And-Sort-Robot
 */
 
+
+// Including libraries
 #include <PID.h>
 #include <Wire.h>
 #include <SoftwareSerial.h>
 #include <ODriveArduino.h>
+//#include <digitalWriteFast.h>
+
 
 // Printing with stream operator
 template<class T> inline Print& operator <<(Print &obj,     T arg) {
@@ -29,17 +34,18 @@ template<>        inline Print& operator <<(Print &obj, float arg) {
   return obj;
 }
 
-//#define HWSERIAL Serial1 // RX, TX (0, 1)
-//See limitations of Arduino SoftwareSerial
-// Serial to the ODrive
-SoftwareSerial odrive_serial(8, 9); //RX (ODrive TX), TX (ODrive RX)
+#define UPDATE_SERIAL_TIME 100 // In millis
+
+
+#define ODRIVE_SERIAL Serial1 // RX, TX (0, 1)
 // Note: you must also connect GND on ODrive to GND on Arduino!
 
 // ODrive object
-ODriveArduino odrive(odrive_serial);
+ODriveArduino odrive(ODRIVE_SERIAL);
 #define MOTOR_SPEED_LIMIT 22000.0f
 #define MOTOR_CURRENT_LIMIT 10.0f
 
+// Vector storing the motor 1 and 2 encoder position
 int motorPosition[] = {0, 0};
 
 // Variables for recieving data
@@ -73,16 +79,26 @@ PID pidY(kpY, kiY, kdY, REVERSE); // TODO: Change to correct direction
 // Constants representing the states in the state machine
 const int S_IDLE = 0;
 const int S_CALIBRATION = 1;
-const int S_ONE = 2;
-const int S_TWO = 3;
+const int S_READY = 2;
+const int S_RUNNING = 3;
 // A variable holding the current state
 int currentState = S_IDLE;
 
+// Defining limit switches
+const int LIMIT_SWITCH_X_LEFT = 2;
+const int LIMIT_SWITCH_X_RIGHT = 3;
+const int LIMIT_SWITCH_Y_BOTTOM = 4;
+const int LIMIT_SWITCH_Y_TOP = 5;
+
+
 void setup() {
-  // Initialize the Serial ports
+  // Initialize Serial ports
   startSerial();
 
-  // Initialize the motor parameters
+  // Initialize limit switches
+  initializeSwitches();
+
+  // Initialize motor parameters
   configureMotors();
 
   // Initialize PID X and Y with correct parameters
@@ -97,25 +113,36 @@ void setup() {
 void loop() {
   switch (currentState) {
     case S_IDLE:
-      // TODO: Do something
+      // TODO: Wait for input from user to proceed
+
+      //changeStateTo(S_CALIBRATION);
       break;
 
     case S_CALIBRATION:
-      // TODO: Do something
+      calibreateMotors();
+      changeStateTo(S_READY);
       break;
 
-    case S_ONE:
-      // TODO: Do something
+    case S_READY:
+      // Wait for input from user to proceed
+
+      //changeStateTo(S_RUNNING);
       break;
 
-    case S_TWO:
+    case S_RUNNING:
       // TODO: Do something
+
+      // If user input is exit, change state
+      //changeStateTo(S_READY);
       break;
 
     default:
+      // Tries to change state to S_IDLE
       changeStateTo(S_IDLE);
       break;
   }
+  edgeDetection();
+  writeToSerial();
 }
 
 
@@ -123,23 +150,12 @@ void loop() {
   docstring
 */
 void writeToSerial() {
+  if (timerHasExpired()) {
+    // TODO: Send data
 
+    startTimer(UPDATE_SERIAL_TIME);
+  }
 }
-
-/**
-  docstring
-*/
-void writeToOdrive() {
-
-}
-
-/**
-  docstring
-*/
-void readFromOdrive() {
-
-}
-
 
 /**
   Reads from Serialport.
@@ -232,7 +248,7 @@ void startTimer(unsigned long duration) {
 */
 void startSerial() {
   // ODrive uses 115200 baud
-  odrive_serial.begin(115200);
+  ODRIVE_SERIAL.begin(115200);
   // Start Serial Communication
   Serial.begin(115200);
   TWBR = 12; // Or 24 for 32-bit
@@ -268,7 +284,7 @@ void readMotorPositions() {
   unsigned long start = millis();
   while (millis() - start < duration) {
     for (int motorNumber = 0; motorNumber < 2; ++motorNumber) {
-      odrive_serial << "r axis" << motorNumber << ".encoder.pos_estimate\n";
+      ODRIVE_SERIAL << "r axis" << motorNumber << ".encoder.pos_estimate\n";
       motorPosition[motorNumber] = odrive.readFloat();
     }
   }
@@ -289,7 +305,33 @@ void setMotorPosition(const int motorNumber, double pos) {
 */
 void configureMotors() {
   for (int axis = 0; axis < 2; ++axis) {
-    odrive_serial << "w axis" << axis << ".controller.config.vel_limit " << MOTOR_SPEED_LIMIT << '\n';
-    odrive_serial << "w axis" << axis << ".motor.config.current_lim " << MOTOR_CURRENT_LIMIT << '\n';
+    ODRIVE_SERIAL << "w axis" << axis << ".controller.config.vel_limit " << MOTOR_SPEED_LIMIT << '\n';
+    ODRIVE_SERIAL << "w axis" << axis << ".motor.config.current_lim " << MOTOR_CURRENT_LIMIT << '\n';
+  }
+}
+
+/**
+  Initialize limit switches to inputs.
+*/
+void initializeSwitches() {
+  pinMode(LIMIT_SWITCH_X_LEFT, INPUT);
+  pinMode(LIMIT_SWITCH_X_RIGHT, INPUT);
+  pinMode(LIMIT_SWITCH_Y_BOTTOM, INPUT);
+  pinMode(LIMIT_SWITCH_Y_TOP, INPUT);
+}
+
+/**
+  Changes state to S_IDLE if any
+  limit switch is pressed.
+*/
+void edgeDetection() {
+  int buttonState1 = digitalRead(LIMIT_SWITCH_X_LEFT);
+  int buttonState2 = digitalRead(LIMIT_SWITCH_X_RIGHT);
+  int buttonState3 = digitalRead(LIMIT_SWITCH_Y_BOTTOM);
+  int buttonState4 = digitalRead(LIMIT_SWITCH_Y_TOP);
+
+  if (buttonState1 || buttonState2
+      || buttonState3 || buttonState4) {
+    changeStateTo(S_IDLE);
   }
 }
