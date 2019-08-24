@@ -18,9 +18,29 @@
 #include <SoftwareSerial.h>
 #include <ODriveArduino.h>
 
+// Printing with stream operator
+template<class T> inline Print& operator <<(Print &obj,     T arg) {
+  obj.print(arg);
+  return obj;
+}
+
+template<>        inline Print& operator <<(Print &obj, float arg) {
+  obj.print(arg, 4);
+  return obj;
+}
+
 //#define HWSERIAL Serial1 // RX, TX (0, 1)
 //See limitations of Arduino SoftwareSerial
-SoftwareSerial serial(10, 11);
+// Serial to the ODrive
+SoftwareSerial odrive_serial(8, 9); //RX (ODrive TX), TX (ODrive RX)
+// Note: you must also connect GND on ODrive to GND on Arduino!
+
+// ODrive object
+ODriveArduino odrive(odrive_serial);
+#define MOTOR_SPEED_LIMIT 22000.0f
+#define MOTOR_CURRENT_LIMIT 10.0f
+
+int motorPosition[] = {0, 0};
 
 // Variables for recieving data
 boolean newData = false;
@@ -52,15 +72,18 @@ PID pidY(kpY, kiY, kdY, REVERSE); // TODO: Change to correct direction
 
 // Constants representing the states in the state machine
 const int S_IDLE = 0;
-const int S_ONE = 1;
-const int S_TWO = 2;
+const int S_CALIBRATION = 1;
+const int S_ONE = 2;
+const int S_TWO = 3;
 // A variable holding the current state
 int currentState = S_IDLE;
 
 void setup() {
-  // Start Serial Communication
-  Serial.begin(115200);
-  TWBR = 12; // Or 24 for 32-bit
+  // Initialize the Serial ports
+  startSerial();
+
+  // Initialize the motor parameters
+  configureMotors();
 
   // Initialize PID X and Y with correct parameters
   pidX.setUpdateTime(PIDX_UPDATE_TIME);
@@ -74,21 +97,24 @@ void setup() {
 void loop() {
   switch (currentState) {
     case S_IDLE:
+      // TODO: Do something
+      break;
 
+    case S_CALIBRATION:
+      // TODO: Do something
       break;
 
     case S_ONE:
-
+      // TODO: Do something
       break;
 
     case S_TWO:
-
+      // TODO: Do something
       break;
 
     default:
-
+      changeStateTo(S_IDLE);
       break;
-
   }
 }
 
@@ -143,11 +169,11 @@ void readFromSerial() {
 /**
   Fetches the value from a substring,
   wich is seperated with a given symbol.
-  
+
   @param data your String to be seperated
   @param seperator your symbol to seperate by
   @param index where your value is located
-  
+
   @return substring before seperator
 */
 String getValueFromSerial(String data, char separator, int index) {
@@ -198,4 +224,72 @@ boolean timerHasExpired() {
 */
 void startTimer(unsigned long duration) {
   nextTimeout = millis() + duration;
+}
+
+/**
+  Start Serial communication with ODrive,
+  and Jetson Nano.
+*/
+void startSerial() {
+  // ODrive uses 115200 baud
+  odrive_serial.begin(115200);
+  // Start Serial Communication
+  Serial.begin(115200);
+  TWBR = 12; // Or 24 for 32-bit
+  while (!Serial);
+}
+
+
+/**
+  Calibreates motors.
+  Be aware the motors will move during this process.
+*/
+void calibreateMotors() {
+  int requested_state;
+  for (int motorNumber = 0; motorNumber < 2; ++motorNumber) {
+    requested_state = ODriveArduino::AXIS_STATE_MOTOR_CALIBRATION;
+    odrive.run_state(motorNumber, requested_state, true);
+
+    requested_state = ODriveArduino::AXIS_STATE_ENCODER_OFFSET_CALIBRATION;
+    odrive.run_state(motorNumber, requested_state, true);
+
+    requested_state = ODriveArduino::AXIS_STATE_CLOSED_LOOP_CONTROL;
+    odrive.run_state(motorNumber, requested_state, false); // don't wait
+  }
+}
+
+/**
+  Read current motor position from Odrive.
+  Storing them in the global motorPosition
+  variable.
+*/
+void readMotorPositions() {
+  static const unsigned long duration = 10000;
+  unsigned long start = millis();
+  while (millis() - start < duration) {
+    for (int motorNumber = 0; motorNumber < 2; ++motorNumber) {
+      odrive_serial << "r axis" << motorNumber << ".encoder.pos_estimate\n";
+      motorPosition[motorNumber] = odrive.readFloat();
+    }
+  }
+}
+
+/**
+   Set the given motor to the assigned position.
+
+   @param motorNumber, Specify motor {0, 1}
+   @param pos, Position to drive to
+*/
+void setMotorPosition(const int motorNumber, double pos) {
+  odrive.SetPosition(motorNumber, pos);
+}
+
+/**
+  Configure motor parameters.
+*/
+void configureMotors() {
+  for (int axis = 0; axis < 2; ++axis) {
+    odrive_serial << "w axis" << axis << ".controller.config.vel_limit " << MOTOR_SPEED_LIMIT << '\n';
+    odrive_serial << "w axis" << axis << ".motor.config.current_lim " << MOTOR_CURRENT_LIMIT << '\n';
+  }
 }
