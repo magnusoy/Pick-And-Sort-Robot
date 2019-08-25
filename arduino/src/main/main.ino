@@ -1,5 +1,8 @@
 /**
-  Project description...
+  The purpose of this project is to communicate with Odrive through the Hardware serial.
+  At the same time, it will receive and send data to Jetson Nano through the Software serial.
+  With the received data it will, by using PID controllers,
+  drive the motors to the correct position to pick up the figures.
   -----------------------------------------------------------
   Libraries used:
   PID - https://github.com/magnusoy/Arduino-PID-Library
@@ -20,7 +23,7 @@
 #include <Wire.h>
 #include <SoftwareSerial.h>
 #include <ODriveArduino.h>
-//#include <digitalWriteFast.h>
+//#include <digitalWriteFast.h> // Only to be used with 8 - bit
 
 
 // Printing with stream operator
@@ -38,7 +41,7 @@ template<>        inline Print& operator <<(Print &obj, float arg) {
 
 
 #define ODRIVE_SERIAL Serial1 // RX, TX (0, 1)
-// Note: you must also connect GND on ODrive to GND on Arduino!
+// Note: must also connect GND on ODrive to GND on Arduino!
 
 // ODrive object
 ODriveArduino odrive(ODRIVE_SERIAL);
