@@ -7,9 +7,6 @@
   Libraries used:
   PID - https://github.com/magnusoy/Arduino-PID-Library
   Odrive - https://github.com/madcowswe/ODrive/tree/master/Arduino/ODriveArduino
-  Wire - https://github.com/arduino/ArduinoCore-avr/tree/master/libraries/Wire
-  SoftwareSerial - https://github.com/arduino/ArduinoCore-avr/tree/master/libraries/SoftwareSerial
-  DigitalWriteFast - https://github.com/NicksonYap/digitalWriteFast
   -----------------------------------------------------------
   Code by: Magnus Kvendseth Øye,
   Date: 24.08-2019
@@ -20,22 +17,10 @@
 
 // Including libraries
 #include <PID.h>
-#include <Wire.h>
-#include <SoftwareSerial.h>
 #include <ODriveArduino.h>
-//#include <digitalWriteFast.h> // Only to be used with 8 - bit
-
-
-// Printing with stream operator
-template<class T> inline Print& operator <<(Print &obj,     T arg) {
-  obj.print(arg);
-  return obj;
-}
-
-template<>        inline Print& operator <<(Print &obj, float arg) {
-  obj.print(arg, 4);
-  return obj;
-}
+#include "IO.h"
+#include "PidParameters.h"
+#include "OdriveParameters.h"
 
 #define UPDATE_SERIAL_TIME 100 // In millis
 
@@ -45,8 +30,6 @@ template<>        inline Print& operator <<(Print &obj, float arg) {
 
 // ODrive object
 ODriveArduino odrive(ODRIVE_SERIAL);
-#define MOTOR_SPEED_LIMIT 22000.0f
-#define MOTOR_CURRENT_LIMIT 10.0f
 
 // Vector storing the motor 1 and 2 encoder position
 int motorPosition[] = {0, 0};
@@ -60,22 +43,10 @@ char receivedChars[numChars]; // An array to store the received data
 unsigned long nextTimeout = 0;
 
 // PID X - Axis
-#define PIDX_OUTPUT_LOW 0
-#define PIDX_OUTPUT_HIGH 0 // TODO: Change to correct value
-#define PIDX_OUTPUT_OFFSET 0 // TODO: Change to correct value
-#define PIDX_UPDATE_TIME 10 // In millis
-
-double kpX = 0.0; double kiX = 0.0; double kdX = 0.0;
 double actualValueX = 0.0; double setValueX = 0.0; double outputValueX = 0.0;
 PID pidX(kpX, kiX, kdX, REVERSE); // TODO: Change to correct direction
 
 // PID Y - Axis
-#define PIDY_OUTPUT_LOW 0
-#define PIDY_OUTPUT_HIGH 0 // TODO: Change to correct value
-#define PIDY_OUTPUT_OFFSET 0 // TODO: Change to correct value
-#define PIDY_UPDATE_TIME 10 // In millis
-
-double kpY = 0.0; double kiY = 0.0; double kdY = 0.0;
 double actualValueY = 0.0; double setValueY = 0.0; double outputValueY = 0.0;
 PID pidY(kpY, kiY, kdY, REVERSE); // TODO: Change to correct direction
 
@@ -84,15 +55,9 @@ const int S_IDLE = 0;
 const int S_CALIBRATION = 1;
 const int S_READY = 2;
 const int S_RUNNING = 3;
+const int S_COMPLETED = 4;
 // A variable holding the current state
 int currentState = S_IDLE;
-
-// Defining limit switches
-const int LIMIT_SWITCH_X_LEFT = 2;
-const int LIMIT_SWITCH_X_RIGHT = 3;
-const int LIMIT_SWITCH_Y_BOTTOM = 4;
-const int LIMIT_SWITCH_Y_TOP = 5;
-
 
 void setup() {
   // Initialize Serial ports
@@ -136,6 +101,11 @@ void loop() {
       // TODO: Do something
 
       // If user input is exit, change state
+      //changeStateTo(S_COMPLETED);
+      break;
+
+    case S_COMPLETED:
+      // TODO: Do something
       //changeStateTo(S_READY);
       break;
 
@@ -254,7 +224,6 @@ void startSerial() {
   ODRIVE_SERIAL.begin(115200);
   // Start Serial Communication
   Serial.begin(115200);
-  TWBR = 12; // Or 24 for 32-bit
   while (!Serial);
 }
 
@@ -337,4 +306,15 @@ void edgeDetection() {
       || buttonState3 || buttonState4) {
     changeStateTo(S_IDLE);
   }
+}
+
+// Printing with stream operator
+template<class T> inline Print& operator <<(Print &obj,     T arg) {
+  obj.print(arg);
+  return obj;
+}
+
+template<>        inline Print& operator <<(Print &obj, float arg) {
+  obj.print(arg, 4);
+  return obj;
 }
