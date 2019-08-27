@@ -1,12 +1,22 @@
-<html>
-  <head>
-    <title>MJRoBot Lab Live Streaming</title>
-    <link rel="stylesheet" href='../static/css/style.css'/>
-  </head>
-  <body>
-    <h1>MJRoBot Lab Live Streaming</h1>
-    <h3><img src="{{ url_for('video_feed') }}" width="90%"></h3>
-    <hr>
-    <p> @2018 Developed by MJRoBot.org</p>
-  </body>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Pick-and-Sort-Robot</title>
+</head>
+
+<body>
+    <h1>Videostream</h1>
+    <div id="recorder">
+        <button id="record">Record</button>
+        <button id="stop">Stop</button>
+        <a id="download"></a>
+        <script type="text/javascript" src="{{ url_for('static', filename='recorder.js') }}"></script>
+    </div>
+    <img id="video" src="{{ url_for('video_viewer') }}">
+</body>
+
 </html>
