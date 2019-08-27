@@ -1,22 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <head>
+    {% block head %}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <meta name="description" content="Pick-and-Sort-Robot Controlpanel" />
+    <meta name="author" content="magnusoy" />
     <title>Pick-and-Sort-Robot</title>
-</head>
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet"/>
 
-<body>
-    <h1>Videostream</h1>
-    <div id="recorder">
-        <button id="record">Record</button>
-        <button id="stop">Stop</button>
+    <!-- Cemantic core -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.css">
+
+    {% endblock %}
+  </head>
+
+  <body>
+    <!-- Main content -->
+    <div id="content">
+      {% block content %}
+
+      <button class="positive ui button">Start</button>
+      <button class="ui yellow compact labeled icon button"><i class="pause icon"></i>Pause</button>
+      <button class="negative ui button">Stop</button>
+      <button class="red ui button">Reset</button>
+
+
+      <h1>Videostream</h1>
+      <div id="recorder">
+        <button class="positive ui button" id="record">Record</button>
+        <button class="negative ui button" id="stop">Stop</button>
         <a id="download"></a>
-        <script type="text/javascript" src="{{ url_for('static', filename='recorder.js') }}"></script>
-    </div>
-    <img id="video" src="{{ url_for('video_viewer') }}">
-</body>
+        <script
+          type="text/javascript"
+          src="{{ url_for('static', filename='recorder.js') }}"
+        ></script>
+      </div>
+      <img id="video" src="{{ url_for('video_viewer') }}" />
 
+      {% endblock %}
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.js"></script>
+  
+  </body>    
+  {% block footer %}
+
+    {% endblock %}
 </html>
