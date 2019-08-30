@@ -1,0 +1,33 @@
+The server will send the object data from the python client periodically
+to the arduino. The arduino will run its cycle and ask for another object location
+after the last one is correctly placed.
+
+TYPES WILL BE ENCODED AS INTEGERS RANGING FROM 1 - 4
+
+----------------------
+       OBJECTS       |
+----------------------
+square       =>    1 |
+circle       =>    2 |
+triangle     =>    3 |
+rectangle    =>    4 |
+----------------------
+
+
+{"type": 1, "x": 433, "y": 546}
+
+
+Can maybe be dine with multiple objects at once.
+
+[
+    {"type": 3, "x": 433, "y": 546},
+    {"type": 1, "x": 433, "y": 546},
+    {"type": 4, "x": 433, "y": 546},
+    {"type": 1, "x": 433, "y": 546},
+    {"type": 2, "x": 433, "y": 546},
+    {"type": 1, "x": 433, "y": 546},
+    {"type": 2, "x": 433, "y": 546},
+    {"type": 4, "x": 433, "y": 546},
+    {"type": 3, "x": 433, "y": 546},
+    {"type": 2, "x": 433, "y": 546}
+]

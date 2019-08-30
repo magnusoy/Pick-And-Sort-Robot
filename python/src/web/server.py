@@ -1,5 +1,10 @@
+# #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Importing libraries
 from flask import Flask, render_template, Response, jsonify, request
 from camera import VideoCamera
+
 
 app = Flask(__name__)
 
@@ -8,10 +13,12 @@ global_frame = None
 
 @app.route('/')
 def index():
+    """docstring"""
     return render_template('index.html')
 
 @app.route('/record_status', methods=['POST'])
 def record_status():
+    """docstring"""
     global video_camera 
     if video_camera == None:
         video_camera = VideoCamera()
@@ -28,6 +35,7 @@ def record_status():
         return jsonify(result="stopped")
 
 def video_stream():
+    """doctring"""
     global video_camera 
     global global_frame
 
@@ -36,7 +44,6 @@ def video_stream():
         
     while True:
         frame = video_camera.get_frame()
-
         if frame != None:
             global_frame = frame
             yield (b'--frame\r\n'
@@ -47,8 +54,14 @@ def video_stream():
 
 @app.route('/video_viewer')
 def video_viewer():
+    """docstring"""
     return Response(video_stream(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
+
+# Running server
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)
+    app.run(host='0.0.0.0',
+            port=5000,
+            debug=True,
+            threaded=True)

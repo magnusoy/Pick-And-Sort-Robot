@@ -51,8 +51,8 @@ num_detections = detection_graph.get_tensor_by_name('num_detections:0')
 
 # Initialize webcam feed
 video = cv2.VideoCapture(0)
-ret = video.set(3,1280)
-ret = video.set(4,720)
+ret = video.set(3,640)
+ret = video.set(4,480)
 
 while(True):
 
@@ -66,7 +66,7 @@ while(True):
         [detection_boxes, detection_scores, detection_classes, num_detections],
         feed_dict={image_tensor: frame_expanded})
     
-    print(boxes)
+    print(classes)
 
     # All the results have been drawn on the frame, so it's time to display it.
     cv2.imshow('Object detector', frame)
@@ -78,3 +78,9 @@ while(True):
 # Clean up
 video.release()
 cv2.destroyAllWindows()
+
+
+class ObjectDetection():
+
+    def __init__(self):
+        pass

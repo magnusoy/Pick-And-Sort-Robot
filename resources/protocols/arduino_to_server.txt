@@ -1,0 +1,19 @@
+Arduino will forward the information from Odrive, and the
+current state in the state machine. It can also forward the
+PID outputs.
+
+This will not happen continuously as the serial print takes
+alot of time to execute. Therefor will it be done periodically
+every 100ms.
+
+--------------------------   
+        STATE MACHINE    |
+-------------------------
+S_IDLE          =>     0 |
+S_CALIBRATION   =>     1 |
+S_READY         =>     2 |
+S_RUNNING       =>     3 |
+S_COMPLETED     =>     4 |
+-------------------------
+
+{"state": 1, "x": 433, "y": 546}

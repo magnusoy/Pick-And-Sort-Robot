@@ -1,0 +1,19 @@
+Python will write to file with the following structure.
+It will be an array of objects containing keys that the
+server can extract data out of.
+
+This will be updated periodically as the object detection
+software finds the objects.
+
+[
+    {"object": 0, "type": "circle", "x": 433, "y": 546, "probability": 99},
+    {"object": 1, "type": "circle", "x": 433, "y": 546, "probability": 99},
+    {"object": 2, "type": "triangle", "x": 433, "y": 546, "probability": 99},
+    {"object": 3, "type": "square", "x": 433, "y": 546, "probability": 99},
+    {"object": 4, "type": "circle", "x": 433, "y": 546, "probability": 99},
+    {"object": 5, "type": "triangle", "x": 433, "y": 546, "probability": 99},
+    {"object": 6, "type": "square", "x": 433, "y": 546, "probability": 99},
+    {"object": 7, "type": "square", "x": 433, "y": 546, "probability": 99},
+    {"object": 8, "type": "circle", "x": 433, "y": 546, "probability": 99},
+    {"object": 9, "type": "triangle", "x": 433, "y": 546, "probability": 99}
+]
