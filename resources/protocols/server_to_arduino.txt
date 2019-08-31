@@ -4,14 +4,14 @@ after the last one is correctly placed.
 
 TYPES WILL BE ENCODED AS INTEGERS RANGING FROM 1 - 4
 
-----------------------
-|       OBJECTS       |
-----------------------
-|square       =>    1 |
-|circle       =>    2 |
-|triangle     =>    3 |
-|rectangle    =>    4 |
-----------------------
+------------------------
+|        OBJECTS       |
+------------------------
+| square       =>    1 |
+| circle       =>    2 |
+| triangle     =>    3 |
+| rectangle    =>    4 |
+------------------------
 
 
 {"type": 1, "x": 433, "y": 546}

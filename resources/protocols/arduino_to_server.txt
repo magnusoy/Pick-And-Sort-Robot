@@ -6,16 +6,16 @@ This will not happen continuously as the serial print takes
 alot of time to execute. Therefor it will be done periodically
 every 100ms.
 
-----------------------------   
-|      STATE MACHINE        |
-----------------------------
-|S_IDLE             =>   0 |
-|S_CALIBRATION      =>   1 |
-|S_READY            =>   2 |
-|S_MOVE_TO_OBJECT   =>   3 |
-|S_PICK_OBJECT      =>   4 |
-|S_MOVE_TO_DROP     =>   5 |
-|S_COMPLETED        =>   6 |
-----------------------------
+-----------------------------   
+|       STATE MACHINE       |
+-----------------------------
+| S_IDLE             =>   0 |
+| S_CALIBRATION      =>   1 |
+| S_READY            =>   2 |
+| S_MOVE_TO_OBJECT   =>   3 |
+| S_PICK_OBJECT      =>   4 |
+| S_MOVE_TO_DROP     =>   5 |
+| S_COMPLETED        =>   6 |
+-----------------------------
 
 {"state": 1, "x": 433, "y": 546}
