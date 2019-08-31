@@ -21,6 +21,7 @@
 #include "IO.h"
 #include "PidParameters.h"
 #include "OdriveParameters.h"
+#include <ArduinoJson.h>
 
 #define UPDATE_SERIAL_TIME 100 // In millis
 
@@ -54,10 +55,15 @@ PID pidY(kpY, kiY, kdY, REVERSE); // TODO: Change to correct direction
 const int S_IDLE = 0;
 const int S_CALIBRATION = 1;
 const int S_READY = 2;
-const int S_RUNNING = 3;
-const int S_COMPLETED = 4;
+const int S_MOVE_TO_OBJECT = 3;
+const int S_PICK_OBJECT = 4;
+const int S_MOVE_TO_DROP = 5;
+const int S_DROP_OBJECT = 6;
+const int S_COMPLETED = 7;
 // A variable holding the current state
 int currentState = S_IDLE;
+
+int objectType = 0;
 
 void setup() {
   // Initialize Serial ports
@@ -94,10 +100,31 @@ void loop() {
     case S_READY:
       // Wait for input from user to proceed
 
-      //changeStateTo(S_RUNNING);
+      //changeStateTo(S_MOVE_TO_OBJECT);
       break;
 
-    case S_RUNNING:
+    case S_MOVE_TO_OBJECT:
+      // TODO: Do something
+
+      // If user input is exit, change state
+      //changeStateTo(S_PICK_OBJECT);
+      break;
+
+    case S_PICK_OBJECT:
+      // TODO: Do something
+
+      // If user input is exit, change state
+      //changeStateTo(S_MOVE_TO_DROP);
+      break;
+
+    case S_MOVE_TO_DROP:
+      // TODO: Do something
+
+      // If user input is exit, change state
+      //changeStateTo(S_DROP_OBJECT);
+      break;
+
+    case S_DROP_OBJECT:
       // TODO: Do something
 
       // If user input is exit, change state
@@ -115,69 +142,47 @@ void loop() {
       break;
   }
   edgeDetection();
-  writeToSerial();
+  writeToSerial(UPDATE_SERIAL_TIME);
 }
 
 
 /**
-  docstring
+  Writes periodically to the Serial.
+
+  @param updateTime in millis
 */
-void writeToSerial() {
+void writeToSerial(unsigned long updateTime) {
   if (timerHasExpired()) {
-    // TODO: Send data
-
-    startTimer(UPDATE_SERIAL_TIME);
+    sendJSONDocumentToSerial();
+    startTimer(updateTime);
   }
 }
 
 /**
-  Reads from Serialport.
+  Generate a JSON document and sends it
+  over Serial.
 */
-void readFromSerial() {
-  static byte ndx = 0;
-  char endMarker = '\n';
-  char rc;
-
-  while ((Serial.available() > 0) && (!newData)) {
-    rc = Serial.read();
-
-    if (rc != endMarker) {
-      receivedChars[ndx] = rc;
-      ndx++;
-      if (ndx >= numChars) {
-        ndx = numChars - 1;
-      }
-    } else {
-      receivedChars[ndx] = '\0'; // Terminate the string
-      ndx = 0;
-      newData = true;
-    }
-  }
+void sendJSONDocumentToSerial() {
+  DynamicJsonDocument doc(64);
+  doc["state"] = currentState;
+  doc["x"] = actualValueX;
+  doc["y"] = actualValueY;
+  serializeJson(doc, Serial);
 }
 
 /**
-  Fetches the value from a substring,
-  wich is seperated with a given symbol.
-
-  @param data your String to be seperated
-  @param seperator your symbol to seperate by
-  @param index where your value is located
-
-  @return substring before seperator
+  Read JSON from Serial and parses it.
 */
-String getValueFromSerial(String data, char separator, int index) {
-  int found = 0;
-  int strIndex[] = { 0, -1 };
-  int maxIndex = data.length() - 1;
-
-  for (int i = 0; i <= maxIndex && found <= index; i++) {
-    if (data.charAt(i) == separator || i == maxIndex) {
-      found++;
-      strIndex[1] = (i == maxIndex) ? i + 1 : i;
-    }
+void readJSONDocuemntFromSerial() {
+  DynamicJsonDocument doc(64);
+  DeserializationError error = deserializeJson(doc, Serial);
+  if (error) {
+    changeStateTo(S_IDLE);
+    return;
   }
-  strIndex[0] = strIndex[1] + 1;
-  return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
+  objectType = doc["type"];
+  setValueX = doc["x"];
+  setValueY = doc["y"];
 }
 
 /**
@@ -308,7 +313,65 @@ void edgeDetection() {
   }
 }
 
-// Printing with stream operator
+/**
+  Change the set value of the
+  PID X, and Y.
+
+  @param x, new x position
+  @param y, new y position
+*/
+void setPosition(float x, float y) {
+  setValueX = x;
+  setValueY = y;
+}
+
+
+/**
+  Assigns the drop coordinates based
+  on the object type.
+*/
+void objectSorter(int object) {
+  switch (object) {
+    case 1:
+      setPosition(100, 100);
+      break;
+
+    case 2:
+      setPosition(100, 100);
+      break;
+
+    case 3:
+      setPosition(100, 100);
+      break;
+
+    case 4:
+      setPosition(100, 100);
+      break;
+
+    default:
+      changeStateTo(S_IDLE);
+      break;
+  }
+}
+
+/**
+  Pick object sequence.
+*/
+void pickObject() {
+  //TODO: Create sequence
+}
+
+/**
+  Drop object sequence.
+*/
+void dropObject() {
+  //TODO: Create sequence
+}
+
+/**
+  Templates for printing
+  to ODrive v3.6
+*/
 template<class T> inline Print& operator <<(Print &obj,     T arg) {
   obj.print(arg);
   return obj;

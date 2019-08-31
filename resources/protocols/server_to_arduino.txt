@@ -5,19 +5,19 @@ after the last one is correctly placed.
 TYPES WILL BE ENCODED AS INTEGERS RANGING FROM 1 - 4
 
 ----------------------
-       OBJECTS       |
+|       OBJECTS       |
 ----------------------
-square       =>    1 |
-circle       =>    2 |
-triangle     =>    3 |
-rectangle    =>    4 |
+|square       =>    1 |
+|circle       =>    2 |
+|triangle     =>    3 |
+|rectangle    =>    4 |
 ----------------------
 
 
 {"type": 1, "x": 433, "y": 546}
 
 
-Can maybe be dine with multiple objects at once.
+Can maybe be done with multiple objects at once.
 
 [
     {"type": 3, "x": 433, "y": 546},
