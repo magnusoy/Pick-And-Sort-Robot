@@ -18,9 +18,9 @@ Project description
 
 * **Magnus Øye** - [magnusoy](https://github.com/magnusoy)
 
-* **Vegard Solheim** - [magnusoy](https://github.com/solheim95)
+* **Vegard Solheim** - [solheim95](https://github.com/solheim95)
 
-* **Petter Drønnen** - [magnusoy](https://github.com/dr0nn1)
+* **Petter Drønnen** - [dr0nn1](https://github.com/dr0nn1)
 
 
 ## License
