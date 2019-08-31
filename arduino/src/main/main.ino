@@ -9,8 +9,8 @@
   Odrive - https://github.com/madcowswe/ODrive/tree/master/Arduino/ODriveArduino
   -----------------------------------------------------------
   Code by: Magnus Kvendseth Øye,
-  Date: 24.08-2019
-  Version: 1.0
+  Date: 31.08-2019
+  Version: 1.1
   Website: https://github.com/magnusoy/Pick-And-Sort-Robot
 */
 
