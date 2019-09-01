@@ -8,79 +8,104 @@ import numpy as np
 import tensorflow as tf
 import sys
 
-
-# Path to frozen detection graph .pb file, which contains the model that is used
-# for object detection.
-PATH_TO_CKPT = '.../../../../../resources/model/frozen_inference_graph.pb'
-
-# Path to label map file
-PATH_TO_LABELS = '.../../../../../resources/model/labelmap.pbtxt'
-
-# Number of classes the object detector can identify
-NUM_CLASSES = 4
+# Import utilites
+from object_detection.utils import label_map_util
+from object_detection.utils import visualization_utils as vis_util
 
 
-# Load the Tensorflow model into memory.
-detection_graph = tf.Graph()
-with detection_graph.as_default():
-    od_graph_def = tf.GraphDef()
-    with tf.gfile.GFile(PATH_TO_CKPT, 'rb') as fid:
-        serialized_graph = fid.read()
-        od_graph_def.ParseFromString(serialized_graph)
-        tf.import_graph_def(od_graph_def, name='')
-
-    sess = tf.Session(graph=detection_graph)
-
-
-# Define input and output tensors (i.e. data) for the object detection classifier
-
-# Input tensor is the image
-image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
-
-# Output tensors are the detection boxes, scores, and classes
-# Each box represents a part of the image where a particular object was detected
-detection_boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
-
-# Each score represents level of confidence for each of the objects.
-# The score is shown on the result image, together with the class label.
-detection_scores = detection_graph.get_tensor_by_name('detection_scores:0')
-detection_classes = detection_graph.get_tensor_by_name('detection_classes:0')
-
-# Number of objects detected
-num_detections = detection_graph.get_tensor_by_name('num_detections:0')
-
-# Initialize webcam feed
-video = cv2.VideoCapture(0)
-ret = video.set(3,640)
-ret = video.set(4,480)
-
-while(True):
-
-    # Acquire frame and expand frame dimensions to have shape: [1, None, None, 3]
-    # i.e. a single-column array, where each item in the column has the pixel RGB value
-    ret, frame = video.read()
-    frame_expanded = np.expand_dims(frame, axis=0)
-
-    # Perform the actual detection by running the model with the image as input
-    (boxes, scores, classes, num) = sess.run(
-        [detection_boxes, detection_scores, detection_classes, num_detections],
-        feed_dict={image_tensor: frame_expanded})
-    
-    print(classes)
-
-    # All the results have been drawn on the frame, so it's time to display it.
-    cv2.imshow('Object detector', frame)
-
-    # Press 'q' to quit
-    if cv2.waitKey(1) == ord('q'):
-        break
-
-# Clean up
-video.release()
-cv2.destroyAllWindows()
-
-
-class ObjectDetection():
+class ObjectDetection(object):
+    """docstring"""
 
     def __init__(self):
-        pass
+        self.PATH_TO_CKPT = '.../../../../../resources/model/frozen_inference_graph.pb'
+        self.PATH_TO_LABELS = '.../../../../../resources/model/labelmap.pbtxt'
+        self.NUM_CLASSES = 4
+
+        self.label_map = label_map_util.load_labelmap(self.PATH_TO_LABELS)
+
+        self.categories = label_map_util.convert_label_map_to_categories(
+            self.label_map, max_num_classes=self.NUM_CLASSES, use_display_name=True)
+
+        self.category_index = label_map_util.create_category_index(
+            self.categories)
+
+        # Initialize variables
+        self.sess = None
+        self.image_tensor = None
+        self.detection_boxes = None
+        self.detection_scores = None
+        self.detection_classes = None
+        self.num_detections = None
+
+    def initialize(self):
+        """docstring"""
+        detection_graph = tf.Graph()
+        with detection_graph.as_default():
+            od_graph_def = tf.GraphDef()
+            with tf.gfile.GFile(self.PATH_TO_CKPT, 'rb') as fid:
+                serialized_graph = fid.read()
+                od_graph_def.ParseFromString(serialized_graph)
+                tf.import_graph_def(od_graph_def, name='')
+
+            self.sess = tf.Session(graph=detection_graph)
+
+        # Input tensor is the image
+        self.image_tensor = detection_graph.get_tensor_by_name(
+            'image_tensor:0')
+        # Output tensors are the detection boxes, scores, and classes
+        self.detection_boxes = detection_graph.get_tensor_by_name(
+            'detection_boxes:0')
+        # Each score represents level of confidence for each of the objects.
+        self.detection_scores = detection_graph.get_tensor_by_name(
+            'detection_scores:0')
+        self.detection_classes = detection_graph.get_tensor_by_name(
+            'detection_classes:0')
+        # Number of objects detected
+        self.num_detections = detection_graph.get_tensor_by_name(
+            'num_detections:0')
+
+    def run(self, capture):
+        """docstring"""
+        _, frame = video.read()
+        frame_expanded = np.expand_dims(frame, axis=0)
+
+        # Perform the detection by running the model with the image as input
+        (boxes, scores, classes, num) = self.sess.run(
+            [self.detection_boxes, self.detection_scores,
+                self.detection_classes, self.num_detections],
+            feed_dict={self.image_tensor: frame_expanded})
+
+        # Draw the results of the detection
+        vis_util.visualize_boxes_and_labels_on_image_array(
+            frame,
+            np.squeeze(boxes),
+            np.squeeze(classes).astype(np.int32),
+            np.squeeze(scores),
+            self.category_index,
+            use_normalized_coordinates=True,
+            line_thickness=4,
+            min_score_thresh=0.60)
+
+        cv2.imshow('Object detector', frame)
+
+
+#Example of usage
+if __name__ == "__main__":
+    object_detection = ObjectDetection()
+
+    video = cv2.VideoCapture(0)
+    ret = video.set(3, 640)
+    ret = video.set(4, 480)
+
+    object_detection.initialize()
+
+    while True:
+        object_detection.run(video)
+
+        # Press 'q' to quit
+        if cv2.waitKey(1) == ord('q'):
+            break
+
+    # Clean up
+    video.release()
+    cv2.destroyAllWindows()
