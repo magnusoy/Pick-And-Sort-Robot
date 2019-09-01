@@ -16,9 +16,9 @@ from object_detection.utils import visualization_utils as vis_util
 class ObjectDetection(object):
     """docstring"""
 
-    def __init__(self):
-        self.PATH_TO_CKPT = '.../../../../../resources/model/frozen_inference_graph.pb'
-        self.PATH_TO_LABELS = '.../../../../../resources/model/labelmap.pbtxt'
+    def __init__(self, path_to_ckpt, path_to_labels):
+        self.PATH_TO_CKPT = path_to_ckpt
+        self.PATH_TO_LABELS = path_to_labels
         self.NUM_CLASSES = 4
 
         self.label_map = label_map_util.load_labelmap(self.PATH_TO_LABELS)
@@ -64,9 +64,9 @@ class ObjectDetection(object):
         self.num_detections = detection_graph.get_tensor_by_name(
             'num_detections:0')
 
-    def run(self, capture):
+    def run(self, capture, debug=False):
         """docstring"""
-        _, frame = video.read()
+        _, frame = capture.read()
         frame_expanded = np.expand_dims(frame, axis=0)
 
         # Perform the detection by running the model with the image as input
@@ -86,7 +86,13 @@ class ObjectDetection(object):
             line_thickness=4,
             min_score_thresh=0.60)
 
-        cv2.imshow('Object detector', frame)
+        if debug:
+            cv2.imshow('Object detector', frame)
+        
+        _, jpeg = cv2.imencode('.jpg', frame)
+        return jpeg.tobytes()
+    
+
 
 
 #Example of usage

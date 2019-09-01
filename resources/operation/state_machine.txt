@@ -1,3 +1,5 @@
+OLD, NEW FLOWCHART IS TO BE MADE!
+
 This are the operation states in the state machine.
 
 S_IDLE
@@ -8,6 +10,7 @@ S_PICK_OBJECT
 S_MOVE_TO_DROP
 S_DROP_OBJECT 
 S_COMPLETED
+S_RESET
 
 ---------------------------
 | State machine main loop |

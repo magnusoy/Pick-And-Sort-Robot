@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     {% block head %}
+    <!-- Header content -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
@@ -28,25 +29,19 @@
 
 
       <h1>Videostream</h1>
-      <div id="recorder">
-        <button class="positive ui button" id="record">Record</button>
-        <button class="negative ui button" id="stop">Stop</button>
-        <a id="download"></a>
-        <script
-          type="text/javascript"
-          src="{{ url_for('static', filename='recorder.js') }}"
-        ></script>
-      </div>
+
       <img id="video" src="{{ url_for('video_viewer') }}" />
 
       {% endblock %}
-    </div>
-
+    
+    <!-- Javascripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   
-  </body>    
+  </body>
   {% block footer %}
+  <!-- Footer content -->
 
     {% endblock %}
 </html>

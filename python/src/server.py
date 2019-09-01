@@ -3,8 +3,22 @@
 
 # Importing libraries
 from flask import Flask, render_template, Response, jsonify, request
-from camera import VideoCamera
+from object_detection.model import ObjectDetection
+import cv2
+import sys
+import os
 
+video = cv2.VideoCapture(0)
+ret = video.set(3, 640)
+ret = video.set(4, 480)
+
+os.chdir('C:\\Users\\Magnus\\Documents\\Pick-And-Sort-Robot\\resources')
+
+CWD_PATH = os.getcwd()
+PATH_TO_CKPT = os.path.join(CWD_PATH,'model','frozen_inference_graph.pb')
+PATH_TO_LABELS = os.path.join(CWD_PATH,'model','labelmap.pbtxt')
+
+os.chdir('C:\\Users\\Magnus\\Documents\\Pick-And-Sort-Robot\\python\\src')
 
 app = Flask(__name__)
 
@@ -16,34 +30,18 @@ def index():
     """docstring"""
     return render_template('index.html')
 
-@app.route('/record_status', methods=['POST'])
-def record_status():
-    """docstring"""
-    global video_camera 
-    if video_camera == None:
-        video_camera = VideoCamera()
-
-    json = request.get_json()
-
-    status = json['status']
-
-    if status == "true":
-        video_camera.start_record()
-        return jsonify(result="started")
-    else:
-        video_camera.stop_record()
-        return jsonify(result="stopped")
-
 def video_stream():
     """doctring"""
     global video_camera 
     global global_frame
 
     if video_camera == None:
-        video_camera = VideoCamera()
+        video_camera = ObjectDetection(PATH_TO_CKPT, PATH_TO_LABELS)
+        video_camera.initialize()
+
         
     while True:
-        frame = video_camera.get_frame()
+        frame = video_camera.run(video)
         if frame != None:
             global_frame = frame
             yield (b'--frame\r\n'
