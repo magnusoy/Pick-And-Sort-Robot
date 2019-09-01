@@ -14,7 +14,7 @@ Project description
 * [Python](https://www.python.org/) - Python
 
 
-## Author
+## Authors
 
 * **Magnus Øye** - [magnusoy](https://github.com/magnusoy)
 
@@ -54,4 +54,6 @@ This project is licensed under the MIT License - see the [LICENSE.md](https://gi
 [Vpython](http://vpython.org/)
 
 [PyGame](https://www.pygame.org/news)
+
+[Flask](https://github.com/pallets/flask)
 

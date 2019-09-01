@@ -1,0 +1,65 @@
+This are the operation states in the state machine.
+
+S_IDLE
+S_CALIBRATION
+S_READY
+S_MOVE_TO_OBJECT
+S_PICK_OBJECT
+S_MOVE_TO_DROP
+S_DROP_OBJECT 
+S_COMPLETED
+
+---------------------------
+| State machine main loop |
+---------------------------
+
+---Start---
+
+S_IDLE : Is calibrate button pressed?
+
+Yes -> change state to S_CALIBRATION
+No  -> continue in S_IDLE
+
+----------------------------------------------------------------------------------------------------
+
+S_CALIBRATION : Is calibration completed ?
+
+Yes -> change state to S_READY
+No  -> continue in S_CALIBRATION until finished
+
+----------------------------------------------------------------------------------------------------
+
+S_READY : Is start button pressed?
+
+Yes -> ask server for object position and change state to S_MOVE_TO_OBJECT
+No -> continue in S_READY until button pressed
+
+----------------------------------------------------------------------------------------------------
+
+S_MOVE_TO_OBJECT : Is the actualValueX and actualValueY at setValueX and setValueY ?
+
+Yes -> change state to S_PICK_OBJECT
+No -> continue until the actualValueX and actualValueY are the same as setValueX and setValueY
+
+----------------------------------------------------------------------------------------------------
+
+S_PICK_OBJECT : Have the sequence finished ?
+Yes -> change state to S_MOVE_TO_DROP
+
+----------------------------------------------------------------------------------------------------
+
+S_MOVE_TO_DROP : Is the actualValueX and actualValueY at setValueX and setValueY ?
+
+Yes -> change state to S_COMPLETED
+No -> continue until the actualValueX and actualValueY are the same as setValueX and setValueY
+
+----------------------------------------------------------------------------------------------------
+
+S_COMPLETED : Are there more objects in the zone ?
+
+Yes -> change state to S_MOVE_TO_OBJECT
+No  -> change state to S_READY
+
+----------------------------------------------------------------------------------------------------
+
+---Stop---
