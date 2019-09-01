@@ -7,10 +7,11 @@
   Libraries used:
   PID - https://github.com/magnusoy/Arduino-PID-Library
   Odrive - https://github.com/madcowswe/ODrive/tree/master/Arduino/ODriveArduino
+  ArduinoJSON - https://github.com/bblanchon/ArduinoJson
   -----------------------------------------------------------
-  Code by: Magnus Kvendseth Øye,
-  Date: 31.08-2019
-  Version: 1.1
+  Code by: Magnus Kvendseth Øye, Vegard Solheim
+  Date: 01.09-2019
+  Version: 1.2
   Website: https://github.com/magnusoy/Pick-And-Sort-Robot
 */
 
@@ -18,10 +19,10 @@
 // Including libraries
 #include <PID.h>
 #include <ODriveArduino.h>
+#include <ArduinoJson.h>
 #include "IO.h"
 #include "PidParameters.h"
 #include "OdriveParameters.h"
-#include <ArduinoJson.h>
 
 #define UPDATE_SERIAL_TIME 100 // In millis
 
@@ -60,10 +61,14 @@ const int S_PICK_OBJECT = 4;
 const int S_MOVE_TO_DROP = 5;
 const int S_DROP_OBJECT = 6;
 const int S_COMPLETED = 7;
+const int S_RESET = 8;
 // A variable holding the current state
 int currentState = S_IDLE;
 
+// Variables storing object data
 int objectType = 0;
+int objectsRemaining = 0;
+
 
 void setup() {
   // Initialize Serial ports
@@ -85,11 +90,12 @@ void setup() {
 }
 
 void loop() {
+  // State machine
   switch (currentState) {
     case S_IDLE:
-      // TODO: Wait for input from user to proceed
-
-      //changeStateTo(S_CALIBRATION);
+      if (isValidCommand('c')) {
+        changeStateTo(S_CALIBRATION);
+      }
       break;
 
     case S_CALIBRATION:
@@ -98,42 +104,77 @@ void loop() {
       break;
 
     case S_READY:
-      // Wait for input from user to proceed
-
-      //changeStateTo(S_MOVE_TO_OBJECT);
+      readJSONDocuemntFromSerial();
+      if (isValidCommand('g')) {
+        changeStateTo(S_MOVE_TO_OBJECT);
+      }
       break;
 
     case S_MOVE_TO_OBJECT:
-      // TODO: Do something
+      readMotorPositions();
+      outputValueX = pidX.compute(actualValueX, setValueX);
+      outputValueY = pidY.compute(actualValueX, setValueX);
+      setMotorPosition(MOTOR_X, outputValueX);
+      setMotorPosition(MOTOR_Y, outputValueY);
 
-      // If user input is exit, change state
-      //changeStateTo(S_PICK_OBJECT);
+      if ((actualValueX == setValueX) &&
+          (actualValueY == setValueY)) {
+        changeStateTo(S_PICK_OBJECT);
+      }
       break;
 
-    case S_PICK_OBJECT:
-      // TODO: Do something
-
-      // If user input is exit, change state
-      //changeStateTo(S_MOVE_TO_DROP);
+    case S_PICK_OBJECT: {
+        boolean pickedUp = pickObject();
+        if (pickedUp) {
+          objectSorter(objectType);
+          changeStateTo(S_MOVE_TO_DROP);
+        }
+      }
       break;
 
     case S_MOVE_TO_DROP:
-      // TODO: Do something
+      readMotorPositions();
+      outputValueX = pidX.compute(actualValueX, setValueX);
+      outputValueY = pidY.compute(actualValueX, setValueX);
+      setMotorPosition(MOTOR_X, outputValueX);
+      setMotorPosition(MOTOR_Y, outputValueY);
 
-      // If user input is exit, change state
-      //changeStateTo(S_DROP_OBJECT);
+      if ((actualValueX == setValueX) &&
+          (actualValueY == setValueY)) {
+        changeStateTo(S_DROP_OBJECT);
+      }
       break;
 
-    case S_DROP_OBJECT:
-      // TODO: Do something
-
-      // If user input is exit, change state
-      //changeStateTo(S_COMPLETED);
+    case S_DROP_OBJECT: {
+        boolean dropped = dropObject();
+        if (dropped) {
+          changeStateTo(S_COMPLETED);
+        }
+      }
       break;
 
     case S_COMPLETED:
-      // TODO: Do something
-      //changeStateTo(S_READY);
+      readJSONDocuemntFromSerial();
+      if (objectsRemaining == 0) {
+        objectSorter(0);
+        changeStateTo(S_RESET);
+      } else {
+        objectSorter(objectType);
+        changeStateTo(S_MOVE_TO_OBJECT);
+      }
+      break;
+
+    case S_RESET:
+      readMotorPositions();
+      outputValueX = pidX.compute(actualValueX, setValueX);
+      outputValueY = pidY.compute(actualValueX, setValueX);
+      setMotorPosition(MOTOR_X, outputValueX);
+      setMotorPosition(MOTOR_Y, outputValueY);
+
+      if ((actualValueX == setValueX) &&
+          (actualValueY == setValueY)) {
+        changeStateTo(S_READY);
+      }
       break;
 
     default:
@@ -181,8 +222,31 @@ void readJSONDocuemntFromSerial() {
     return;
   }
   objectType = doc["type"];
+  objectsRemaining = doc["num"];
   setValueX = doc["x"];
   setValueY = doc["y"];
+}
+
+/**
+  Receives input from Serial and check if
+  the data corresponds the valid command.
+
+  @param inputCommand, valid command char
+
+  @return true if input matches,
+          else false
+*/
+boolean isValidCommand(char inputCommand) {
+  char received = ' ';
+  boolean valid = false;
+
+  if (Serial.available()) {
+    received = Serial.read();
+  }
+  if (received == inputCommand) {
+    valid = true;
+  }
+  return valid;
 }
 
 /**
@@ -265,6 +329,8 @@ void readMotorPositions() {
       motorPosition[motorNumber] = odrive.readFloat();
     }
   }
+  actualValueX = motorPosition[0];
+  actualValueY = motorPosition[1];
 }
 
 /**
@@ -332,6 +398,10 @@ void setPosition(float x, float y) {
 */
 void objectSorter(int object) {
   switch (object) {
+    case 0:
+      setPosition(100, 100);
+      break;
+
     case 1:
       setPosition(100, 100);
       break;
@@ -357,15 +427,17 @@ void objectSorter(int object) {
 /**
   Pick object sequence.
 */
-void pickObject() {
+boolean pickObject() {
   //TODO: Create sequence
+  return true;
 }
 
 /**
   Drop object sequence.
 */
-void dropObject() {
+boolean dropObject() {
   //TODO: Create sequence
+  return true;
 }
 
 /**

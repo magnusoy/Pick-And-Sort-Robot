@@ -15,7 +15,9 @@ every 100ms.
 | S_MOVE_TO_OBJECT   =>   3 |
 | S_PICK_OBJECT      =>   4 |
 | S_MOVE_TO_DROP     =>   5 |
-| S_COMPLETED        =>   6 |
+| S_DROP_OBJECT      =>   6 |
+| S_COMPLETED        =>   7 |
+| S_RESET            =>   8 |
 -----------------------------
 
 {"state": 1, "x": 433, "y": 546}
