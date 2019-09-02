@@ -1,5 +1,7 @@
 package main.java.communication;
 
+import org.json.simple.JSONObject;
+
 import java.util.Scanner;
 
 public class ArduinoHandlerTest {
@@ -16,13 +18,25 @@ public class ArduinoHandlerTest {
             System.out.println("enter a number");
             Scanner reader = new Scanner(System.in);
             int menuSelection = reader.nextInt();
-            String hei = "halla";
+
             switch (menuSelection){
                 case 1:
-                    arduinoHandler.sendData(hei.getBytes());
+                    JSONObject obj = new JSONObject();
+
+                    obj.put("name","foo");
+                    obj.put("num",new Integer(100));
+                    obj.put("balance",new Double(1000.21));
+                    obj.put("is_vip",new Boolean(true));
+                    arduinoHandler.sendData(obj);
                     break;
                 case 2:
-                    arduinoHandler.sendData(hei.getBytes());
+                    JSONObject obj1 = new JSONObject();
+
+                    obj1.put("name","Petter");
+                    obj1.put("num",new Integer(1337));
+                    obj1.put("balance",new Double(100));
+                    obj1.put("is_vip",new Boolean(false));
+                    arduinoHandler.sendData(obj1);
                     break;
 
                 case 3:

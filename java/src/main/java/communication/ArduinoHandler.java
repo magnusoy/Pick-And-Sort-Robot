@@ -6,8 +6,10 @@ import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
-import java.util.Enumeration;
 
+import java.io.StringWriter;
+import java.util.Enumeration;
+import org.json.simple.JSONObject;
 
 public class ArduinoHandler extends Thread implements SerialPortEventListener  {
     SerialPort serialPort;
@@ -107,13 +109,18 @@ public class ArduinoHandler extends Thread implements SerialPortEventListener  {
         // Ignore all the other eventTypes, but you should consider the other ones.
     }
     /**
-     * Sends an int to the arduino
+     * Sends an JSONObject to the arduino
      */
-    public synchronized void sendData(byte[] data){
+    public synchronized void sendData(JSONObject data){
         try {
-            output.write(data);
+            StringWriter outputData = new StringWriter();
+            data.writeJSONString(outputData);
+            String jsonText = outputData.toString();
+            System.out.print(jsonText);
+
         }catch (Exception e){
             System.err.println(e.toString());
+
         }
     }
 
