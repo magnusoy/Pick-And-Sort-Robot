@@ -1,21 +1,20 @@
 package main.java.communication;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
-
-import java.io.StringWriter;
 import java.util.Enumeration;
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 
 public class ArduinoHandler extends Thread implements SerialPortEventListener  {
     SerialPort serialPort;
     /** The port we're normally going to use. */
     private static final String PORT_NAMES[] = {
-            "COM3" // Windows
+            "COM4"// Windows
     };
     /**
      * A BufferedReader which will be fed by a InputStreamReader
@@ -28,7 +27,7 @@ public class ArduinoHandler extends Thread implements SerialPortEventListener  {
     /** Milliseconds to block while waiting for port open */
     private static final int TIME_OUT = 2000;
     /** Default bits per second for COM port. */
-    private static final int DATA_RATE = 115200;
+    private static final int DATA_RATE = 9600;
 
     @Override
     public void run() {
@@ -101,8 +100,9 @@ public class ArduinoHandler extends Thread implements SerialPortEventListener  {
         if (oEvent.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
             try {
                 String inputLine=input.readLine();
-                System.out.println(inputLine);
-            } catch (Exception e) {
+                JSONObject jsonObject = new JSONObject(inputLine);
+                jsonObject.get("state");
+            } catch (IOException e) {
                 System.err.println(e.toString());
             }
         }
@@ -113,10 +113,11 @@ public class ArduinoHandler extends Thread implements SerialPortEventListener  {
      */
     public synchronized void sendData(JSONObject data){
         try {
-            StringWriter outputData = new StringWriter();
-            data.writeJSONString(outputData);
-            String jsonText = outputData.toString();
-            System.out.print(jsonText);
+            output.write(data.toString().getBytes());
+            // StringWriter outputData = new StringWriter();
+            //data.writeJSONString(outputData);
+            // String jsonText = outputData.toString();
+            //System.out.print(jsonText);
 
         }catch (Exception e){
             System.err.println(e.toString());

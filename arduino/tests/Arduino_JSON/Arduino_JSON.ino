@@ -6,7 +6,7 @@ int id = 0;
 int state = 0;
 void setup() {
   // Initialize serial port
-  Serial.begin(2000000);
+  Serial.begin(9600);
   pinMode(13, OUTPUT);
 
   // while (!Serial) continue;
@@ -68,8 +68,14 @@ void loop() {
   if (serialSendTimer(1000)) { // Send every 1000ms
     sendJSONSerial();
     //printProgramExecutionTime();
-    digitalWrite(13, false);
+    <<< <<< < HEAD
+    printReceivedData();
+    //digitalWrite(13, false);
+    //receiveJSONSerial();
+    == == == =
+      digitalWrite(13, false);
     receiveJSONSerial();
+    >>> >>> > 3f292cb2677c414c2924a74dc6ebbbb38ba6783b
   }
 }
 
@@ -121,98 +127,113 @@ void sendJSONSerial() {
   objects_2["y"] = 720;
 
   serializeJson(doc, Serial);
+  Serial.print("\n");
 }
 
 /**
+  <<<<<<< HEAD
    print what is received
 */
-void receiveJSONSerial2() {
+void printReceivedData() {
   if (Serial.available()) {
-    String myString = Serial.readString();
-    Serial.print("This just in: ");
-    Serial.println(myString);
-  }
-}
-
-/**
-   Receive JSON formatted data over serial
-*/
-void receiveJSONSerial() {
-  boolean received = false;
-  if (Serial.available()) {
-    const size_t capacity = 10 * JSON_ARRAY_SIZE(2) + JSON_ARRAY_SIZE(10) + 11 * JSON_OBJECT_SIZE(3) + 220;
-    DynamicJsonDocument docRcv(capacity);
-    // Deserialize the JSON document
-    DeserializationError error = deserializeJson(docRcv, Serial);
-
-    // Test if parsing succeeds.
-    if (error) {
-      Serial.print(F("deserializeJson() failed: "));
-      Serial.println(error.c_str());
-      return;
-    }
-
-    JsonObject obj = docRcv.as<JsonObject>();
-
-    if (obj.containsKey("state")) {
-      int state = obj.getMember("state");
-      changeStateTo(state);
-      received = true;
-    }
-
-    if (obj.containsKey("PetterSucks")) {
-      boolean petterSucks = obj.getMember("PetterSucks");
-      Serial.print("Petter sucks: ");
-      Serial.println(petterSucks ? "YES" : "NO");
-      received = true;
-    }
-
-    // Extract bricks from JSON document
-    if (obj.containsKey("objects")) {
-      JsonArray objects = docRcv["objects"].as<JsonArray>();
-      Serial.println();
-
-      // Go through all bricks
-      for (JsonObject object : objects) {
-        int objectType = object["type"];
-        int objectID = object["ID"];
-        int objectCoord_X = object["x"];
-        int objectCoord_Y = object["y"];
-
-        received = true;
-
-        // Print brick info to Serial
-        Serial.println("This is a object: ");
-        Serial.print("type: ");
-        Serial.println(objectType);
-        Serial.print("ID: ");
-        Serial.println(objectID);
-        Serial.print("Coordinate: x = ");
-        Serial.print(objectCoord_X);
-        Serial.print(", y = ");
-        Serial.println(objectCoord_Y);
+    == == == =
+      print what is received
+      * /
+    void receiveJSONSerial2() {
+      if (Serial.available()) {
+        >>> >>> > 3f292cb2677c414c2924a74dc6ebbbb38ba6783b
+        String myString = Serial.readString();
+        Serial.print("This just in: ");
+        Serial.println(myString);
+        Serial.print("\n");
       }
     }
-  }
 
-  if (received) {
-    digitalWrite(13, true);
-  }
-}
+    /**
+       Receive JSON formatted data over serial
+    */
+    void receiveJSONSerial() {
+      boolean received = false;
+      if (Serial.available()) {
+        const size_t capacity = 10 * JSON_ARRAY_SIZE(2) + JSON_ARRAY_SIZE(10) + 11 * JSON_OBJECT_SIZE(3) + 220;
+        DynamicJsonDocument docRcv(capacity);
+        // Deserialize the JSON document
+        DeserializationError error = deserializeJson(docRcv, Serial);
+
+        // Test if parsing succeeds.
+        if (error) {
+          Serial.print(F("deserializeJson() failed: "));
+          Serial.println(error.c_str());
+          return;
+        }
+
+        JsonObject obj = docRcv.as<JsonObject>();
+
+        if (obj.containsKey("state")) {
+          int state = obj.getMember("state");
+          changeStateTo(state);
+          received = true;
+        }
+
+        if (obj.containsKey("PetterSucks")) {
+          boolean petterSucks = obj.getMember("PetterSucks");
+          Serial.print("Petter sucks: ");
+          Serial.print(petterSucks ? "YES" : "NO");
+          Serial.print("\n");
+          received = true;
+        }
+
+        // Extract bricks from JSON document
+        if (obj.containsKey("objects")) {
+          JsonArray objects = docRcv["objects"].as<JsonArray>();
+          <<< <<< < HEAD
+          Serial.print("\n");
+
+          == == == =
+            Serial.println();
+
+          >>> >>> > 3f292cb2677c414c2924a74dc6ebbbb38ba6783b
+          // Go through all bricks
+          for (JsonObject object : objects) {
+            int objectType = object["type"];
+            int objectID = object["ID"];
+            int objectCoord_X = object["x"];
+            int objectCoord_Y = object["y"];
+
+            received = true;
+
+            // Print brick info to Serial
+            Serial.print("This is a object: ");
+            Serial.print("type: ");
+            Serial.print(objectType);
+            Serial.print("ID: ");
+            Serial.print(objectID);
+            Serial.print("Coordinate: x = ");
+            Serial.print(objectCoord_X);
+            Serial.print(", y = ");
+            Serial.print(objectCoord_Y);
+          }
+        }
+      }
+
+      if (received) {
+        digitalWrite(13, true);
+      }
+    }
 
 
 
-/**
-   Prints the program execution time to serial
-*/
-void printProgramExecutionTime() {
-  unsigned long now = millis();
-  Serial.println();
-  Serial.print("Program Executed in: ");
-  Serial.println(now - startTime);
-  startTime = now;
-}
+    /**
+       Prints the program execution time to serial
+    */
+    void printProgramExecutionTime() {
+      unsigned long now = millis();
+      Serial.println();
+      Serial.print("Program Executed in: ");
+      Serial.println(now - startTime);
+      startTime = now;
+    }
 
-void changeStateTo(int newState) {
-  state = newState;
-}
+    void changeStateTo(int newState) {
+      state = newState;
+    }

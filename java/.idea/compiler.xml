@@ -9,9 +9,8 @@
         <module name="Pick-And-Sort-Robot" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="Pick-And-Sort-Robot" target="1.5" />
-      <module name="pickandsortrobot" target="1.5" />
+    <bytecodeTargetLevel target="8">
+      <module name="Pick-And-Sort-Robot" target="8" />
     </bytecodeTargetLevel>
   </component>
 </project>
