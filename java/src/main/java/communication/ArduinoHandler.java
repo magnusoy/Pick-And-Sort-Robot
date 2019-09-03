@@ -28,7 +28,8 @@ public class ArduinoHandler extends Thread implements SerialPortEventListener  {
     private static final int TIME_OUT = 2000;
     /** Default bits per second for COM port. */
     private static final int DATA_RATE = 9600;
-
+    /** The jsonObject that the Arduino sends over the Serial */
+    private JSONObject jsonObject;
     @Override
     public void run() {
         CommPortIdentifier quit = null ;
@@ -100,8 +101,7 @@ public class ArduinoHandler extends Thread implements SerialPortEventListener  {
         if (oEvent.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
             try {
                 String inputLine=input.readLine();
-                JSONObject jsonObject = new JSONObject(inputLine);
-                jsonObject.get("state");
+                this.jsonObject = new JSONObject(inputLine);
             } catch (IOException e) {
                 System.err.println(e.toString());
             }
@@ -125,4 +125,7 @@ public class ArduinoHandler extends Thread implements SerialPortEventListener  {
         }
     }
 
+    public synchronized JSONObject getJsonObject() {
+        return this.jsonObject;
+    }
 }
