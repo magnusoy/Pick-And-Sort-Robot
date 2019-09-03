@@ -1,6 +1,5 @@
 package main.java.communication;
-
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 
 import java.util.Scanner;
 
