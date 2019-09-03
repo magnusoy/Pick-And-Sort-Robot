@@ -9,39 +9,111 @@
     <meta name="description" content="Pick-and-Sort-Robot Controlpanel" />
     <meta name="author" content="magnusoy" />
     <title>Pick-and-Sort-Robot</title>
-    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet"/>
 
     <!-- Cemantic core -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.css">
-
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.css"
+    />
+    <link
+      href="{{ url_for('static', filename='css/style.css') }}"
+      rel="stylesheet"
+    />
     {% endblock %}
   </head>
 
-  <body>
+  <body class="vertical segment">
     <!-- Main content -->
     <div id="content">
       {% block content %}
+      <div id="state">{{ state }}</div>
 
-      <button class="positive ui button">Start</button>
-      <button class="ui yellow compact labeled icon button"><i class="pause icon"></i>Pause</button>
-      <button class="negative ui button">Stop</button>
-      <button class="red ui button">Reset</button>
+      <div id="modes" class="ui form">
+        <h1>Pick options</h1>
+        <div class="grouped fields">
+          <div class="field">
+            <div class="ui slider checkbox">
+              <input type="radio" name="throughput" checked="checked" />
+              <label>All objects</label>
+            </div>
+          </div>
+          <div class="field">
+            <div class="ui slider checkbox">
+              <input type="radio" name="throughput" />
+              <label>Squares</label>
+            </div>
+          </div>
+          <div class="field">
+            <div class="ui slider checkbox">
+              <input type="radio" name="throughput" />
+              <label>Circles</label>
+            </div>
+          </div>
+          <div class="field">
+            <div class="ui slider checkbox checked">
+              <input type="radio" name="throughput" />
+              <label>Triangles</label>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui slider checkbox checked">
+            <input type="radio" name="throughput" />
+            <label>Rectangles</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ui vertical buttons">
+      <button class="positive massive ui button">Start</button>
+      <button class="negative massive ui button">Stop</button>
+      <button class="yellow ui massive button">Reset</button>
+    </div>
 
+    <h1>Videostream</h1>
 
-      <h1>Videostream</h1>
+    <!--<img id="video" src="{{ url_for('video_viewer') }}" />  -->
+    <img
+      id="video"
+      src="http://www.mazegenerator.net/static/orthogonal_maze_with_20_by_20_cells.png"
+    />
 
-      <img id="video" src="{{ url_for('video_viewer') }}" />
+    <div id="object_list">{{ objects }}</div>
 
-      {% endblock %}
-    
+    <script>
+      setInterval(function() {
+        // load the data from your endpoint into the div
+        $("#object_list").load("/objects");
+      }, 1000);
+    </script>
+
+    <script>
+      setInterval(function() {
+        // load the data from your endpoint into the div
+        $("#state").load("/state");
+      }, 1000);
+    </script>
+
+    <div id="functions">
+      <button class="massive ui button">Manual override</button>
+      <button class="massive ui button">Calibrate motors</button>
+    </div>
+
+    {% endblock %}
+
     <!-- Javascripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-  
   </body>
   {% block footer %}
   <!-- Footer content -->
+  <footer class="ui inverted vertical segment">
+    Graphical User Interface for Pick-and-Sort-Robot by
+    <a href="https://github.com/magnusoy/Pick-And-Sort-Robot">
+      Real Time Programming Course, Group 3</a
+    >.
+  </footer>
 
-    {% endblock %}
+  {% endblock %}
 </html>

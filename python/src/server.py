@@ -56,6 +56,16 @@ def video_viewer():
     return Response(video_stream(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
+@app.route('/objects')
+def objects():
+    object_list = ["This", "is", "a", "object", "list"]
+    return render_template('objects.html', objects=object_list)
+
+@app.route('/state')
+def state():
+    state = "S_IDLE"
+    return render_template('state.html', state=state)
+
 
 # Running server
 if __name__ == '__main__':
