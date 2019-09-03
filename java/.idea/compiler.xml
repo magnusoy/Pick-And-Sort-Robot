@@ -6,9 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="Pick-And-Sort-Robot" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="Pick-And-Sort-Robot" target="1.5" />
       <module name="pickandsortrobot" target="1.5" />
     </bytecodeTargetLevel>
   </component>
