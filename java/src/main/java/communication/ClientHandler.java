@@ -1,8 +1,6 @@
 package main.java.communication;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 
 
@@ -42,8 +40,10 @@ public class ClientHandler extends Thread {
 
         while (this.socket.isConnected()) {
             try {
-                this.dataOutputStream.writeUTF("ACK " + packageNumber);
-                received = this.dataInputStream.readUTF();
+                BufferedReader in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
+                PrintWriter out = new PrintWriter(this.socket.getOutputStream(), true);
+
+                received = in.readLine();
 
                 if (received.equals("Exit")) {
                     System.out.println("Client " + this.socket + " sends exit...");
