@@ -9,7 +9,7 @@
     <meta name="description" content="Pick-and-Sort-Robot Controlpanel" />
     <meta name="author" content="magnusoy" />
     <title>Pick-and-Sort-Robot</title>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <!-- Cemantic core -->
     <link
       rel="stylesheet"
@@ -65,10 +65,76 @@
       </div>
     </div>
     <div class="ui vertical buttons">
-      <button class="positive massive ui button">Start</button>
-      <button class="negative massive ui button">Stop</button>
-      <button class="yellow ui massive button">Reset</button>
+      <form>
+          <a href=# id=start><button class="positive massive ui button">Start</button></a>
+          <a href=# id=stop><button class="negative massive ui button">Stop</button></a>
+          <a href=# id=reset><button class="yellow ui massive button">Reset</button></a>
+      </form>
     </div>
+    <div id="functions">
+        <form>
+            <a href=# id=manual></a><button class="massive ui button">Manual override</button></a>
+            <a href=# id=calibrate></a><button class="massive ui button">Calibrate motors</button></a>
+        </form>
+      </div>
+  
+    <script type=text/javascript>
+      $(function() {
+        $('a#start').bind('click', function() {
+          $.getJSON('/start',
+              function(data) {
+            //do nothing
+          });
+      return false;
+    });
+  });
+  $(function() {
+        $('a#stop').bind('click', function() {
+          $.getJSON('/stop',
+              function(data) {
+            //do nothing
+          });
+      return false;
+    });
+  });
+  $(function() {
+        $('a#reset').bind('click', function() {
+          $.getJSON('/reset',
+              function(data) {
+            //do nothing
+          });
+      return false;
+    });
+  });
+  $(function() {
+        $('a#calibrate').bind('click', function() {
+          $.getJSON('/calibrate',
+              function(data) {
+            //do nothing
+          });
+      return false;
+    });
+  });
+  $(function() {
+        $('a#manual').bind('click', function() {
+          $.getJSON('/manual',
+              function(data) {
+            //do nothing
+          });
+      return false;
+    });
+  });
+  $(function() {
+        $('a#automatic').bind('click', function() {
+          $.getJSON('/automatic',
+              function(data) {
+            //do nothing
+          });
+      return false;
+    });
+  });
+
+</script>
 
     <h1>Videostream</h1>
 
@@ -94,15 +160,12 @@
       }, 1000);
     </script>
 
-    <div id="functions">
-      <button class="massive ui button">Manual override</button>
-      <button class="massive ui button">Calibrate motors</button>
-    </div>
+    
 
     {% endblock %}
 
     <!-- Javascripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   </body>
