@@ -3,7 +3,7 @@
 
 import os
 
-class FileController:
+class ObjectWriter:
     """docstring"""
 
     def __init__(self, file_path):
@@ -50,6 +50,6 @@ class FileController:
 
 # Example of usage
 if __name__ == "__main__":
-    jsonc = FileController(".../../../../../resources/Objects/temp.json")
+    jsonc = ObjectWriter(".../../../../../resources/Objects/temp.json")
     print(jsonc.read())
     

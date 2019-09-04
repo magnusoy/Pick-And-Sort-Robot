@@ -1,5 +1,7 @@
 package main.java.communication;
 
+import main.java.utility.ArduinoData;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -12,6 +14,7 @@ import java.net.Socket;
 public class Server {
 
     private ServerSocket serverSocket; // Initialize socket
+    private ArduinoData arduinoData;
     private int port;  // Socket port
 
     /**
@@ -20,8 +23,9 @@ public class Server {
      *
      * @param port socket port
      */
-    public Server(int port) {
+    public Server(int port, ArduinoData arduinoData) {
         this.port = port;
+        this.arduinoData = arduinoData;
         try {
             this.serverSocket = new ServerSocket(this.port);
         } catch (IOException e) {
@@ -47,7 +51,7 @@ public class Server {
                 DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
 
                 // Assigning new thread for this client
-                Thread clientThread = new ClientHandler(socket, dataInputStream, dataOutputStream);
+                Thread clientThread = new ClientHandler(socket, dataInputStream, dataOutputStream, this.arduinoData);
 
                 clientThread.start();
             } catch (Exception e) {

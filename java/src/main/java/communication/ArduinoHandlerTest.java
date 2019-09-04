@@ -1,12 +1,15 @@
 package main.java.communication;
+import main.java.utility.ArduinoData;
 import org.json.JSONObject;
 
 import java.util.Scanner;
 
 public class ArduinoHandlerTest {
 
+
     public static void main(String[] args) {
-        ArduinoHandler arduinoHandler = new ArduinoHandler();
+        ArduinoData arduinoData = new ArduinoData();
+        ArduinoHandler arduinoHandler = new ArduinoHandler(arduinoData);
         arduinoHandler.run();
 
         System.out.println("Started");

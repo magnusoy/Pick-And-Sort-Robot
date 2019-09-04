@@ -40,9 +40,11 @@ import six
 from six.moves import range
 from six.moves import zip
 import tensorflow as tf
+import threading
 
 from object_detection.core import standard_fields as fields
 from object_detection.utils import shape_utils
+
 
 _TITLE_LEFT_MARGIN = 10
 _TITLE_TOP_MARGIN = 10
@@ -761,6 +763,7 @@ def visualize_boxes_and_labels_on_image_array(
   box_to_instance_boundaries_map = {}
   box_to_keypoints_map = collections.defaultdict(list)
   box_to_track_ids_map = {}
+
   if not max_boxes_to_draw:
     max_boxes_to_draw = boxes.shape[0]
   for i in range(min(max_boxes_to_draw, boxes.shape[0])):
@@ -796,6 +799,7 @@ def visualize_boxes_and_labels_on_image_array(
           else:
             display_str = '{}: ID {}'.format(display_str, track_ids[i])
         box_to_display_str_map[box].append(display_str)
+
         if agnostic_mode:
           box_to_color_map[box] = 'DarkOrange'
         elif track_ids is not None:
@@ -805,7 +809,9 @@ def visualize_boxes_and_labels_on_image_array(
         else:
           box_to_color_map[box] = STANDARD_COLORS[
               classes[i] % len(STANDARD_COLORS)]
-
+  write_to_file_thread = threading.Thread(target = write_objects_to_file, args = (box_to_display_str_map, ))
+  write_to_file_thread.start()
+  #write_objects_to_file(box_to_display_str_map)
   # Draw all boxes onto image.
   for box, color in box_to_color_map.items():
     ymin, xmin, ymax, xmax = box
@@ -841,6 +847,31 @@ def visualize_boxes_and_labels_on_image_array(
           use_normalized_coordinates=use_normalized_coordinates)
 
   return image
+
+def write_objects_to_file(data):
+  """docstring"""
+  index = -1
+  path = "C:\\Users\\Magnus\\Documents\\Pick-And-Sort-Robot\\resources\\Objects\\temp.json"
+  f = open(path, "w")
+  f.write("[\n")
+  f.close()
+  if len(data.items()) > 0:
+    f = open(path, "a")
+    for box, figure in data.items():
+      ymin, xmin, ymax, xmax = box
+      x = int((xmax+xmin)/2*640)
+      y = int((ymax+ymin)/2*480)
+      text = str(figure[0])
+      out = text.replace(": ", ",").replace("%", "").split(",")
+      figure = out[0]
+      probability = out[1]
+      index += 1
+      write_to_file = {"object": index, "type": figure, "x": x, "y": y, "probability": probability}
+      f.write("    " + str(write_to_file) + "\n")
+    f.write("]")
+    f.close()
+
+
 
 
 def add_cdf_image_summary(values, name):

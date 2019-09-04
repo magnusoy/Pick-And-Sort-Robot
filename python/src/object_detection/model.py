@@ -93,9 +93,7 @@ class ObjectDetection(object):
         return jpeg.tobytes()
     
 
-
-
-#Example of usage
+# Example of usage
 if __name__ == "__main__":
     object_detection = ObjectDetection()
 

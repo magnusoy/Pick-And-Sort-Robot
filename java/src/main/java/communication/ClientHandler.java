@@ -1,5 +1,8 @@
 package main.java.communication;
 
+import main.java.utility.ArduinoData;
+import main.java.utility.ObjectHandler;
+
 import java.io.*;
 import java.net.Socket;
 
@@ -13,6 +16,8 @@ public class ClientHandler extends Thread {
     private final DataInputStream dataInputStream;
     private final DataOutputStream dataOutputStream;
     private final Socket socket;
+    private final ArduinoData arduinoData;
+    private final ObjectHandler objectHandler;
 
     /**
      * ClientHandler constructor. Assign the given
@@ -22,10 +27,12 @@ public class ClientHandler extends Thread {
      * @param dataInputStream inputstream object
      * @param dataOutputStream outputstream object
      */
-    public ClientHandler(Socket socket, DataInputStream dataInputStream, DataOutputStream dataOutputStream) {
+    public ClientHandler(Socket socket, DataInputStream dataInputStream, DataOutputStream dataOutputStream, ArduinoData arduinoData) {
+        this.arduinoData = arduinoData;
         this.dataInputStream = dataInputStream;
         this.dataOutputStream = dataOutputStream;
         this.socket = socket;
+        this.objectHandler = new ObjectHandler("..\\resources\\Objects\\locations.json");
     }
 
     /**
@@ -35,8 +42,6 @@ public class ClientHandler extends Thread {
     public void run() {
         String received = "";
         String toReturn = "";
-        int packageNumber = 0;
-
 
         while (this.socket.isConnected()) {
             try {
@@ -56,36 +61,83 @@ public class ClientHandler extends Thread {
                 // Write on outputstream based on the
                 // answer from the client
                 switch (received) {
-                    case "GET/Status" :
-                        toReturn = "GET/Status was called.";
-                        this.dataOutputStream.writeUTF(toReturn);
-                        break;
-
-                    case "GET/ArduinoData" :
-                        toReturn = "GET/ArduinoData was called.";
+                    case "GET/Status":
+                        toReturn = this.arduinoData.get().toString();
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "GET/Objects":
-                        toReturn = "GET/Objects was called.";
+                        //toReturn = "GET/Objects was called.";
+                        toReturn = this.objectHandler.getAll().toString();
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
-                    case "POST/UpdateGUI":
-                        toReturn = "POST/UpdateGUI was called.";
+                    case "POST/Start":
+                        toReturn = "GET/Start was called.";
+                        this.dataOutputStream.writeUTF(toReturn);
+                        break;
+
+                    case "POST/Stop":
+                        toReturn = "POST/Stop was called.";
+                        this.dataOutputStream.writeUTF(toReturn);
+                        break;
+
+                    case "POST/Reset":
+                        toReturn = "POST/Reset was called.";
+                        this.dataOutputStream.writeUTF(toReturn);
+                        break;
+
+                    case "POST/Manual":
+                        toReturn = "POST/Manual was called.";
+                        this.dataOutputStream.writeUTF(toReturn);
+                        break;
+
+                    case "POST/Automatic":
+                        toReturn = "POST/Automatic was called.";
+                        this.dataOutputStream.writeUTF(toReturn);
+                        break;
+
+                    case "POST/Calibrate":
+                        toReturn = "POST/Calibrate was called.";
+                        this.dataOutputStream.writeUTF(toReturn);
+                        break;
+
+                    case "POST/All":
+                        toReturn = "POST/All was called.";
+                        this.dataOutputStream.writeUTF(toReturn);
+                        break;
+
+                    case "POST/Squares":
+                        toReturn = "POST/Squares was called.";
+                        this.dataOutputStream.writeUTF(toReturn);
+                        break;
+
+                    case "POST/Circles":
+                        toReturn = "POST/Circles was called.";
+                        this.dataOutputStream.writeUTF(toReturn);
+                        break;
+
+                    case "POST/Triangles":
+                        toReturn = "POST/Triangle was called.";
+                        this.dataOutputStream.writeUTF(toReturn);
+                        break;
+
+                    case "POST/Rectangles":
+                        toReturn = "POST/Rectangles was called.";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "help":
-                        toReturn = "help was called.";
+                        toReturn = "GET/Status, GET/Objects, POST/Start, POST/Stop, POST/Reset" +
+                                ",POST/Manual, POST/Automatic, POST/Calibrate, POST/All, POST/Squares" +
+                                ", POST/Circles, POST/Triangles, POST/Rectangles";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     default:
-                        this.dataOutputStream.writeUTF("Invalid input");
+                        this.dataOutputStream.writeUTF("Invalid input, type help");
                         break;
                 }
-                packageNumber ++;
             } catch (Exception e) {
                 try {
                     this.dataInputStream.close();

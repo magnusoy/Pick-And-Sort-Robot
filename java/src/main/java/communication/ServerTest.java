@@ -1,5 +1,7 @@
 package main.java.communication;
 
+import main.java.utility.ArduinoData;
+
 import java.io.IOException;
 
 /**
@@ -7,7 +9,8 @@ import java.io.IOException;
  */
 public class ServerTest {
     public static void main(String[] args) {
-        Server server = new Server(5056);
+        ArduinoData arduinoData = new ArduinoData();
+        Server server = new Server(5056, arduinoData);
         try {
             server.start();
         } catch (IOException e) {

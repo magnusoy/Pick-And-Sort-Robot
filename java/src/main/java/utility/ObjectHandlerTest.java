@@ -9,6 +9,6 @@ public class ObjectHandlerTest {
         String filePath = "..\\resources\\Objects\\locations.json";
         ObjectHandler jsonHandler = new ObjectHandler(filePath);
         JSONObject object = jsonHandler.get(9);
-        System.out.println(object.get("type"));
+        System.out.println(object.toString());
     }
 }

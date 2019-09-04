@@ -8,6 +8,8 @@ import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
 import java.util.Enumeration;
+
+import main.java.utility.ArduinoData;
 import org.json.JSONObject;
 
 public class ArduinoHandler extends Thread implements SerialPortEventListener  {
@@ -30,6 +32,13 @@ public class ArduinoHandler extends Thread implements SerialPortEventListener  {
     private static final int DATA_RATE = 9600;
     /** The jsonObject that the Arduino sends over the Serial */
     private JSONObject jsonObject;
+
+    private ArduinoData arduinoData;
+
+    public ArduinoHandler(ArduinoData arduinoData) {
+        this.arduinoData = arduinoData;
+    }
+
     @Override
     public void run() {
         CommPortIdentifier quit = null ;
@@ -102,6 +111,7 @@ public class ArduinoHandler extends Thread implements SerialPortEventListener  {
             try {
                 String inputLine=input.readLine();
                 this.jsonObject = new JSONObject(inputLine);
+                this.arduinoData.put(this.jsonObject);
             } catch (IOException e) {
                 System.err.println(e.toString());
             }
@@ -124,6 +134,7 @@ public class ArduinoHandler extends Thread implements SerialPortEventListener  {
 
         }
     }
+
 
     public synchronized JSONObject getJsonObject() {
         return this.jsonObject;
