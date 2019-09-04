@@ -32,7 +32,7 @@ public class ClientHandler extends Thread {
         this.dataInputStream = dataInputStream;
         this.dataOutputStream = dataOutputStream;
         this.socket = socket;
-        this.objectHandler = new ObjectHandler("..\\resources\\Objects\\locations.json");
+        this.objectHandler = new ObjectHandler("..\\resources\\Objects\\objects.json");
     }
 
     /**

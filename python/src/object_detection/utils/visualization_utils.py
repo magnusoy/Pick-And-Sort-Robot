@@ -41,6 +41,7 @@ from six.moves import range
 from six.moves import zip
 import tensorflow as tf
 import threading
+import json
 
 from object_detection.core import standard_fields as fields
 from object_detection.utils import shape_utils
@@ -851,7 +852,7 @@ def visualize_boxes_and_labels_on_image_array(
 def write_objects_to_file(data):
   """docstring"""
   index = -1
-  path = "C:\\Users\\Magnus\\Documents\\Pick-And-Sort-Robot\\resources\\Objects\\temp.json"
+  path = "C:\\Users\\Magnus\\Documents\\Pick-And-Sort-Robot\\resources\\Objects\\objects.json"
   f = open(path, "w")
   f.write("[\n")
   f.close()
@@ -867,7 +868,7 @@ def write_objects_to_file(data):
       probability = out[1]
       index += 1
       write_to_file = {"object": index, "type": figure, "x": x, "y": y, "probability": probability}
-      f.write("    " + str(write_to_file) + "\n")
+      f.write("    " + str(json.dumps(write_to_file)) + "\n")
     f.write("]")
     f.close()
 

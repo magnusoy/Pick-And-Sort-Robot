@@ -7,6 +7,7 @@ from object_detection.model import ObjectDetection
 import cv2
 import sys
 import os
+from utils.client import Client
 
 video = cv2.VideoCapture(0)
 ret = video.set(3, 640)
@@ -21,6 +22,10 @@ PATH_TO_LABELS = os.path.join(CWD_PATH,'model','labelmap.pbtxt')
 os.chdir('C:\\Users\\Magnus\\Documents\\Pick-And-Sort-Robot\\python\\src')
 
 app = Flask(__name__)
+
+object_client = Client("127.0.0.1", 5056)
+object_client.command = "GET/Objects"
+object_client.start()
 
 video_camera = None
 global_frame = None
@@ -58,7 +63,11 @@ def video_viewer():
 
 @app.route('/objects')
 def objects():
-    object_list = ["This", "is", "a", "object", "list"]
+    object_list = []
+    msg = object_client.content
+    if msg is not None:
+        msg = msg.split(",")
+        object_list = msg
     return render_template('objects.html', objects=object_list)
 
 @app.route('/state')

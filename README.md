@@ -1,6 +1,6 @@
 # Pick-And-Sort-Robot
 
-Project description
+Project description - Under progress.
 
 [Video example](https://youtube.com)
 
@@ -26,34 +26,4 @@ Project description
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/magnusoy/Pick-And-Sort-Robot/blob/master/LICENSE) file for details
-
-
-## Libraries
-
-### Java
-[JSON Simple](https://github.com/fangyidong/json-simple)
-
-[jSerialComm](https://github.com/Fazecast/jSerialComm)
-
-
-### Arduino
-
-[Arduino PID](https://github.com/magnusoy/Arduino-PID-Library)
-
-[ArduinoJSON](https://github.com/bblanchon/ArduinoJson)
-
-[Odrive](https://github.com/madcowswe/ODrive/tree/master/Arduino/ODriveArduino)
-
-
-### Python
-
-[OpenCV](https://docs.opencv.org/3.4.1/index.html)
-
-[Numpy](http://www.numpy.org/)
-
-[Vpython](http://vpython.org/)
-
-[PyGame](https://www.pygame.org/news)
-
-[Flask](https://github.com/pallets/flask)
 
