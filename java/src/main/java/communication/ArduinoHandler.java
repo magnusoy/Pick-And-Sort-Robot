@@ -9,15 +9,16 @@ import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
 import java.util.Enumeration;
 
-import main.java.utility.ArduinoData;
+import main.java.utility.Database;
 import org.json.JSONObject;
 
 public class ArduinoHandler extends Thread implements SerialPortEventListener  {
     SerialPort serialPort;
     /** The port we're normally going to use. */
     private static final String PORT_NAMES[] = {
-            "COM4"// Windows
+            "COM7"// Windows
     };
+
     /**
      * A BufferedReader which will be fed by a InputStreamReader
      * converting the bytes into characters
@@ -33,10 +34,10 @@ public class ArduinoHandler extends Thread implements SerialPortEventListener  {
     /** The jsonObject that the Arduino sends over the Serial */
     private JSONObject jsonObject;
 
-    private ArduinoData arduinoData;
+    private Database db;
 
-    public ArduinoHandler(ArduinoData arduinoData) {
-        this.arduinoData = arduinoData;
+    public ArduinoHandler(Database database) {
+        this.db = database;
     }
 
     @Override
@@ -111,7 +112,8 @@ public class ArduinoHandler extends Thread implements SerialPortEventListener  {
             try {
                 String inputLine=input.readLine();
                 this.jsonObject = new JSONObject(inputLine);
-                this.arduinoData.put(this.jsonObject);
+                db.putObj(this.jsonObject);
+                System.out.println(this.jsonObject);
             } catch (IOException e) {
                 System.err.println(e.toString());
             }
@@ -131,7 +133,20 @@ public class ArduinoHandler extends Thread implements SerialPortEventListener  {
 
         }catch (Exception e){
             System.err.println(e.toString());
+        }
+    }
 
+    /**
+     * Sends an JSONObject to the arduino
+     */
+    public synchronized void sendCommand(){
+        String data = this.db.getCommand();
+        if (data.length() > 0) {
+            try {
+                output.write(data.getBytes());
+            }catch (Exception e){
+                System.err.println(e.toString());
+            }
         }
     }
 

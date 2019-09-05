@@ -1,7 +1,8 @@
 package main.java.communication;
 
-import main.java.utility.ArduinoData;
+import main.java.utility.Database;
 
+import javax.xml.crypto.Data;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -14,8 +15,8 @@ import java.net.Socket;
 public class Server {
 
     private ServerSocket serverSocket; // Initialize socket
-    private ArduinoData arduinoData;
     private int port;  // Socket port
+    private Database db;
 
     /**
      * Server constructor. Initialize socket and
@@ -23,9 +24,9 @@ public class Server {
      *
      * @param port socket port
      */
-    public Server(int port, ArduinoData arduinoData) {
+    public Server(int port, Database database) {
+        this.db = database;
         this.port = port;
-        this.arduinoData = arduinoData;
         try {
             this.serverSocket = new ServerSocket(this.port);
         } catch (IOException e) {
@@ -51,7 +52,7 @@ public class Server {
                 DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
 
                 // Assigning new thread for this client
-                Thread clientThread = new ClientHandler(socket, dataInputStream, dataOutputStream, this.arduinoData);
+                Thread clientThread = new ClientHandler(socket, dataInputStream, dataOutputStream, this.db);
 
                 clientThread.start();
             } catch (Exception e) {

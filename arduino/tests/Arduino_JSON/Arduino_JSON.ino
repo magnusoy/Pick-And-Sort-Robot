@@ -68,14 +68,12 @@ void loop() {
   if (serialSendTimer(1000)) { // Send every 1000ms
     sendJSONSerial();
     //printProgramExecutionTime();
-    <<< <<< < HEAD
+
     printReceivedData();
     //digitalWrite(13, false);
     //receiveJSONSerial();
-    == == == =
-      digitalWrite(13, false);
+    digitalWrite(13, false);
     receiveJSONSerial();
-    >>> >>> > 3f292cb2677c414c2924a74dc6ebbbb38ba6783b
   }
 }
 
@@ -136,12 +134,8 @@ void sendJSONSerial() {
 */
 void printReceivedData() {
   if (Serial.available()) {
-    == == == =
-      print what is received
-      * /
     void receiveJSONSerial2() {
       if (Serial.available()) {
-        >>> >>> > 3f292cb2677c414c2924a74dc6ebbbb38ba6783b
         String myString = Serial.readString();
         Serial.print("This just in: ");
         Serial.println(myString);
@@ -186,14 +180,10 @@ void printReceivedData() {
         // Extract bricks from JSON document
         if (obj.containsKey("objects")) {
           JsonArray objects = docRcv["objects"].as<JsonArray>();
-          <<< <<< < HEAD
           Serial.print("\n");
 
-          == == == =
-            Serial.println();
 
-          >>> >>> > 3f292cb2677c414c2924a74dc6ebbbb38ba6783b
-          // Go through all bricks
+          Serial.println();
           for (JsonObject object : objects) {
             int objectType = object["type"];
             int objectID = object["ID"];

@@ -1,6 +1,6 @@
 package main.java.communication;
 
-import main.java.utility.ArduinoData;
+import main.java.utility.Database;
 
 import java.io.IOException;
 
@@ -9,8 +9,8 @@ import java.io.IOException;
  */
 public class ServerTest {
     public static void main(String[] args) {
-        ArduinoData arduinoData = new ArduinoData();
-        Server server = new Server(5056, arduinoData);
+        Database db = new Database();
+        Server server = new Server(5056, db);
         try {
             server.start();
         } catch (IOException e) {

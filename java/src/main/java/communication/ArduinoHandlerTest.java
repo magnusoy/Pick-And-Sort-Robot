@@ -1,5 +1,5 @@
 package main.java.communication;
-import main.java.utility.ArduinoData;
+import main.java.utility.Database;
 import org.json.JSONObject;
 
 import java.util.Scanner;
@@ -8,9 +8,9 @@ public class ArduinoHandlerTest {
 
 
     public static void main(String[] args) {
-        ArduinoData arduinoData = new ArduinoData();
-        ArduinoHandler arduinoHandler = new ArduinoHandler(arduinoData);
-        arduinoHandler.run();
+        Database db = new Database();
+        ArduinoHandler arduinoHandler = new ArduinoHandler(db);
+        arduinoHandler.start();
 
         System.out.println("Started");
 
@@ -28,6 +28,7 @@ public class ArduinoHandlerTest {
                     obj.put("state",new Integer(1));
                     obj.put("PetterSucks",new Boolean(false));
                     arduinoHandler.sendData(obj);
+                    System.out.println(arduinoHandler.getJsonObject().toString());
                     break;
                 case 2:
                     JSONObject obj1 = new JSONObject();

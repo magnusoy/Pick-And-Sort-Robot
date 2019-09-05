@@ -2,7 +2,7 @@ package main.java;
 
 import main.java.communication.ArduinoHandler;
 import main.java.communication.Server;
-import main.java.utility.ArduinoData;
+import main.java.utility.Database;
 
 import java.io.IOException;
 
@@ -12,10 +12,10 @@ import java.io.IOException;
 public class Main {
 
     public static void main(String[] args) {
-        ArduinoData arduinoData = new ArduinoData();
+        Database db = new Database();
 
-        Server server = new Server(5056, arduinoData);
-        ArduinoHandler arduinoHandler = new ArduinoHandler(arduinoData);
+        Server server = new Server(5056, db);
+        ArduinoHandler arduinoHandler = new ArduinoHandler(db);
 
         try {
             arduinoHandler.start();
