@@ -7,6 +7,8 @@ import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
+
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 
 import main.java.utility.Database;
@@ -112,10 +114,11 @@ public class ArduinoHandler extends Thread implements SerialPortEventListener  {
             try {
                 String inputLine=input.readLine();
                 this.jsonObject = new JSONObject(inputLine);
-                db.putObj(this.jsonObject);
-                System.out.println(this.jsonObject);
+                if (this.jsonObject != null) {
+                    db.putObj(this.jsonObject);
+                }
             } catch (IOException e) {
-                System.err.println(e.toString());
+                e.printStackTrace();
             }
         }
         // Ignore all the other eventTypes, but you should consider the other ones.
@@ -125,14 +128,14 @@ public class ArduinoHandler extends Thread implements SerialPortEventListener  {
      */
     public synchronized void sendData(JSONObject data){
         try {
-            output.write(data.toString().getBytes());
+            output.write(data.toString().getBytes(StandardCharsets.UTF_8));
             // StringWriter outputData = new StringWriter();
             //data.writeJSONString(outputData);
             // String jsonText = outputData.toString();
             //System.out.print(jsonText);
 
         }catch (Exception e){
-            System.err.println(e.toString());
+            e.printStackTrace();
         }
     }
 
@@ -152,6 +155,12 @@ public class ArduinoHandler extends Thread implements SerialPortEventListener  {
 
 
     public synchronized JSONObject getJsonObject() {
-        return this.jsonObject;
+        JSONObject temp;
+        if (this.jsonObject != null) {
+            temp = this.jsonObject;
+        } else {
+            temp = new JSONObject();
+        }
+        return temp;
     }
 }

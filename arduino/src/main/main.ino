@@ -202,22 +202,27 @@ void sendJSONDocumentToSerial() {
   doc["x"] = actualX;
   doc["y"] = actualY;
   serializeJson(doc, Serial);
+  Serial.print("\n");
 }
 
 /**
   Read JSON from Serial and parses it.
 */
 void readJSONDocuemntFromSerial() {
-  DynamicJsonDocument doc(64);
-  DeserializationError error = deserializeJson(doc, Serial);
-  if (error) {
-    changeStateTo(S_IDLE);
-    return;
+  if (Serial.available() > 0) {
+    const size_t capacity = 10 * JSON_ARRAY_SIZE(2) + JSON_ARRAY_SIZE(10) + 11 * JSON_OBJECT_SIZE(3) + 220;
+    DynamicJsonDocument doc(capacity);
+    DeserializationError error = deserializeJson(doc, Serial);
+    if (error) {
+      return;
+    }
+    JsonObject obj = doc.as<JsonObject>();
+
+    objectType = obj["type"];
+    objectsRemaining = obj["num"];
+    targetX = obj["x"];
+    targetY = obj["y"];
   }
-  objectType = doc["type"];
-  objectsRemaining = doc["num"];
-  targetX = doc["x"];
-  targetY = doc["y"];
 }
 
 /**

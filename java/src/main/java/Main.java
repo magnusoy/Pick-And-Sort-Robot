@@ -3,6 +3,7 @@ package main.java;
 import main.java.communication.ArduinoHandler;
 import main.java.communication.Server;
 import main.java.utility.Database;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -18,10 +19,14 @@ public class Main {
         ArduinoHandler arduinoHandler = new ArduinoHandler(db);
 
         try {
-            arduinoHandler.start();
+            arduinoHandler.run();
             server.start();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+
+        while(true){
+            arduinoHandler.sendData(db.getObjToSend());
         }
     }
 }
