@@ -5,23 +5,20 @@
   drive the motors to the correct position to pick up the figures.
   -----------------------------------------------------------
   Libraries used:
-  PID - https://github.com/magnusoy/Arduino-PID-Library
   Odrive - https://github.com/madcowswe/ODrive/tree/master/Arduino/ODriveArduino
   ArduinoJSON - https://github.com/bblanchon/ArduinoJson
   -----------------------------------------------------------
   Code by: Magnus Kvendseth Øye, Vegard Solheim
-  Date: 01.09-2019
-  Version: 1.2
+  Date: 05.09-2019
+  Version: 1.3
   Website: https://github.com/magnusoy/Pick-And-Sort-Robot
 */
 
 
 // Including libraries
-#include <PID.h>
 #include <ODriveArduino.h>
 #include <ArduinoJson.h>
 #include "IO.h"
-#include "PidParameters.h"
 #include "OdriveParameters.h"
 
 #define UPDATE_SERIAL_TIME 100 // In millis
@@ -44,13 +41,11 @@ char receivedChars[numChars]; // An array to store the received data
 // Time for next timeout, in milliseconds
 unsigned long nextTimeout = 0;
 
-// PID X - Axis
-double actualValueX = 0.0; double setValueX = 0.0; double outputValueX = 0.0;
-PID pidX(kpX, kiX, kdX, REVERSE); // TODO: Change to correct direction
-
-// PID Y - Axis
-double actualValueY = 0.0; double setValueY = 0.0; double outputValueY = 0.0;
-PID pidY(kpY, kiY, kdY, REVERSE); // TODO: Change to correct direction
+// Position control
+float actualX = 0;
+float actualY = 0;
+float targetX = 0;
+float targetY = 0;
 
 // Constants representing the states in the state machine
 const int S_IDLE = 0;
@@ -79,14 +74,6 @@ void setup() {
 
   // Initialize motor parameters
   configureMotors();
-
-  // Initialize PID X and Y with correct parameters
-  pidX.setUpdateTime(PIDX_UPDATE_TIME);
-  pidY.setUpdateTime(PIDY_UPDATE_TIME);
-  pidX.setOutputOffset(PIDX_OUTPUT_OFFSET);
-  pidY.setOutputOffset(PIDY_OUTPUT_OFFSET);
-  pidX.setOutputLimits(PIDX_OUTPUT_LOW, PIDX_OUTPUT_HIGH);
-  pidY.setOutputLimits(PIDY_OUTPUT_LOW, PIDY_OUTPUT_HIGH);
 }
 
 void loop() {
@@ -110,17 +97,19 @@ void loop() {
       }
       break;
 
-    case S_MOVE_TO_OBJECT:
-      readMotorPositions();
-      outputValueX = pidX.compute(actualValueX, setValueX);
-      outputValueY = pidY.compute(actualValueX, setValueX);
-      setMotorPosition(MOTOR_X, outputValueX);
-      setMotorPosition(MOTOR_Y, outputValueY);
+    case S_MOVE_TO_OBJECT: {
+        readMotorPositions();
+        float errorX = abs(targetX - actualX);
+        float errorY = abs(targetY - actualY);
+        setMotorPosition(MOTOR_X, targetX);
+        setMotorPosition(MOTOR_Y, targetY);
 
-      if ((actualValueX == setValueX) &&
-          (actualValueY == setValueY)) {
-        changeStateTo(S_PICK_OBJECT);
+        if ((errorX == 0) &&
+            (errorY == 0)) {
+          changeStateTo(S_PICK_OBJECT);
+        }
       }
+
       break;
 
     case S_PICK_OBJECT: {
@@ -132,17 +121,19 @@ void loop() {
       }
       break;
 
-    case S_MOVE_TO_DROP:
-      readMotorPositions();
-      outputValueX = pidX.compute(actualValueX, setValueX);
-      outputValueY = pidY.compute(actualValueX, setValueX);
-      setMotorPosition(MOTOR_X, outputValueX);
-      setMotorPosition(MOTOR_Y, outputValueY);
+    case S_MOVE_TO_DROP: {
+        readMotorPositions();
+        float errorX = abs(targetX - actualX);
+        float errorY = abs(targetY - actualY);
+        setMotorPosition(MOTOR_X, targetX);
+        setMotorPosition(MOTOR_Y, targetY);
 
-      if ((actualValueX == setValueX) &&
-          (actualValueY == setValueY)) {
-        changeStateTo(S_DROP_OBJECT);
+        if ((errorX == 0) &&
+            (errorY == 0)) {
+          changeStateTo(S_DROP_OBJECT);
+        }
       }
+
       break;
 
     case S_DROP_OBJECT: {
@@ -164,17 +155,19 @@ void loop() {
       }
       break;
 
-    case S_RESET:
-      readMotorPositions();
-      outputValueX = pidX.compute(actualValueX, setValueX);
-      outputValueY = pidY.compute(actualValueX, setValueX);
-      setMotorPosition(MOTOR_X, outputValueX);
-      setMotorPosition(MOTOR_Y, outputValueY);
+    case S_RESET: {
+        readMotorPositions();
+        float errorX = abs(targetX - actualX);
+        float errorY = abs(targetY - actualY);
+        setMotorPosition(MOTOR_X, targetX);
+        setMotorPosition(MOTOR_Y, targetY);
 
-      if ((actualValueX == setValueX) &&
-          (actualValueY == setValueY)) {
-        changeStateTo(S_READY);
+        if ((errorX == 0) &&
+            (errorY == 0)) {
+          changeStateTo(S_READY);
+        }
       }
+
       break;
 
     default:
@@ -206,8 +199,8 @@ void writeToSerial(unsigned long updateTime) {
 void sendJSONDocumentToSerial() {
   DynamicJsonDocument doc(64);
   doc["state"] = currentState;
-  doc["x"] = actualValueX;
-  doc["y"] = actualValueY;
+  doc["x"] = actualX;
+  doc["y"] = actualY;
   serializeJson(doc, Serial);
 }
 
@@ -223,8 +216,8 @@ void readJSONDocuemntFromSerial() {
   }
   objectType = doc["type"];
   objectsRemaining = doc["num"];
-  setValueX = doc["x"];
-  setValueY = doc["y"];
+  targetX = doc["x"];
+  targetY = doc["y"];
 }
 
 /**
@@ -240,7 +233,7 @@ boolean isValidCommand(char inputCommand) {
   char received = ' ';
   boolean valid = false;
 
-  if (Serial.available()) {
+  if (Serial.available() > 0) {
     received = Serial.read();
   }
   if (received == inputCommand) {
@@ -329,8 +322,8 @@ void readMotorPositions() {
       motorPosition[motorNumber] = odrive.readFloat();
     }
   }
-  actualValueX = motorPosition[0];
-  actualValueY = motorPosition[1];
+  actualX = motorPosition[0];
+  actualY = motorPosition[1];
 }
 
 /**
@@ -387,8 +380,8 @@ void edgeDetection() {
   @param y, new y position
 */
 void setPosition(float x, float y) {
-  setValueX = x;
-  setValueY = y;
+  targetX = x;
+  targetY = y;
 }
 
 
