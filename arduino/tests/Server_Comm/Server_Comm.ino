@@ -15,7 +15,7 @@ float actualY = 200;
 float targetX = 0;
 float targetY = 0;
 
-char received;
+int recCommand;
 
 int currentState = 5;
 
@@ -30,17 +30,11 @@ void loop() {
   // put your main code here, to run repeatedly:
   readJSONDocuemntFromSerial();
 
-  if (received == 's') {
+  if (recCommand == 3) {
     digitalWrite(13, HIGH);
-  }
-
-  /**
-    if (targetX != targetY) {
-    digitalWrite(13, HIGH);
-    } else {
+  } else {
     digitalWrite(13, LOW);
-    }
-  */
+  }
 
   writeToSerial(UPDATE_SERIAL_TIME);
 }
@@ -66,6 +60,7 @@ void sendJSONDocumentToSerial() {
   doc["state"] = currentState;
   doc["x"] = actualX;
   doc["y"] = actualY;
+  doc["command"] = recCommand;
   serializeJson(doc, Serial);
   Serial.print("\n");
 }
@@ -88,8 +83,8 @@ void readJSONDocuemntFromSerial() {
     targetX = obj["x"];
     targetY = obj["y"];
 
-    if(obj.containsKey("command")) {
-      received = obj["command"];
+    if (obj.containsKey("command")) {
+      recCommand = obj["command"];
     }
   }
 }

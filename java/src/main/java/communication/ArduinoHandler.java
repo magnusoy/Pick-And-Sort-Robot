@@ -127,32 +127,15 @@ public class ArduinoHandler extends Thread implements SerialPortEventListener  {
      * Sends an JSONObject to the arduino
      */
     public synchronized void sendData(JSONObject data){
-        try {
-            output.write(data.toString().getBytes(StandardCharsets.UTF_8));
-            // StringWriter outputData = new StringWriter();
-            //data.writeJSONString(outputData);
-            // String jsonText = outputData.toString();
-            //System.out.print(jsonText);
-
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Sends an JSONObject to the arduino
-     */
-    public synchronized void sendCommand(){
-        String data = this.db.getCommand();
-        if (data.length() > 0) {
+        if (data != null) {
             try {
-                output.write(data.getBytes());
+                output.write(data.toString().getBytes(StandardCharsets.UTF_8));
             }catch (Exception e){
-                System.err.println(e.toString());
+                e.printStackTrace();
             }
         }
-    }
 
+    }
 
     public synchronized JSONObject getJsonObject() {
         JSONObject temp;

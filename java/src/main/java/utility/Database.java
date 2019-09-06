@@ -5,13 +5,13 @@ import org.json.simple.JSONArray;
 
 public class Database {
 
-    private String command;
+    private Integer command;
     private final ObjectHandler objectHandler;
     private JSONObject obj;
     private  JSONObject objToSend;
 
     public Database() {
-        this.command = "";
+        this.command = 0;
         this.objectHandler = new ObjectHandler("..\\resources\\Objects\\objects.json");
         this.obj = new JSONObject();
         this.objToSend = new JSONObject();
@@ -21,11 +21,11 @@ public class Database {
         return this.objectHandler.getAll();
     }
 
-    public void putCommand(String command) {
+    public void putCommand(Integer command) {
         this.command = command;
     }
 
-    public String getCommand() {
+    public Integer getCommand() {
         return this.command;
     }
 
@@ -43,33 +43,15 @@ public class Database {
         return temp;
     }
 
-    public synchronized void putObjToSend(JSONObject obj) {
-        obj.put("type", "circle");
-        obj.put("x", new Integer(200));
-        obj.put("y", new Integer(300));
-        obj.put("num", new Integer(1));
-        if (this.obj != null) {
-            this.objToSend = obj;
-        }
-    }
-
     public synchronized JSONObject getObjToSend() {
-        JSONObject temp;
-        if (this.objToSend != null) {
-            temp = this.objToSend;
-            if (!this.command.isEmpty()) {
-                temp.put("command", this.command);
-            }
-            // Just because path planning is not made yet.
-            temp.put("type", "circle");
-            temp.put("x", new Integer(200));
-            temp.put("y", new Integer(300));
-            temp.put("num", new Integer(1));
-            //
-        } else {
-            temp = new JSONObject();
-        }
-        return temp;
+        this.objToSend.put("command", this.command);
+        // Just because path planning is not made yet.
+        this.objToSend.put("type", new Integer(1));
+        this.objToSend.put("x", new Integer(200));
+        this.objToSend.put("y", new Integer(300));
+        this.objToSend.put("num", new Integer(1));
+
+        return this.objToSend;
     }
 
 }

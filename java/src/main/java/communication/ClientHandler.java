@@ -71,67 +71,67 @@ public class ClientHandler extends Thread {
                         break;
 
                     case "POST/Start":
-                        this.db.putCommand("g");
+                        this.db.putCommand(1);
                         toReturn = "GET/Start was called.";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Stop":
-                        this.db.putCommand("s");
+                        this.db.putCommand(2);
                         toReturn = "POST/Stop was called.";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Reset":
-                        this.db.putCommand("r");
+                        this.db.putCommand(3);
                         toReturn = "POST/Reset was called.";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Manual":
-                        this.db.putCommand("m");
+                        this.db.putCommand(4);
                         toReturn = "POST/Manual was called.";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Automatic":
-                        this.db.putCommand("a");
+                        this.db.putCommand(5);
                         toReturn = "POST/Automatic was called.";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Calibrate":
-                        this.db.putCommand("c");
+                        this.db.putCommand(6);
                         toReturn = "POST/Calibrate was called.";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/All":
-                        this.db.putCommand("w");
+                        this.db.putCommand(7);
                         toReturn = "POST/All was called.";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Squares":
-                        this.db.putCommand("x");
+                        this.db.putCommand(8);
                         toReturn = "POST/Squares was called.";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Circles":
-                        this.db.putCommand("y");
+                        this.db.putCommand(9);
                         toReturn = "POST/Circles was called.";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Triangles":
-                        this.db.putCommand("z");
+                        this.db.putCommand(10);
                         toReturn = "POST/Triangle was called.";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Rectangles":
-                        this.db.putCommand("o");
+                        this.db.putCommand(11);
                         toReturn = "POST/Rectangles was called.";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;

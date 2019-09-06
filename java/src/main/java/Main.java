@@ -17,16 +17,18 @@ public class Main {
 
         Server server = new Server(5056, db);
         ArduinoHandler arduinoHandler = new ArduinoHandler(db);
+        Thread thread = new Thread(() -> {
+            while (true) {
+                arduinoHandler.sendData(db.getObjToSend());
+            }
+        });
 
         try {
             arduinoHandler.run();
+            thread.start();
             server.start();
         } catch (IOException e) {
             e.printStackTrace();
-        }
-
-        while(true){
-            arduinoHandler.sendData(db.getObjToSend());
         }
     }
 }
