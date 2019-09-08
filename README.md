@@ -2,7 +2,9 @@
 
 Project description - Under progress.
 
-[Video example](https://youtube.com)
+[Video example, coming](https://youtube.com)
+
+[Raport, coming](https://www.overleaf.com/project)
 
 
 ## Built With

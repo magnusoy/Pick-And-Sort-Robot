@@ -15,7 +15,8 @@ import org.json.JSONObject;
 import main.java.utility.Database;
 
 /**
- *
+ * SerialHandler communicates with the Teensy through
+ * the UART protocol.
  */
 public class SerialHandler extends Thread implements SerialPortEventListener  {
     SerialPort serialPort;
@@ -32,6 +33,8 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
     private Database db;                        // Shared resource between classes
 
     /**
+     * SerialHandler constructor initializes
+     * the shared resource.
      *
      * @param database, Shared resource
      */
@@ -132,6 +135,7 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
 
     /**
      * Sends an JSONObject to the serial.
+     *
      * @param data
      */
     public synchronized void sendData(JSONObject data){

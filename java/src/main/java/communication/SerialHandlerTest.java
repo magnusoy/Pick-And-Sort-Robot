@@ -3,7 +3,8 @@ import main.java.utility.Database;
 import org.json.JSONObject;
 
 /**
- *
+ * Test experiment too see if code works
+ * as expected.
  */
 public class SerialHandlerTest {
 

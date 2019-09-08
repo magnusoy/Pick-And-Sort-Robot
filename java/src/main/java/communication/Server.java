@@ -9,19 +9,22 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- *
+ * Server works as the core of the system.
+ * Handling calls from clients and directing
+ * the tasks to different processes and threads.
  */
 public class Server {
 
-    private ServerSocket serverSocket; // Initialize socket
-    private int port;  // Socket port
-    private Database db;
+    private ServerSocket serverSocket;    // Initialize socket
+    private int port;                     // Socket port
+    private Database db;                  // Shared resource
 
     /**
      * Server constructor. Initialize socket and
      * assign the given port to the socket.
      *
-     * @param port socket port
+     * @param port, socket port
+     * @param database, shared resource
      */
     public Server(int port, Database database) {
         this.db = database;

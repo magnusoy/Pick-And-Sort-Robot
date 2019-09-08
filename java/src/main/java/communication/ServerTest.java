@@ -5,7 +5,8 @@ import main.java.utility.Database;
 import java.io.IOException;
 
 /**
- *
+ * Test experiment too see if code works
+ * as expected.
  */
 public class ServerTest {
     public static void main(String[] args) {

@@ -3,6 +3,10 @@ package main.java.utility;
 import org.json.simple.JSONObject;
 
 
+/**
+ * Test experiment too see if code works
+ * as expected.
+ */
 public class ObjectHandlerTest {
 
     public static void main(String[] args) {

@@ -7,16 +7,33 @@ import org.json.simple.parser.ParseException;
 
 import java.io.*;
 
+/**
+ * ObjectHandler handles reading and writing from the
+ * Objects file.
+ */
 public class ObjectHandler {
 
-    JSONParser jsonParser;
-    private String filePath;
+    JSONParser jsonParser;      // Reading JSON
+    private String filePath;    // Filepath to Object data
 
+    /**
+     *ObjecHandler constructor initialize the
+     * JSON parser and assigning the filepath
+     * to the stored objects.
+     *
+     * @param filePath, Objects stored
+     */
     public ObjectHandler(String filePath) {
         this.filePath = filePath;
         this.jsonParser = new JSONParser();
     }
 
+    /**
+     * Returns all of the objects
+     * stored as JSON Array.
+     *
+     * @return all of the objects
+     */
     public synchronized JSONArray getAll() {
         JSONArray objectList = null;
         try (FileReader fileReader = new FileReader(this.filePath)){
@@ -30,6 +47,13 @@ public class ObjectHandler {
         return objectList;
     }
 
+    /**
+     *  Returns one Object represented
+     *  as a JSON Object.
+     *
+     * @param index, in list
+     * @return a single JSON object
+     */
     public synchronized JSONObject get(int index) {
         JSONObject jsonObject = null;
         try (FileReader fileReader = new FileReader(this.filePath)){

@@ -138,6 +138,7 @@ def automatic():
 
 @app.errorhandler(404)
 def page_not_found(e):
+    """Returns 404, because path is not created."""
     return render_template('404.html'), 404
 
 # Running server on localhost:5000

@@ -5,7 +5,8 @@ import java.net.*;
 import java.util.Scanner;
 
 /**
- *
+ * Connects to the Server through a socket.
+ * Can send text and expects replies from server.
  */
 public class Client {
 
