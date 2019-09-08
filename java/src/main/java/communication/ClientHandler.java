@@ -1,8 +1,6 @@
 package main.java.communication;
 
 import main.java.utility.Database;
-import main.java.utility.ObjectHandler;
-import org.json.JSONObject;
 
 import java.io.*;
 import java.net.Socket;

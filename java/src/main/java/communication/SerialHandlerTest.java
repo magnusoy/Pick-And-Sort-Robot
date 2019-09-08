@@ -2,20 +2,23 @@ package main.java.communication;
 import main.java.utility.Database;
 import org.json.JSONObject;
 
-public class ArduinoHandlerTest {
+/**
+ *
+ */
+public class SerialHandlerTest {
 
 
     public static void main(String[] args) {
         Database db = new Database();
-        ArduinoHandler arduinoHandler = new ArduinoHandler(db);
-        arduinoHandler.run();
+        SerialHandler serialHandler = new SerialHandler(db);
+        serialHandler.run();
 
         System.out.println("Started");
 
 
         boolean quit= false;
         while(!quit) {
-            JSONObject objRead = arduinoHandler.getJsonObject();
+            JSONObject objRead = serialHandler.getJsonObject();
             String data = objRead.toString();
             System.out.println(data);
             /**
@@ -27,7 +30,7 @@ public class ArduinoHandlerTest {
             obj.put("command", new Integer(3));
              */
             JSONObject obj = db.getObjToSend();
-            arduinoHandler.sendData(obj);
+            serialHandler.sendData(obj);
         }
     }
 }

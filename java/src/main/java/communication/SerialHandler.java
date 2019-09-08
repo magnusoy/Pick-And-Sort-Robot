@@ -10,38 +10,38 @@ import gnu.io.SerialPortEventListener;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
-
-import main.java.utility.Database;
 import org.json.JSONObject;
 
-public class ArduinoHandler extends Thread implements SerialPortEventListener  {
+import main.java.utility.Database;
+
+/**
+ *
+ */
+public class SerialHandler extends Thread implements SerialPortEventListener  {
     SerialPort serialPort;
     /** The port we're normally going to use. */
     private static final String PORT_NAMES[] = {
             "COM7"// Windows
     };
 
+    private BufferedReader input;               // Read in from Serial
+    private OutputStream output;                // Write out to Serial
+    private static final int TIME_OUT = 2000;   // Milliseconds to block while waiting for port open
+    private static final int DATA_RATE = 9600;  // Data boud rate
+    private JSONObject jsonObject;              // Received JSON from teensy
+    private Database db;                        // Shared resource between classes
+
     /**
-     * A BufferedReader which will be fed by a InputStreamReader
-     * converting the bytes into characters
-     * making the displayed results codepage independent
+     *
+     * @param database, Shared resource
      */
-    private BufferedReader input;
-    /** The output stream to the port */
-    private OutputStream output;
-    /** Milliseconds to block while waiting for port open */
-    private static final int TIME_OUT = 2000;
-    /** Default bits per second for COM port. */
-    private static final int DATA_RATE = 9600;
-    /** The jsonObject that the Arduino sends over the Serial */
-    private JSONObject jsonObject;
-
-    private Database db;
-
-    public ArduinoHandler(Database database) {
+    public SerialHandler(Database database) {
         this.db = database;
     }
 
+    /**
+     *
+     */
     @Override
     public void run() {
         CommPortIdentifier quit = null ;
@@ -55,6 +55,10 @@ public class ArduinoHandler extends Thread implements SerialPortEventListener  {
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public CommPortIdentifier initialize() {
         CommPortIdentifier portId = null;
         Enumeration portEnum = CommPortIdentifier.getPortIdentifiers();
@@ -108,6 +112,7 @@ public class ArduinoHandler extends Thread implements SerialPortEventListener  {
 
     /**
      * Handle an event on the serial port. Read the data and print it.
+     * @param oEvent
      */
     public synchronized void serialEvent(SerialPortEvent oEvent) {
         if (oEvent.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
@@ -121,10 +126,13 @@ public class ArduinoHandler extends Thread implements SerialPortEventListener  {
                 e.printStackTrace();
             }
         }
-        // Ignore all the other eventTypes, but you should consider the other ones.
+        // Ignore all the other eventTypes
     }
+
+
     /**
-     * Sends an JSONObject to the arduino
+     * Sends an JSONObject to the serial.
+     * @param data
      */
     public synchronized void sendData(JSONObject data){
         if (data != null) {
@@ -137,6 +145,10 @@ public class ArduinoHandler extends Thread implements SerialPortEventListener  {
 
     }
 
+    /**
+     *
+     * @return
+     */
     public synchronized JSONObject getJsonObject() {
         JSONObject temp;
         if (this.jsonObject != null) {
