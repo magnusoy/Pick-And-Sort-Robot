@@ -50,7 +50,7 @@ public class Database {
         this.objToSend.put("x", new Integer(200));
         this.objToSend.put("y", new Integer(300));
         this.objToSend.put("num", new Integer(1));
-
+        this.command = 0;
         return this.objToSend;
     }
 

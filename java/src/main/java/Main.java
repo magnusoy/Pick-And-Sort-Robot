@@ -3,7 +3,6 @@ package main.java;
 import main.java.communication.ArduinoHandler;
 import main.java.communication.Server;
 import main.java.utility.Database;
-import org.json.JSONObject;
 
 import java.io.IOException;
 

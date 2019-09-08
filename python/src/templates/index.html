@@ -9,6 +9,7 @@
     <meta name="description" content="Pick-and-Sort-Robot Controlpanel" />
     <meta name="author" content="magnusoy" />
     <title>Pick-and-Sort-Robot</title>
+    <link rel='icon' href="{{ url_for('static', filename='assets/icons/favicon.png') }}" type='image/x-icon'/ >
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <!-- Cemantic core -->
     <link
@@ -136,13 +137,16 @@
 
 </script>
 
-    <h1>Videostream</h1>
+    <div class="centered">
+      <h1>Videostream</h1>
+        <img
+        id="video"
+        src="http://www.mazegenerator.net/static/orthogonal_maze_with_20_by_20_cells.png"
+      />
+    </div>
 
     <!--<img id="video" src="{{ url_for('video_viewer') }}" />  -->
-    <img
-      id="video"
-      src="http://www.mazegenerator.net/static/orthogonal_maze_with_20_by_20_cells.png"
-    />
+    
 
     <div id="object_list">{{ objects }}</div>
 
@@ -171,7 +175,7 @@
   </body>
   {% block footer %}
   <!-- Footer content -->
-  <footer class="ui inverted vertical segment">
+  <footer id="footer" class="ui inverted vertical segment">
     Graphical User Interface for Pick-and-Sort-Robot by
     <a href="https://github.com/magnusoy/Pick-And-Sort-Robot">
       Real Time Programming Course, Group 3</a

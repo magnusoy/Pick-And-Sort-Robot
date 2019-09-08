@@ -8,7 +8,7 @@
   Odrive - https://github.com/madcowswe/ODrive/tree/master/Arduino/ODriveArduino
   ArduinoJSON - https://github.com/bblanchon/ArduinoJson
   -----------------------------------------------------------
-  Code by: Magnus Kvendseth Øye, Vegard Solheim
+  Code by: Magnus Kvendseth Øye, Vegard Solheim, Petter Drønnen
   Date: 05.09-2019
   Version: 1.3
   Website: https://github.com/magnusoy/Pick-And-Sort-Robot

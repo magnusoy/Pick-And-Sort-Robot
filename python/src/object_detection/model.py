@@ -14,7 +14,7 @@ from object_detection.utils import visualization_utils as vis_util
 
 
 class ObjectDetection(object):
-    """docstring"""
+    """Performs object detection through webcamera."""
 
     def __init__(self, path_to_ckpt, path_to_labels):
         self.PATH_TO_CKPT = path_to_ckpt
@@ -38,7 +38,7 @@ class ObjectDetection(object):
         self.num_detections = None
 
     def initialize(self):
-        """docstring"""
+        """Initializes the tensorflow trained model."""
         detection_graph = tf.Graph()
         with detection_graph.as_default():
             od_graph_def = tf.GraphDef()
@@ -65,7 +65,7 @@ class ObjectDetection(object):
             'num_detections:0')
 
     def run(self, capture, debug=False):
-        """docstring"""
+        """Runs the object detection on the assigned capture."""
         _, frame = capture.read()
         frame_expanded = np.expand_dims(frame, axis=0)
 
@@ -95,17 +95,15 @@ class ObjectDetection(object):
 
 # Example of usage
 if __name__ == "__main__":
-    object_detection = ObjectDetection()
-
     video = cv2.VideoCapture(0)
     ret = video.set(3, 640)
     ret = video.set(4, 480)
 
+    object_detection = ObjectDetection()
     object_detection.initialize()
 
     while True:
         object_detection.run(video)
-
         # Press 'q' to quit
         if cv2.waitKey(1) == ord('q'):
             break
