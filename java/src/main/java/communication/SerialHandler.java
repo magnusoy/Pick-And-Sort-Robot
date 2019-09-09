@@ -10,9 +10,12 @@ import gnu.io.SerialPortEventListener;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
-import org.json.JSONObject;
+
+import org.json.simple.JSONObject;
 
 import main.java.utility.Database;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 /**
  * SerialHandler communicates with the Teensy through
@@ -31,6 +34,7 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
     private static final int DATA_RATE = 9600;  // Data boud rate
     private JSONObject jsonObject;              // Received JSON from teensy
     private Database db;                        // Shared resource between classes
+    private JSONParser jsonParser;
 
     /**
      * SerialHandler constructor initializes
@@ -39,6 +43,7 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
      * @param database, Shared resource
      */
     public SerialHandler(Database database) {
+        this.jsonParser = new JSONParser();
         this.db = database;
     }
 
@@ -120,12 +125,13 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
     public synchronized void serialEvent(SerialPortEvent oEvent) {
         if (oEvent.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
             try {
-                String inputLine=input.readLine();
-                this.jsonObject = new JSONObject(inputLine);
+                String inputLine = input.readLine();
+                Object obj = this.jsonParser.parse(inputLine);
+                this.jsonObject = (JSONObject) obj;
                 if (this.jsonObject != null) {
                     db.putObj(this.jsonObject);
                 }
-            } catch (IOException e) {
+            } catch (IOException | ParseException e) {
                 e.printStackTrace();
             }
         }
@@ -146,7 +152,6 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
                 e.printStackTrace();
             }
         }
-
     }
 
     /**

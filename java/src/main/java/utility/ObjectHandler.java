@@ -28,6 +28,20 @@ public class ObjectHandler {
         this.jsonParser = new JSONParser();
     }
 
+    public int getSize() {
+        JSONArray objectList = null;
+        try (FileReader fileReader = new FileReader(this.filePath)){
+            Object object = this.jsonParser.parse(fileReader);
+
+            objectList = (JSONArray) object;
+
+        } catch (IOException | ParseException e) {
+            e.printStackTrace();
+        }
+        assert objectList != null;
+        return objectList.size();
+    }
+
     /**
      * Returns all of the objects
      * stored as JSON Array.

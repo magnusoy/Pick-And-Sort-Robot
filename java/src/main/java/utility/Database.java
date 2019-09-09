@@ -1,6 +1,6 @@
 package main.java.utility;
 
-import org.json.JSONObject;
+import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
 
 /**
@@ -11,7 +11,9 @@ import org.json.simple.JSONArray;
 public class Database {
 
     private Integer command;                    // A number that instructs the Teensy
+    private int type;
     private final ObjectHandler objectHandler;  // Handles the storage of the object data
+    private final ObjectPicker objectPicker;    // Handles the figure type to be sorted
     private JSONObject obj;                     // JSON format of the tracked object
     private JSONObject objToSend;               // JSON format of the data that the Teensy will have
 
@@ -22,8 +24,10 @@ public class Database {
     public Database() {
         this.command = 0;
         this.objectHandler = new ObjectHandler("..\\resources\\Objects\\objects.json");
+        this.objectPicker = new ObjectPicker(this.objectHandler);
         this.obj = new JSONObject();
         this.objToSend = new JSONObject();
+        this.type = 0;
     }
 
     /**
@@ -54,6 +58,24 @@ public class Database {
     }
 
     /**
+     * Set a new type to be sent.
+     *
+     * @param type, an Integer positive number.
+     */
+    public void putType(int type) {
+        this.type = type;
+    }
+
+    /**
+     * Returns the current command.
+     *
+     * @return type, the current command
+     */
+    public int getType() {
+        return this.type;
+    }
+
+    /**
      * Receives new JSON from Teensy.
      *
      * @param obj received JSON from Teensy
@@ -78,18 +100,15 @@ public class Database {
     }
 
     /**
-     * Retunrs the JSON structure that the
+     * Returns the JSON structure that the
      * Teensy expects to receive.
      *
      * @return JSON structure
      */
     public synchronized JSONObject getObjToSend() {
+        this.objectPicker.setType(this.type);
+        this.objToSend = this.objectPicker.getObject();
         this.objToSend.put("command", this.command);
-        // Just because path planning is not made yet.
-        this.objToSend.put("type", new Integer(1));
-        this.objToSend.put("x", new Integer(200));
-        this.objToSend.put("y", new Integer(300));
-        this.objToSend.put("num", new Integer(1));
         this.command = 0;
         return this.objToSend;
     }

@@ -1,6 +1,6 @@
 package main.java.communication;
 import main.java.utility.Database;
-import org.json.JSONObject;
+import org.json.simple.JSONObject;
 
 /**
  * Test experiment too see if code works
