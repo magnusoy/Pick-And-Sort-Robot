@@ -4,7 +4,7 @@ Project description - Under progress.
 
 [Video example, coming](https://youtube.com)
 
-[Raport, coming](https://www.overleaf.com/project)
+[Report, coming](https://www.overleaf.com/project)
 
 
 ## Built With
