@@ -28,6 +28,11 @@ public class ObjectHandler {
         this.jsonParser = new JSONParser();
     }
 
+    /**
+     * Returns the number of objects remaining.
+     *
+     * @return the number of objects remaining.
+     */
     public int getSize() {
         JSONArray objectList = null;
         try (FileReader fileReader = new FileReader(this.filePath)){

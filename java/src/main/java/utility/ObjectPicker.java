@@ -6,19 +6,23 @@ import org.json.simple.JSONObject;
 import java.util.Iterator;
 
 /**
- *
+ * ObjectPicker is controlling the object data
+ * that is sent to trough the Serial over to
+ * the Teensy.
  *
  */
 public class ObjectPicker {
 
-    private int type;                               //
-    private final ObjectHandler objectHandler;      //
+    private int type;                               // Object type represented as int
+    private final ObjectHandler objectHandler;      // Takes care of reading from file
 
 
     /**
+     * ObjectPicker constructor initializes the
+     * objecthandler that takes care of the file
+     * all the located objects are stored.
      *
-     *
-     * @param objectHandler
+     * @param objectHandler, Filehandler for objects
      */
     public ObjectPicker(ObjectHandler objectHandler) {
         this.objectHandler = objectHandler;
@@ -26,27 +30,30 @@ public class ObjectPicker {
     }
 
     /**
+     * Sets the sort of type the robot
+     * should pick.
      *
-     *
-     * @param type
+     * @param type, object type represented as int
      */
     public void setType(int type) {
         this.type = type;
     }
 
     /**
+     * Returns object type represented as int
      *
-     *
-     * @return
+     * @return type, object represented as int
      */
     public int getType() {
         return this.type;
     }
 
     /**
+     * Returns the object that will be
+     * picked. It is based on the type
+     * variable.
      *
-     *
-     * @return
+     * @return JSON object to be picked
      */
     public JSONObject getObject() {
         String objectType = "";
@@ -54,24 +61,24 @@ public class ObjectPicker {
         int size = this.objectHandler.getSize();
         if (size > 1) {
             switch (this.type) {
-                case 0:
+                case 10:
                     object = this.objectHandler.get(size);
                     break;
 
-                case 1:
-                    objectType = "circle";
-                    break;
-
-                case 2:
+                case 11:
                     objectType = "square";
                     break;
 
-                case 3:
-                    objectType = "triangle";
+                case 12:
+                    objectType = "circle";
                     break;
 
-                case 4:
+                case 13:
                     objectType = "rectangle";
+                    break;
+
+                case 14:
+                    objectType = "triangle";
                     break;
 
                 default:
@@ -87,11 +94,12 @@ public class ObjectPicker {
     }
 
     /**
+     * Returns object matching the requested type.
      *
-     * @param type
-     * @param jsonArray
+     * @param type, object represented as int
+     * @param jsonArray, Array containing all objects
      *
-     * @return
+     * @return object matching the conditions
      */
     private JSONObject getObjectByType(String type, JSONArray jsonArray) {
         JSONObject object = null;

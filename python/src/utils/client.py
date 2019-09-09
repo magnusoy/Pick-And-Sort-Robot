@@ -6,6 +6,7 @@ import socket
 from threading import Thread
 import time
 
+
 class Client(Thread):
     """Client communicating with Server
     through socket connection."""
@@ -19,14 +20,14 @@ class Client(Thread):
         self.terminate = False
         self.command = "help"
         self.content = None
-    
+
     def run(self):
         self.connect()
         while not self.terminate:
             self.write(self.command)
             self.content = self.read()
             time.sleep(self.rate)
-        
+
     def connect(self):
         """Establish a secure connection to server."""
         try:
@@ -55,23 +56,7 @@ class Client(Thread):
 
 # Example of usage
 if __name__ == "__main__":
-    
-    object_client = Client("127.0.0.1", 5056)
-    help_client = Client("127.0.0.1", 5056)
-    object_client.command = "GET/Objects"
-    help_client.command = "help"
-    object_client.start()
-    help_client.start()
 
-    while True:
-        msg = object_client.content
-        if msg is not None:
-            print(msg.split(","))
-
-
-# Example of usage
-if __name__ == "__main__":
-    
     object_client = Client("127.0.0.1", 5056)
     help_client = Client("127.0.0.1", 5056)
     object_client.command = "GET/Objects"

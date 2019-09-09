@@ -3,12 +3,14 @@
 
 # Importing packages
 from flask import Flask, render_template, Response, jsonify, request
-from object_detection.model import ObjectDetection
 import cv2
 import sys
 import os
-from utils.client import Client
 import time
+
+from object_detection.model import ObjectDetection
+from utils.client import Client
+
 
 # Opens webcamera, changing the resolution
 video = cv2.VideoCapture(0)
@@ -136,10 +138,56 @@ def automatic():
     return "nothing"
 
 
+@app.route('/all')
+def all():
+    """Sends a pick all objects call to the system."""
+    command = "POST/All"
+    command_client.write(command)
+    content = command_client.read()
+    return "nothing"
+
+
+@app.route('/square')
+def square():
+    """Sends a pick all squares call to the system."""
+    command = "POST/Square"
+    command_client.write(command)
+    content = command_client.read()
+    return "nothing"
+
+
+@app.route('/triangle')
+def triangle():
+    """Sends a pick all triangle call to the system."""
+    command = "POST/Triangle"
+    command_client.write(command)
+    content = command_client.read()
+    return "nothing"
+
+
+@app.route('/circle')
+def circle():
+    """Sends a pick all circle call to the system."""
+    command = "POST/Circle"
+    command_client.write(command)
+    content = command_client.read()
+    return "nothing"
+
+
+@app.route('/rectangle')
+def rectangle():
+    """Sends a pick all circle call to the system."""
+    command = "POST/Rectangle"
+    command_client.write(command)
+    content = command_client.read()
+    return "nothing"
+
+
 @app.errorhandler(404)
 def page_not_found(e):
     """Returns 404, because path is not created."""
     return render_template('404.html'), 404
+
 
 # Running server on localhost:5000
 if __name__ == '__main__':

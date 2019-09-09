@@ -34,32 +34,32 @@
         <div class="grouped fields">
           <div class="field">
             <div class="ui slider checkbox">
-              <input type="radio" name="throughput" checked="checked" />
+              <a href=# id="all"></a><input type="radio" name="throughput" checked="checked" /></a>
               <label>All objects</label>
             </div>
           </div>
           <div class="field">
             <div class="ui slider checkbox">
-              <input type="radio" name="throughput" />
+              <a href=# id="squares"></a><input type="radio" name="throughput" /></a>
               <label>Squares</label>
             </div>
           </div>
           <div class="field">
             <div class="ui slider checkbox">
-              <input type="radio" name="throughput" />
+              <a href=# id="circles"><input type="radio" name="throughput" /></a>
               <label>Circles</label>
             </div>
           </div>
           <div class="field">
             <div class="ui slider checkbox checked">
-              <input type="radio" name="throughput" />
+              <a href=# id="triangles"></a><input type="radio" name="throughput" /></a>
               <label>Triangles</label>
             </div>
           </div>
         </div>
         <div class="field">
           <div class="ui slider checkbox checked">
-            <input type="radio" name="throughput" />
+            <a href=# id="rectangles"></a><input type="radio" name="throughput" /></a>
             <label>Rectangles</label>
           </div>
         </div>
@@ -128,6 +128,51 @@
   $(function() {
         $('a#automatic').bind('click', function() {
           $.getJSON('/automatic',
+              function(data) {
+            //do nothing
+          });
+      return false;
+    });
+  });
+  $(function() {
+        $('a#all').bind('click', function() {
+          $.getJSON('/all',
+              function(data) {
+            //do nothing
+          });
+      return false;
+    });
+  });
+  $(function() {
+        $('a#circles').bind('click', function() {
+          $.getJSON('/circles',
+              function(data) {
+            //do nothing
+          });
+      return false;
+    });
+  });
+  $(function() {
+        $('a#squares').bind('click', function() {
+          $.getJSON('/squares',
+              function(data) {
+            //do nothing
+          });
+      return false;
+    });
+  });
+  $(function() {
+        $('a#rectangles').bind('click', function() {
+          $.getJSON('/rectangles',
+              function(data) {
+            //do nothing
+          });
+      return false;
+    });
+  });
+  $(function() {
+        $('a#triangles').bind('click', function() {
+          $.getJSON('/triangles',
               function(data) {
             //do nothing
           });

@@ -111,31 +111,31 @@ public class ClientHandler extends Thread {
                         break;
 
                     case "POST/All":
-                        this.db.putType(0);
+                        this.db.putType(10);
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Squares":
-                        this.db.putType(1);
+                        this.db.putType(11);
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Circles":
-                        this.db.putType(2);
-                        toReturn = "received";
-                        this.dataOutputStream.writeUTF(toReturn);
-                        break;
-
-                    case "POST/Triangles":
-                        this.db.putType(3);
+                        this.db.putType(12);
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Rectangles":
-                        this.db.putType(4);
+                        this.db.putType(13);
+                        toReturn = "received";
+                        this.dataOutputStream.writeUTF(toReturn);
+                        break;
+
+                    case "POST/Triangles":
+                        this.db.putType(14);
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;

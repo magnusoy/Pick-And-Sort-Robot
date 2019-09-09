@@ -9,8 +9,8 @@
   ArduinoJSON - https://github.com/bblanchon/ArduinoJson
   -----------------------------------------------------------
   Code by: Magnus Kvendseth Øye, Vegard Solheim, Petter Drønnen
-  Date: 05.09-2019
-  Version: 1.3
+  Date: 09.09-2019
+  Version: 1.4
   Website: https://github.com/magnusoy/Pick-And-Sort-Robot
 */
 
@@ -20,6 +20,9 @@
 #include <ArduinoJson.h>
 #include "IO.h"
 #include "OdriveParameters.h"
+#include "States.h"
+#include "Commands.h"
+
 
 #define UPDATE_SERIAL_TIME 100 // In millis
 
@@ -33,11 +36,6 @@ ODriveArduino odrive(ODRIVE_SERIAL);
 // Vector storing the motor 1 and 2 encoder position
 int motorPosition[] = {0, 0};
 
-// Variables for recieving data
-boolean newData = false;
-const byte numChars = 32;
-char receivedChars[numChars]; // An array to store the received data
-
 // Time for next timeout, in milliseconds
 unsigned long nextTimeout = 0;
 
@@ -47,23 +45,13 @@ float actualY = 0;
 float targetX = 0;
 float targetY = 0;
 
-// Constants representing the states in the state machine
-const int S_IDLE = 0;
-const int S_CALIBRATION = 1;
-const int S_READY = 2;
-const int S_MOVE_TO_OBJECT = 3;
-const int S_PICK_OBJECT = 4;
-const int S_MOVE_TO_DROP = 5;
-const int S_DROP_OBJECT = 6;
-const int S_COMPLETED = 7;
-const int S_RESET = 8;
 // A variable holding the current state
 int currentState = S_IDLE;
 
 // Variables storing object data
 int objectType = 0;
 int objectsRemaining = 0;
-
+int recCommand;
 
 void setup() {
   // Initialize Serial ports
@@ -80,7 +68,7 @@ void loop() {
   // State machine
   switch (currentState) {
     case S_IDLE:
-      if (isValidCommand('c')) {
+      if (isValidCommand(CALIBRATE)) {
         changeStateTo(S_CALIBRATION);
       }
       break;
@@ -92,7 +80,7 @@ void loop() {
 
     case S_READY:
       readJSONDocuemntFromSerial();
-      if (isValidCommand('g')) {
+      if (isValidCommand(START)) {
         changeStateTo(S_MOVE_TO_OBJECT);
       }
       break;
@@ -109,7 +97,6 @@ void loop() {
           changeStateTo(S_PICK_OBJECT);
         }
       }
-
       break;
 
     case S_PICK_OBJECT: {
@@ -201,6 +188,7 @@ void sendJSONDocumentToSerial() {
   doc["state"] = currentState;
   doc["x"] = actualX;
   doc["y"] = actualY;
+  doc["command"] = recCommand;
   serializeJson(doc, Serial);
   Serial.print("\n");
 }
@@ -222,6 +210,10 @@ void readJSONDocuemntFromSerial() {
     objectsRemaining = obj["num"];
     targetX = obj["x"];
     targetY = obj["y"];
+
+    if (obj.containsKey("command")) {
+      recCommand = obj["command"];
+    }
   }
 }
 
@@ -229,19 +221,14 @@ void readJSONDocuemntFromSerial() {
   Receives input from Serial and check if
   the data corresponds the valid command.
 
-  @param inputCommand, valid command char
+  @param inputCommand, valid command int
 
   @return true if input matches,
           else false
 */
-boolean isValidCommand(char inputCommand) {
-  char received = ' ';
+boolean isValidCommand(int inputCommand) {
   boolean valid = false;
-
-  if (Serial.available() > 0) {
-    received = Serial.read();
-  }
-  if (received == inputCommand) {
+  if (recCommand == inputCommand) {
     valid = true;
   }
   return valid;
@@ -397,22 +384,27 @@ void setPosition(float x, float y) {
 void objectSorter(int object) {
   switch (object) {
     case 0:
+      // Home position
       setPosition(100, 100);
       break;
 
     case 1:
+      // Square position
       setPosition(100, 100);
       break;
 
     case 2:
+      // Circle position
       setPosition(100, 100);
       break;
 
     case 3:
+      // Rectangle position
       setPosition(100, 100);
       break;
 
     case 4:
+      // Triangle position
       setPosition(100, 100);
       break;
 

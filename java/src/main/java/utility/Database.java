@@ -11,7 +11,7 @@ import org.json.simple.JSONArray;
 public class Database {
 
     private Integer command;                    // A number that instructs the Teensy
-    private int type;
+    private int type;                           // Object type represented as int
     private final ObjectHandler objectHandler;  // Handles the storage of the object data
     private final ObjectPicker objectPicker;    // Handles the figure type to be sorted
     private JSONObject obj;                     // JSON format of the tracked object
