@@ -26,7 +26,6 @@
 
 #define UPDATE_SERIAL_TIME 100 // In millis
 
-
 #define ODRIVE_SERIAL Serial1 // RX, TX (0, 1)
 // Note: must also connect GND on ODrive to GND on Arduino!
 
@@ -44,6 +43,8 @@ float actualX = 0;
 float actualY = 0;
 float targetX = 0;
 float targetY = 0;
+float manualX = 0;
+float manualY = 0;
 
 // A variable holding the current state
 int currentState = S_IDLE;
@@ -82,6 +83,8 @@ void loop() {
       readJSONDocuemntFromSerial();
       if (isValidCommand(START)) {
         changeStateTo(S_MOVE_TO_OBJECT);
+      } else if (isValidCommand(MANUAL_CONTROL)) {
+        changeStateTo(S_MANUAL);
       }
       break;
 
@@ -89,6 +92,8 @@ void loop() {
         readMotorPositions();
         float errorX = abs(targetX - actualX);
         float errorY = abs(targetY - actualY);
+        manualX = actualX;
+        manualY = actualY;
         setMotorPosition(MOTOR_X, targetX);
         setMotorPosition(MOTOR_Y, targetY);
 
@@ -112,6 +117,8 @@ void loop() {
         readMotorPositions();
         float errorX = abs(targetX - actualX);
         float errorY = abs(targetY - actualY);
+        manualX = actualX;
+        manualY = actualY;
         setMotorPosition(MOTOR_X, targetX);
         setMotorPosition(MOTOR_Y, targetY);
 
@@ -120,7 +127,6 @@ void loop() {
           changeStateTo(S_DROP_OBJECT);
         }
       }
-
       break;
 
     case S_DROP_OBJECT: {
@@ -146,6 +152,8 @@ void loop() {
         readMotorPositions();
         float errorX = abs(targetX - actualX);
         float errorY = abs(targetY - actualY);
+        manualX = actualX;
+        manualY = actualY;
         setMotorPosition(MOTOR_X, targetX);
         setMotorPosition(MOTOR_Y, targetY);
 
@@ -154,7 +162,15 @@ void loop() {
           changeStateTo(S_READY);
         }
       }
+      break;
 
+    case S_MANUAL:
+      // TODO: Take use of joystick input
+      setMotorPosition(MOTOR_X, manualX);
+      setMotorPosition(MOTOR_X, manualY);
+      if () {
+        changeStateTo(S_READY);
+      }
       break;
 
     default:
