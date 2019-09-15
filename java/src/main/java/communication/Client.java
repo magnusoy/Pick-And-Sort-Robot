@@ -11,11 +11,11 @@ import java.util.Scanner;
 public class Client {
 
     // Define socket and input, output streams
-    private InetAddress ip;
-    private final Scanner in;
-    private final DataInputStream dataInputStream;
-    private final DataOutputStream dataOutputStream;
-    private Socket socket;
+    private InetAddress ip;                             // Host name to server
+    private final Scanner in;                           // Scanner for userinput
+    private final DataInputStream dataInputStream;      // Input from Serial
+    private final DataOutputStream dataOutputStream;    // Output to Serial
+    private Socket socket;                              // Connection socket
 
     /**
      * Client constructor.
@@ -36,6 +36,7 @@ public class Client {
         } catch (ConnectException ce) {
             ce.printStackTrace();
         }
+        assert this.socket != null;
         this.dataInputStream = new DataInputStream(this.socket.getInputStream());
         this.dataOutputStream = new DataOutputStream(this.socket.getOutputStream());
     }

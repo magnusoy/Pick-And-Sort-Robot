@@ -1,3 +1,5 @@
+# Just for testing pruposes
+
 from object_detection.model import ObjectDetection
 import cv2
 import sys

@@ -14,20 +14,20 @@ TYPES WILL BE ENCODED AS INTEGERS RANGING FROM 1 - 4
 ------------------------
 
 
-{"type": 1, "num": 6, "x": 433, "y": 546}
+{"type": 1, "command": 6, "x": 433, "y": 546}
 
 
 Can maybe be done with multiple objects at once.
 
 [
-    {"type": 3, "num": 9, "x": 433, "y": 546},
-    {"type": 1, "num": 8, "x": 433, "y": 546},
-    {"type": 4, "num": 7, "x": 433, "y": 546},
-    {"type": 1, "num": 6, "x": 433, "y": 546},
-    {"type": 2, "num": 5, "x": 433, "y": 546},
-    {"type": 1, "num": 4, "x": 433, "y": 546},
-    {"type": 2, "num": 3, "x": 433, "y": 546},
-    {"type": 4, "num": 2, "x": 433, "y": 546},
-    {"type": 3, "num": 1, "x": 433, "y": 546},
-    {"type": 2, "num": 0, "x": 433, "y": 546}
+    {"type": 3, "command": 9, "x": 433, "y": 546},
+    {"type": 1, "command": 8, "x": 433, "y": 546},
+    {"type": 4, "command": 7, "x": 433, "y": 546},
+    {"type": 1, "command": 6, "x": 433, "y": 546},
+    {"type": 2, "command": 5, "x": 433, "y": 546},
+    {"type": 1, "command": 4, "x": 433, "y": 546},
+    {"type": 2, "command": 3, "x": 433, "y": 546},
+    {"type": 4, "command": 2, "x": 433, "y": 546},
+    {"type": 3, "command": 1, "x": 433, "y": 546},
+    {"type": 2, "command": 0, "x": 433, "y": 546}
 ]

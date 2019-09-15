@@ -10,12 +10,14 @@ import org.json.simple.JSONArray;
  */
 public class Database {
 
-    private Integer command;                    // A number that instructs the Teensy
-    private int type;                           // Object type represented as int
-    private final ObjectHandler objectHandler;  // Handles the storage of the object data
-    private final ObjectPicker objectPicker;    // Handles the figure type to be sorted
-    private JSONObject obj;                     // JSON format of the tracked object
-    private JSONObject objToSend;               // JSON format of the data that the Teensy will have
+    private Integer command;                     // A number that instructs the Teensy
+    private int type;                            // Object type represented as int
+    private double manualX;                      // Manual X input from joystick
+    private double manualY;                      // Manual Y input from joystick
+    private final ObjectHandler objectHandler;   // Handles the storage of the object data
+    private final ObjectPicker objectPicker;     // Handles the figure type to be sorted
+    private JSONObject obj;                      // JSON format of the tracked object
+    private JSONObject objToSend;                // JSON format of the data that the Teensy will have
 
     /**
      * Database constructor, initializes the variables
@@ -28,6 +30,8 @@ public class Database {
         this.obj = new JSONObject();
         this.objToSend = new JSONObject();
         this.type = 0;
+        this.manualX = 0.0;
+        this.manualY = 0.0;
     }
 
     /**
@@ -109,7 +113,10 @@ public class Database {
         this.objectPicker.setType(this.type);
         this.objToSend = this.objectPicker.getObject();
         this.objToSend.put("command", this.command);
+        this.objToSend.put("manX", this.manualX);
+        this.objToSend.put("manY", this.manualY);
         this.command = 0;
+
         return this.objToSend;
     }
 

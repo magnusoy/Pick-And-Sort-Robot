@@ -13,7 +13,7 @@ from utils.client import Client
 
 
 # Opens webcamera, changing the resolution
-video = cv2.VideoCapture(0)
+video = cv2.VideoCapture(0) # Change to 1 if device have more cameras
 ret = video.set(3, 640)
 ret = video.set(4, 480)
 

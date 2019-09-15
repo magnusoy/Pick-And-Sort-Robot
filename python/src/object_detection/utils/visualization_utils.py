@@ -850,7 +850,7 @@ def visualize_boxes_and_labels_on_image_array(
   return image
 
 def write_objects_to_file(data):
-  """docstring"""
+  """Write objectdata to file."""
   index = -1
   path = "C:\\Users\\Magnus\\Documents\\Pick-And-Sort-Robot\\resources\\Objects\\objects.json"
   f = open(path, "w")
@@ -860,8 +860,8 @@ def write_objects_to_file(data):
     f = open(path, "a")
     for box, figure in data.items():
       ymin, xmin, ymax, xmax = box
-      x = int((xmax+xmin)/2*640)
-      y = int((ymax+ymin)/2*480)
+      x = int((xmax+xmin)/2*640) # Change to fit resolution
+      y = int((ymax+ymin)/2*480) # Change to fit resolution
       text = str(figure[0])
       out = text.replace(": ", ",").replace("%", "").split(",")
       figure = out[0]

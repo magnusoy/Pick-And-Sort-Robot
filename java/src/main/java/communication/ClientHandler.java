@@ -7,15 +7,17 @@ import java.net.Socket;
 
 
 /**
- *
+ * ClientHandler uses a socket for communication with the server.
+ * Each client can GET and POST data. This makes it possible
+ * to hand the commands to other processes and threads.
  */
 public class ClientHandler extends Thread {
 
-    // Defining local variables
-    private final DataInputStream dataInputStream;
-    private final DataOutputStream dataOutputStream;
-    private final Socket socket;
-    private Database db;
+    private final DataInputStream dataInputStream;      // Input from client
+    private final DataOutputStream dataOutputStream;    // Output to client
+    private final Socket socket;                        // Client socket
+    private Database db;                                // Shared resource
+
 
     /**
      * ClientHandler constructor. Assign the given
@@ -25,7 +27,8 @@ public class ClientHandler extends Thread {
      * @param dataInputStream inputstream object
      * @param dataOutputStream outputstream object
      */
-    public ClientHandler(Socket socket, DataInputStream dataInputStream, DataOutputStream dataOutputStream, Database database) {
+    public ClientHandler(Socket socket, DataInputStream dataInputStream,
+                         DataOutputStream dataOutputStream, Database database) {
         this.db = database;
         this.dataInputStream = dataInputStream;
         this.dataOutputStream = dataOutputStream;
@@ -33,7 +36,8 @@ public class ClientHandler extends Thread {
     }
 
     /**
-     * Starts a new thread that runs as long the client is connected to the server.
+     * Starts a new thread that runs as long
+     * the client is connected to the server.
      */
     @Override
     public void run() {
@@ -170,7 +174,6 @@ public class ClientHandler extends Thread {
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
-
     }
 
 }

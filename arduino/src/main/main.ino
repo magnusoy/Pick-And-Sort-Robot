@@ -165,7 +165,7 @@ void loop() {
       break;
 
     case S_MANUAL:
-      // TODO: Take use of joystick input
+      readJSONDocuemntFromSerial();
       setMotorPosition(MOTOR_X, manualX);
       setMotorPosition(MOTOR_X, manualY);
       if () {
@@ -226,6 +226,8 @@ void readJSONDocuemntFromSerial() {
     objectsRemaining = obj["num"];
     targetX = obj["x"];
     targetY = obj["y"];
+    manualX = obj["manX"];
+    manualY = obj["manY"];
 
     if (obj.containsKey("command")) {
       recCommand = obj["command"];
@@ -376,6 +378,7 @@ void edgeDetection() {
 
   if (buttonState1 || buttonState2
       || buttonState3 || buttonState4) {
+    terminateMotors();
     changeStateTo(S_IDLE);
   }
 }
@@ -444,6 +447,14 @@ boolean pickObject() {
 boolean dropObject() {
   //TODO: Create sequence
   return true;
+}
+
+
+/**
+  Stop motors immediately.
+ */
+void terminateMotors() {
+  //TODO: Kill motors
 }
 
 /**
