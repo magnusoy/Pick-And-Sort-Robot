@@ -34,13 +34,13 @@
         <div class="grouped fields">
           <div class="field">
             <div class="ui slider checkbox">
-              <a href=# id="all"></a><input type="radio" name="throughput" checked="checked" /></a>
+              <a href=# id="all"><input type="radio" name="throughput" checked="checked" /></a>
               <label>All objects</label>
             </div>
           </div>
           <div class="field">
             <div class="ui slider checkbox">
-              <a href=# id="squares"></a><input type="radio" name="throughput" /></a>
+              <a href=# id="squares"><input type="radio" name="throughput" /></a>
               <label>Squares</label>
             </div>
           </div>
@@ -52,14 +52,14 @@
           </div>
           <div class="field">
             <div class="ui slider checkbox checked">
-              <a href=# id="triangles"></a><input type="radio" name="throughput" /></a>
+              <a href=# id="triangles"><input type="radio" name="throughput" /></a>
               <label>Triangles</label>
             </div>
           </div>
         </div>
         <div class="field">
           <div class="ui slider checkbox checked">
-            <a href=# id="rectangles"></a><input type="radio" name="throughput" /></a>
+            <a href=# id="rectangles"><input type="radio" name="throughput" /></a>
             <label>Rectangles</label>
           </div>
         </div>
@@ -72,10 +72,10 @@
           <a href=# id=reset><button class="yellow ui massive button">Reset</button></a>
       </form>
     </div>
-    <div id="functions">
+    <div class="functions">
         <form>
-            <a href=# id=manual></a><button class="massive ui button">Manual override</button></a>
-            <a href=# id=calibrate></a><button class="massive ui button">Calibrate motors</button></a>
+            <a href=# id=manual><button class="massive ui button">Manual override</button></a>
+            <a href=# id=calibrate><button class="massive ui button">Calibrate motors</button></a>
         </form>
       </div>
   
@@ -147,7 +147,6 @@
         $('a#circles').bind('click', function() {
           $.getJSON('/circles',
               function(data) {
-            //do nothing
           });
       return false;
     });
@@ -209,12 +208,9 @@
       }, 1000);
     </script>
 
-    
-
     {% endblock %}
 
     <!-- Javascripts -->
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   </body>

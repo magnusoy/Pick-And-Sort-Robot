@@ -103,6 +103,14 @@ def start():
     return "nothing"
 
 
+@app.route('/reset')
+def reset():
+    """Sends a reset call to the system."""
+    command = "POST/Reset"
+    command_client.write(command)
+    return "nothing"
+
+
 @app.route('/stop')
 def stop():
     """Sends a stop call to the system."""
@@ -147,8 +155,8 @@ def all():
     return "nothing"
 
 
-@app.route('/square')
-def square():
+@app.route('/squares')
+def squares():
     """Sends a pick all squares call to the system."""
     command = "POST/Square"
     command_client.write(command)
@@ -156,8 +164,8 @@ def square():
     return "nothing"
 
 
-@app.route('/triangle')
-def triangle():
+@app.route('/triangles')
+def triangles():
     """Sends a pick all triangle call to the system."""
     command = "POST/Triangle"
     command_client.write(command)
@@ -165,8 +173,8 @@ def triangle():
     return "nothing"
 
 
-@app.route('/circle')
-def circle():
+@app.route('/circles')
+def circles():
     """Sends a pick all circle call to the system."""
     command = "POST/Circle"
     command_client.write(command)
@@ -174,8 +182,8 @@ def circle():
     return "nothing"
 
 
-@app.route('/rectangle')
-def rectangle():
+@app.route('/rectangles')
+def rectangles():
     """Sends a pick all circle call to the system."""
     command = "POST/Rectangle"
     command_client.write(command)

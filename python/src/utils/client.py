@@ -43,12 +43,12 @@ class Client(Thread):
         Thread.join(self)
         self.socket.close()
 
-    def write(self, msg):
+    def write(self, msg: str):
         """Write message to server."""
         msg = msg + "\n"
         self.socket.sendall(msg.encode())
 
-    def read(self):
+    def read(self) -> str:
         """Read received data from server."""
         msg = self.socket.recv(4096)
         return msg.decode("latin-1")
