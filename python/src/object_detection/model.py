@@ -66,7 +66,7 @@ class ObjectDetection(object):
 
     def run(self, capture, debug=False):
         """Runs the object detection on the assigned capture."""
-        _, frame = capture.read()
+        _ , frame = capture.read()
         frame_expanded = np.expand_dims(frame, axis=0)
 
         # Perform the detection by running the model with the image as input
@@ -89,12 +89,13 @@ class ObjectDetection(object):
         if debug:
             cv2.imshow('Object detector', frame)
         
-        _, jpeg = cv2.imencode('.jpg', frame)
+        _ , jpeg = cv2.imencode('.jpg', frame)
         return jpeg.tobytes()
     
 
 # Example of usage
 if __name__ == "__main__":
+    # Open camerafeed and adjust videoresolution
     video = cv2.VideoCapture(0)
     ret = video.set(3, 640)
     ret = video.set(4, 480)
@@ -104,6 +105,7 @@ if __name__ == "__main__":
 
     while True:
         object_detection.run(video)
+
         # Press 'q' to quit
         if cv2.waitKey(1) == ord('q'):
             break
