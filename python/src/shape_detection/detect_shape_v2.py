@@ -44,22 +44,17 @@ class ShapeDetection:
 		self.lower = np.array([0, 214, 98])
 		self.upper = np.array([179, 255, 253])
 		self.kernel = np.ones((5, 5), np.uint(8))
-		self.sd = ShapeDetector()
-		self.capture = cv2.VideoCapture(0)
-		ret = self.capture.set(3, 640)
-		ret = self.capture.set(4, 480)
-
 	
-	def run(self, debug=False):
-		_ , frame = self.capture.read()
+	def run(self, frame, debug=False):
+		ret, frame = cap.read()
 		ratio = frame.shape[0] / float(frame.shape[0])
 		hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-		mask = cv2.inRange(hsv, self.lower, self.upper)
-		opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.kernel, iterations=2)
+		mask = cv2.inRange(hsv, lower, upper)
+		opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=2)
 		cnts = cv2.findContours(opening.copy(), cv2.RETR_EXTERNAL,
 			cv2.CHAIN_APPROX_SIMPLE)
 		cnts = cnts[0] if imutils.is_cv2() else cnts[1]
-
+		sd = ShapeDetector()
 		if len(cnts) > 0:
 			# loop over the contours
 			for c in cnts:
@@ -67,7 +62,7 @@ class ShapeDetection:
 					M = cv2.moments(c)
 					cX = int((M["m10"] / M["m00"]) * ratio)
 					cY = int((M["m01"] / M["m00"]) * ratio)
-					shape = self.sd.detect(c)
+					shape = sd.detect(c)
 				except(ZeroDivisionError):
 					continue
 				c = c.astype("float")
@@ -78,6 +73,9 @@ class ShapeDetection:
 					0.5, (255, 255, 255), 2)
 		if debug:
 			cv2.imshow("Frame", frame)
+		
+		if cv2.waitKey(1) & 0xFF == ord('q'):
+			self.close()
 
 		_ , jpeg = cv2.imencode('.jpg', frame)
 		return jpeg.tobytes()
