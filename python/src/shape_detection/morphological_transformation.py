@@ -1,13 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Finding right HSV settings for
-locating objects.
-
-Code by: Magnus Øye, Dated: 05.10-2018
-Contact: magnus.oye@gmail.com
-Website: https://github.com/magnusoy/Balancing-Platform
-"""
 
 # Importing packages
 import cv2
@@ -15,6 +7,7 @@ import numpy as np
 
 
 def nothing(x):
+    """Nothing much."""
     pass
 
 
@@ -35,7 +28,6 @@ cv2.createTrackbar('S COL', 'Trackbars', 0, 640, nothing)
 cv2.createTrackbar('E COL', 'Trackbars', 640, 640, nothing)
 
 while True:
-
     # Take each frame
     _, frame = cap.read()
 

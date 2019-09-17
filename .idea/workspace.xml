@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="95bf7d26-b60d-4d64-aeeb-09ecb959ca36" name="Default Changelist" comment="" />
+    <list default="true" id="95bf7d26-b60d-4d64-aeeb-09ecb959ca36" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/arduino/src/main/States.h" beforeDir="false" afterPath="$PROJECT_DIR$/arduino/src/main/States.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/arduino/src/main/main.ino" beforeDir="false" afterPath="$PROJECT_DIR$/arduino/src/main/main.ino" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,6 +46,7 @@
       <option name="presentableId" value="Default" />
       <updated>1566419502486</updated>
       <workItem from="1566419505225" duration="36000" />
+      <workItem from="1568752569120" duration="12000" />
     </task>
     <servers />
   </component>
@@ -54,7 +58,9 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
           </value>
         </entry>
       </map>

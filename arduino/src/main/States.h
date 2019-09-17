@@ -11,5 +11,6 @@ const int S_MOVE_TO_DROP = 5;
 const int S_DROP_OBJECT = 6;
 const int S_COMPLETED = 7;
 const int S_RESET = 8;
+const int S_MANUAL = 9;
 
 #endif // _STATES_H 

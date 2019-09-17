@@ -115,6 +115,7 @@ public class Database {
         this.objToSend.put("command", this.command);
         this.objToSend.put("manX", this.manualX);
         this.objToSend.put("manY", this.manualY);
+        this.objToSend.put("size", this.objectPicker.getSize());
         this.command = 0;
 
         return this.objToSend;

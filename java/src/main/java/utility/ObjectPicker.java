@@ -14,6 +14,7 @@ import java.util.Iterator;
 public class ObjectPicker {
 
     private int type;                               // Object type represented as int
+    private int size;                               // Number of objects left
     private final ObjectHandler objectHandler;      // Takes care of reading from file
 
 
@@ -27,6 +28,7 @@ public class ObjectPicker {
     public ObjectPicker(ObjectHandler objectHandler) {
         this.objectHandler = objectHandler;
         this.type = 0;
+        this.size = 0;
     }
 
     /**
@@ -49,6 +51,15 @@ public class ObjectPicker {
     }
 
     /**
+     * Returns number of objects left
+     *
+     * @return numbers of objects left
+     */
+    public int getSize() {
+        return size;
+    }
+
+    /**
      * Returns the object that will be
      * picked. It is based on the type
      * variable.
@@ -58,11 +69,12 @@ public class ObjectPicker {
     public JSONObject getObject() {
         String objectType = "";
         JSONObject object = null;
-        int size = this.objectHandler.getSize();
-        if (size > 1) {
+        this.size = this.objectHandler.getSize();
+
+        if (this.size > 1) {
             switch (this.type) {
                 case 10:
-                    object = this.objectHandler.get(size);
+                    object = this.objectHandler.get(this.size);
                     break;
 
                 case 11:

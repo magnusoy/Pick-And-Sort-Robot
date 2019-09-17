@@ -9,8 +9,8 @@
   ArduinoJSON - https://github.com/bblanchon/ArduinoJson
   -----------------------------------------------------------
   Code by: Magnus Kvendseth Øye, Vegard Solheim, Petter Drønnen
-  Date: 09.09-2019
-  Version: 1.4
+  Date: 17.09-2019
+  Version: 1.5
   Website: https://github.com/magnusoy/Pick-And-Sort-Robot
 */
 
@@ -22,6 +22,7 @@
 #include "OdriveParameters.h"
 #include "States.h"
 #include "Commands.h"
+#include "Errors.h"
 
 
 #define UPDATE_SERIAL_TIME 100 // In millis
@@ -37,6 +38,9 @@ int motorPosition[] = {0, 0};
 
 // Time for next timeout, in milliseconds
 unsigned long nextTimeout = 0;
+
+// Errorcode
+int errCode = 0;
 
 // Position control
 float actualX = 0;
@@ -168,7 +172,7 @@ void loop() {
       readJSONDocuemntFromSerial();
       setMotorPosition(MOTOR_X, manualX);
       setMotorPosition(MOTOR_X, manualY);
-      if () {
+      if (isValidCommand(AUTOMATIC_CONTROL)) {
         changeStateTo(S_READY);
       }
       break;
@@ -204,7 +208,7 @@ void sendJSONDocumentToSerial() {
   doc["state"] = currentState;
   doc["x"] = actualX;
   doc["y"] = actualY;
-  doc["command"] = recCommand;
+  doc["error"] = errCode;
   serializeJson(doc, Serial);
   Serial.print("\n");
 }
@@ -228,10 +232,8 @@ void readJSONDocuemntFromSerial() {
     targetY = obj["y"];
     manualX = obj["manX"];
     manualY = obj["manY"];
-
-    if (obj.containsKey("command")) {
-      recCommand = obj["command"];
-    }
+    objectsRemaining = obj["size"];
+    recCommand = obj["command"];
   }
 }
 
@@ -404,27 +406,27 @@ void objectSorter(int object) {
   switch (object) {
     case 0:
       // Home position
-      setPosition(100, 100);
+      setPosition(10000, 10000);
       break;
 
     case 1:
       // Square position
-      setPosition(100, 100);
+      setPosition(10000, 10000);
       break;
 
     case 2:
       // Circle position
-      setPosition(100, 100);
+      setPosition(10000, 10000);
       break;
 
     case 3:
       // Rectangle position
-      setPosition(100, 100);
+      setPosition(10000, 10000);
       break;
 
     case 4:
       // Triangle position
-      setPosition(100, 100);
+      setPosition(10000, 10000);
       break;
 
     default:
@@ -454,7 +456,10 @@ boolean dropObject() {
   Stop motors immediately.
  */
 void terminateMotors() {
-  //TODO: Kill motors
+  int requested_state;
+  requested_state = ODriveArduino::AXIS_STATE_IDLE;
+  odrive.run_state(MOTOR_X, requested_state, true);
+  odrive.run_state(MOTOR_Y, requested_state, true);
 }
 
 /**

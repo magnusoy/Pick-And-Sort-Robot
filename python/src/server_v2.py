@@ -4,18 +4,10 @@
 # Importing packages
 from flask import Flask, render_template, Response, jsonify, request
 import cv2
-import sys
-import os
-import time
 
+# Importing utility and shape detection
 from shape_detection.shape_detection_v2 import ShapeDetection
 from utils.client import Client
-
-
-# Opens webcamera, changing the resolution
-#capture = cv2.VideoCapture(0) # Change to 1 if device have more cameras
-#ret = capture.set(3, 640)
-#ret = capture.set(4, 480)
 
 
 app = Flask(__name__)
