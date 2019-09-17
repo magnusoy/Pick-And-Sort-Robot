@@ -12,12 +12,12 @@ class ShapeDetector:
 		# initialize the shape name and approximate the contour
 		shape = "unidentified"
 		peri = cv2.arcLength(c, True)
-		approx = cv2.approxPolyDP(c, 0.04 * peri, True)
+		approx = cv2.approxPolyDP(c, 0.02 * peri, True)
 
 		# if the shape is a triangle, it will have 3 vertices
-		if len(approx) == 3:
+		if len(approx) > 3 and len(approx) <= 7:
 			shape = "triangle"
-
+		
 		# if the shape has 4 vertices, it is either a square or
 		# a rectangle
 		elif len(approx) == 4:
@@ -28,37 +28,36 @@ class ShapeDetector:
 
 			# a square will have an aspect ratio that is approximately
 			# equal to one, otherwise, the shape is a rectangle
-			if ar >= 0.95 and ar <= 1.05:
+			if ar >= 0.85 and ar <= 1.15:
 				shape = "square"
-			elif ar >= 1.05 and ar <= 1.2:
+			elif ar > 1.15:
 				shape = "rectangle"
-
+	
 		# otherwise, we assume the shape is a circle
-		else:
+		elif len(approx) > 7:
 			shape = "circle"
-
 		# return the name of the shape
 		return shape
 
 
 cap = cv2.VideoCapture(0)
+kernel = np.ones((5, 5), np.uint(8))
+lower = np.array([0, 214, 98])
+upper = np.array([179, 255, 253])
 # load the image and resize it to a smaller factor so that
 # the shapes can be approximated better
 while True:
 
 	ret, frame = cap.read()
-	resized = imutils.resize(frame, width=300)
-	ratio = frame.shape[0] / float(resized.shape[0])
-
-	# convert the resized image to grayscale, blur it slightly,
-	# and threshold it
-	gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
-	blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-	thresh = cv2.threshold(blurred, 60, 255, cv2.THRESH_BINARY)[1]
-
+	#resized = imutils.resize(frame, width=300)
+	ratio = frame.shape[0] / float(frame.shape[0])
+	hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+	mask = cv2.inRange(hsv, lower, upper)
+	opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=2)
+	
 	# find contours in the thresholded image and initialize the
 	# shape detector
-	cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
+	cnts = cv2.findContours(opening.copy(), cv2.RETR_EXTERNAL,
 		cv2.CHAIN_APPROX_SIMPLE)
 	cnts = cnts[0] if imutils.is_cv2() else cnts[1]
 	sd = ShapeDetector()
