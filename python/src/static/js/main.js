@@ -4,4 +4,4 @@ setInterval(function(){ // load the data from your endpoint into the div
 
 setInterval(function(){ // load the data from your endpoint into the div
     $("#state").load("/state")
-},1000);
+},100);
