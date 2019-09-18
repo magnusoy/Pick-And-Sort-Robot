@@ -1,8 +1,6 @@
 package main.java.communication;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
+
 import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
@@ -29,7 +27,7 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
     };
 
     private BufferedReader input;               // Read in from Serial
-    private OutputStream output;                // Write out to Serial
+    private PrintWriter output;                // Write out to Serial
     private static final int TIME_OUT = 2000;   // Milliseconds to block while waiting for port open
     private static final int DATA_RATE = 9600;  // Data boud rate
     private JSONObject jsonObject;              // Received JSON from teensy
@@ -98,7 +96,8 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
 
                 // open the streams
                 input = new BufferedReader(new InputStreamReader(serialPort.getInputStream()));
-                output = serialPort.getOutputStream();
+                output = new PrintWriter(serialPort.getOutputStream());
+                //output = serialPort.getOutputStream();
                 // add event listeners
                 serialPort.addEventListener(this);
                 serialPort.notifyOnDataAvailable(true);
@@ -147,7 +146,8 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
     public synchronized void sendData(JSONObject data){
         if (data != null) {
             try {
-                output.write(data.toString().getBytes(StandardCharsets.UTF_8));
+                //output.write(data.toString().getBytes(StandardCharsets.UTF_8));
+                output.print(data.toString().getBytes(StandardCharsets.UTF_8));
             }catch (Exception e){
                 e.printStackTrace();
             }

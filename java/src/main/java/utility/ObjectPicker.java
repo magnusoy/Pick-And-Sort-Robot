@@ -74,7 +74,7 @@ public class ObjectPicker {
         if (this.size > 1) {
             switch (this.type) {
                 case 10:
-                    object = this.objectHandler.get(this.size);
+                    object = this.objectHandler.get(this.size-1);
                     break;
 
                 case 11:
@@ -97,7 +97,7 @@ public class ObjectPicker {
                     objectType = "";
                     break;
             }
-            if (this.type != 0) {
+            if (this.type != 10) {
                 JSONArray jsonArray = this.objectHandler.getAll();
                 object = this.getObjectByType(objectType, jsonArray);
             }
