@@ -29,7 +29,7 @@ public class Database {
         this.objectPicker = new ObjectPicker(this.objectHandler);
         this.obj = new JSONObject();
         this.objToSend = new JSONObject();
-        this.type = 0;
+        this.type = 10;
         this.manualX = 0.0;
         this.manualY = 0.0;
     }
@@ -116,8 +116,7 @@ public class Database {
         this.objToSend.put("manX", this.manualX);
         this.objToSend.put("manY", this.manualY);
         this.objToSend.put("size", this.objectPicker.getSize());
-        this.command = 0;
-
+        System.out.println(this.objToSend.toString());
         return this.objToSend;
     }
 

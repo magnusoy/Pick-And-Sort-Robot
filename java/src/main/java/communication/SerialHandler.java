@@ -7,6 +7,7 @@ import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Enumeration;
 
 import org.json.simple.JSONObject;
@@ -23,13 +24,13 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
     SerialPort serialPort;
     /** The port we're normally going to use. */
     private static final String PORT_NAMES[] = {
-            "COM7"// Windows
+            "COM8"// Windows
     };
 
     private BufferedReader input;               // Read in from Serial
-    private PrintWriter output;                // Write out to Serial
+    private OutputStream output;                // Write out to Serial
     private static final int TIME_OUT = 2000;   // Milliseconds to block while waiting for port open
-    private static final int DATA_RATE = 9600;  // Data boud rate
+    private static final int DATA_RATE = 115200;  // Data boud rate
     private JSONObject jsonObject;              // Received JSON from teensy
     private Database db;                        // Shared resource between classes
     private JSONParser jsonParser;
@@ -96,8 +97,8 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
 
                 // open the streams
                 input = new BufferedReader(new InputStreamReader(serialPort.getInputStream()));
-                output = new PrintWriter(serialPort.getOutputStream());
-                //output = serialPort.getOutputStream();
+                //output = new PrintWriter(serialPort.getOutputStream());
+                output = serialPort.getOutputStream();
                 // add event listeners
                 serialPort.addEventListener(this);
                 serialPort.notifyOnDataAvailable(true);
@@ -143,11 +144,11 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
      *
      * @param data
      */
-    public synchronized void sendData(JSONObject data){
+    public synchronized void sendData(org.json.JSONObject data){
         if (data != null) {
             try {
-                //output.write(data.toString().getBytes(StandardCharsets.UTF_8));
-                output.print(data.toString().getBytes(StandardCharsets.UTF_8));
+                output.write(data.toString().getBytes(StandardCharsets.UTF_8));
+                //output.println(data.toString().getBytes(StandardCharsets.UTF_8));
             }catch (Exception e){
                 e.printStackTrace();
             }
