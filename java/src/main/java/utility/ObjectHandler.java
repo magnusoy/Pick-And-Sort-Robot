@@ -1,11 +1,13 @@
 package main.java.utility;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.apache.commons.io.FileUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * ObjectHandler handles reading and writing from the
@@ -13,7 +15,6 @@ import java.io.*;
  */
 public class ObjectHandler {
 
-    JSONParser jsonParser;      // Reading JSON
     private String filePath;    // Filepath to Object data
 
     /**
@@ -25,7 +26,6 @@ public class ObjectHandler {
      */
     public ObjectHandler(String filePath) {
         this.filePath = filePath;
-        this.jsonParser = new JSONParser();
     }
 
     /**
@@ -34,17 +34,17 @@ public class ObjectHandler {
      * @return the number of objects remaining.
      */
     public int getSize() {
-        JSONArray objectList = null;
-        try (FileReader fileReader = new FileReader(this.filePath)){
-            Object object = this.jsonParser.parse(fileReader);
+        JSONArray objectList = new JSONArray();
+        File file = new File(this.filePath);
 
-            objectList = (JSONArray) object;
-
-        } catch (IOException | ParseException e) {
+        try {
+            String content = FileUtils.readFileToString(file, "utf-8");
+            objectList.put(content);
+        } catch (IOException e) {
             e.printStackTrace();
         }
-        assert objectList != null;
-        return objectList.size();
+
+        return objectList.length();
     }
 
     /**
@@ -54,17 +54,22 @@ public class ObjectHandler {
      * @return all of the objects
      */
     public synchronized JSONArray getAll() {
-        JSONArray objectList = null;
-        try (FileReader fileReader = new FileReader(this.filePath)){
-            Object object = this.jsonParser.parse(fileReader);
-
-            objectList = (JSONArray) object;
-
-        } catch (IOException | ParseException e) {
+        JSONArray objectList = new JSONArray();
+        BufferedReader reader;
+        try {
+            reader = new BufferedReader(new FileReader(this.filePath));
+            String line = reader.readLine();
+            while (line != null) {
+                objectList.put(line);
+                line = reader.readLine();
+            }
+        reader.close();
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return objectList;
     }
+
 
     /**
      *  Returns one Object represented
@@ -74,20 +79,8 @@ public class ObjectHandler {
      * @return a single JSON object
      */
     public synchronized JSONObject get(int index) {
-        JSONObject jsonObject = null;
-        try (FileReader fileReader = new FileReader(this.filePath)){
-            Object object = this.jsonParser.parse(fileReader);
-            JSONArray objectList = (JSONArray) object;
-
-            if (objectList.size() > index) {
-                jsonObject = (JSONObject) objectList.get(index);
-            }
-
-        } catch (IOException | ParseException e) {
-            e.printStackTrace();
-        }
-        return jsonObject;
+        JSONArray list = getAll();
+        return new JSONObject(list.get(index).toString());
     }
-
 }
 

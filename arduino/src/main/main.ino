@@ -70,11 +70,11 @@ void setup() {
 }
 
 void loop() {
+  readMotorPositions();
   // State machine
   switch (currentState) {
     case S_IDLE:
       readJSONDocuemntFromSerial();
-      readMotorPositions();
       if (isValidCommand(CALIBRATE)) {
         changeStateTo(S_CALIBRATION);
       }
@@ -95,7 +95,6 @@ void loop() {
       break;
 
     case S_MOVE_TO_OBJECT: {
-        readMotorPositions();
         float errorX = abs(targetX - actualX);
         float errorY = abs(targetY - actualY);
         manualX = actualX;
@@ -120,7 +119,6 @@ void loop() {
       break;
 
     case S_MOVE_TO_DROP: {
-        readMotorPositions();
         float errorX = abs(targetX - actualX);
         float errorY = abs(targetY - actualY);
         manualX = actualX;
@@ -155,7 +153,6 @@ void loop() {
       break;
 
     case S_RESET: {
-        readMotorPositions();
         float errorX = abs(targetX - actualX);
         float errorY = abs(targetY - actualY);
         manualX = actualX;
@@ -184,7 +181,7 @@ void loop() {
       changeStateTo(S_IDLE);
       break;
   }
-  edgeDetection();
+  //edgeDetection();
   writeToSerial(UPDATE_SERIAL_TIME);
 }
 

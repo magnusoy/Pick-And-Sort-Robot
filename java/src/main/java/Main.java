@@ -30,7 +30,7 @@ public class Main {
                         e.printStackTrace();
                     }
                     while (true) {
-                        //serialHandler.sendData(db.getObjToSend());
+                        serialHandler.sendData(db.getObjToSend());
                         try {
                             Thread.sleep(20);
                         } catch (InterruptedException e) {

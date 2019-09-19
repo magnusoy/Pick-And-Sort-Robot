@@ -17,9 +17,9 @@ public class SerialHandlerTest {
         System.out.println("Started");
 
         while(true) {
-            //JSONObject objRead = serialHandler.getJsonObject();
-            //String data = objRead.toString();
-            //System.out.println(data);
+            JSONObject objRead = serialHandler.getJsonObject();
+            String data = objRead.toString();
+            System.out.println(data);
 
             JSONObject obj = new JSONObject();
             obj.put("type", new Integer(1));
@@ -29,8 +29,7 @@ public class SerialHandlerTest {
             obj.put("command", new Integer(6));
 
             //JSONObject obj = db.getObjToSend();
-            serialHandler.sendData(obj);
-            break;
+            //serialHandler.sendData(obj);
         }
     }
 }

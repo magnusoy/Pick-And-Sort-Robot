@@ -1,7 +1,9 @@
 package main.java.utility;
 
-import org.json.simple.JSONObject;
-import org.json.simple.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONArray;
+
+import java.util.List;
 
 /**
  * This class works as a binding point for
@@ -116,7 +118,7 @@ public class Database {
         this.objToSend.put("manX", this.manualX);
         this.objToSend.put("manY", this.manualY);
         this.objToSend.put("size", this.objectPicker.getSize());
-        System.out.println(this.objToSend.toString());
+        this.command = 0;
         return this.objToSend;
     }
 

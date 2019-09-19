@@ -68,7 +68,7 @@ public class ClientHandler extends Thread {
                         break;
 
                     case "GET/Objects":
-                        toReturn = this.db.getObjects().toJSONString();
+                        toReturn = this.db.getObjects().toString();
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
