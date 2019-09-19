@@ -27,7 +27,7 @@ public class ObjectPicker {
      */
     public ObjectPicker(ObjectHandler objectHandler) {
         this.objectHandler = objectHandler;
-        this.type = 0;
+        this.type = 10;
         this.size = 0;
     }
 

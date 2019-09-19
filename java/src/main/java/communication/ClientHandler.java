@@ -16,7 +16,7 @@ public class ClientHandler extends Thread {
     private final DataInputStream dataInputStream;      // Input from client
     private final DataOutputStream dataOutputStream;    // Output to client
     private final Socket socket;                        // Client socket
-    private Database db;                                // Shared resource
+    private final Database db;                                // Shared resource
 
 
     /**
