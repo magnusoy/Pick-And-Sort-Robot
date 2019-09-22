@@ -1,6 +1,7 @@
 package main.java.utility;
 
-import org.json.simple.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 
 /**
@@ -10,9 +11,10 @@ import org.json.simple.JSONObject;
 public class ObjectHandlerTest {
 
     public static void main(String[] args) {
-        String filePath = "..\\resources\\Objects\\locations.json";
-        ObjectHandler jsonHandler = new ObjectHandler(filePath);
-        JSONObject object = jsonHandler.get(9);
+        ObjectHandler jsonHandler = new ObjectHandler();
+        JSONObject object = jsonHandler.get(0);
         System.out.println(object.toString());
+        int size = jsonHandler.getSize();
+        System.out.println(size);
     }
 }

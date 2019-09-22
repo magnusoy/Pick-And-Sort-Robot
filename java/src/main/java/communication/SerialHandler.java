@@ -9,11 +9,10 @@ import gnu.io.SerialPortEventListener;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 
 import main.java.utility.Database;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+
 
 /**
  * SerialHandler communicates with the Teensy through
@@ -22,17 +21,17 @@ import org.json.simple.parser.ParseException;
 public class SerialHandler extends Thread implements SerialPortEventListener  {
     SerialPort serialPort;
     /** The port we're normally going to use. */
-    private static final String PORT_NAMES[] = {
-            "COM7"// Windows
+    private static final String[] PORT_NAMES = {
+            "COM8"// Windows
     };
 
-    private BufferedReader input;               // Read in from Serial
-    private PrintWriter output;                // Write out to Serial
-    private static final int TIME_OUT = 2000;   // Milliseconds to block while waiting for port open
-    private static final int DATA_RATE = 9600;  // Data boud rate
-    private JSONObject jsonObject;              // Received JSON from teensy
-    private Database db;                        // Shared resource between classes
-    private JSONParser jsonParser;
+    private BufferedReader input;                   // Read in from Serial
+    private OutputStream output;                    // Write out to Serial
+    private static final int TIME_OUT = 2000;       // Milliseconds to block while waiting for port open
+    private static final int DATA_RATE = 115200;    // Data boudrate
+    private JSONObject jsonObject;                  // Received JSON from teensy
+    private Database db;                            // Shared resource between classes
+
 
     /**
      * SerialHandler constructor initializes
@@ -41,7 +40,6 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
      * @param database, Shared resource
      */
     public SerialHandler(Database database) {
-        this.jsonParser = new JSONParser();
         this.db = database;
     }
 
@@ -54,7 +52,7 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
         while (null == quit){
             quit = initialize();
             try {
-                Thread.sleep(2000);
+                Thread.sleep(TIME_OUT);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -62,8 +60,11 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
     }
 
     /**
+     * Initializes the serialport.
+     * Establishing a connection and setting
+     * parameters.
      *
-     * @return
+     * @return portId identifier
      */
     public CommPortIdentifier initialize() {
         CommPortIdentifier portId = null;
@@ -96,8 +97,8 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
 
                 // open the streams
                 input = new BufferedReader(new InputStreamReader(serialPort.getInputStream()));
-                output = new PrintWriter(serialPort.getOutputStream());
-                //output = serialPort.getOutputStream();
+                output = serialPort.getOutputStream();
+
                 // add event listeners
                 serialPort.addEventListener(this);
                 serialPort.notifyOnDataAvailable(true);
@@ -106,6 +107,7 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
             }
         } return portId;
     }
+
     /**
      * This should be called when you stop using the port.
      * This will prevent port locking on platforms like Linux.
@@ -118,19 +120,17 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
     }
 
     /**
-     * Handle an event on the serial port. Read the data and print it.
-     * @param oEvent
+     * Handle an event on the serial port.
+     * Read the data and stores it in the database.
+     *
+     * @param oEvent DATA_AVAILABLE, when there are data in the buffer
      */
     public synchronized void serialEvent(SerialPortEvent oEvent) {
         if (oEvent.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
             try {
-                String inputLine = input.readLine();
-                Object obj = this.jsonParser.parse(inputLine);
-                this.jsonObject = (JSONObject) obj;
-                if (this.jsonObject != null) {
-                    db.putObj(this.jsonObject);
-                }
-            } catch (IOException | ParseException e) {
+                this.jsonObject = new JSONObject(input.readLine());
+                db.putObj(this.jsonObject);
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -141,13 +141,13 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
     /**
      * Sends an JSONObject to the serial.
      *
-     * @param data
+     * @param data json to be sent
      */
-    public synchronized void sendData(JSONObject data){
+    public synchronized void sendData(org.json.JSONObject data){
         if (data != null) {
             try {
-                //output.write(data.toString().getBytes(StandardCharsets.UTF_8));
-                output.print(data.toString().getBytes(StandardCharsets.UTF_8));
+                output.write(data.toString().getBytes(StandardCharsets.UTF_8));
+                //output.println(data.toString().getBytes(StandardCharsets.UTF_8));
             }catch (Exception e){
                 e.printStackTrace();
             }

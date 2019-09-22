@@ -1,7 +1,7 @@
 package main.java.utility;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.Iterator;
 
@@ -27,7 +27,7 @@ public class ObjectPicker {
      */
     public ObjectPicker(ObjectHandler objectHandler) {
         this.objectHandler = objectHandler;
-        this.type = 0;
+        this.type = 10;
         this.size = 0;
     }
 
@@ -71,10 +71,10 @@ public class ObjectPicker {
         JSONObject object = null;
         this.size = this.objectHandler.getSize();
 
-        if (this.size > 1) {
+        if (this.size > 0) {
             switch (this.type) {
                 case 10:
-                    object = this.objectHandler.get(this.size-1);
+                    object = this.objectHandler.get(0);
                     break;
 
                 case 11:

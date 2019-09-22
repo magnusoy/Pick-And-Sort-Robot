@@ -1,7 +1,9 @@
 package main.java.utility;
 
-import org.json.simple.JSONObject;
-import org.json.simple.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONArray;
+
+import java.util.List;
 
 /**
  * This class works as a binding point for
@@ -25,11 +27,11 @@ public class Database {
      */
     public Database() {
         this.command = 0;
-        this.objectHandler = new ObjectHandler("..\\resources\\Objects\\objects.json");
+        this.objectHandler = new ObjectHandler();
         this.objectPicker = new ObjectPicker(this.objectHandler);
         this.obj = new JSONObject();
         this.objToSend = new JSONObject();
-        this.type = 0;
+        this.type = 10;      // Has to be 10 to match picker cases
         this.manualX = 0.0;
         this.manualY = 0.0;
     }
@@ -116,8 +118,7 @@ public class Database {
         this.objToSend.put("manX", this.manualX);
         this.objToSend.put("manY", this.manualY);
         this.objToSend.put("size", this.objectPicker.getSize());
-        this.command = 0;
-
+        this.command = 0; // Resets the command after object has been created.
         return this.objToSend;
     }
 

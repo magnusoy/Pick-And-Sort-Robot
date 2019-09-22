@@ -70,9 +70,11 @@ void setup() {
 }
 
 void loop() {
+  readMotorPositions();
   // State machine
   switch (currentState) {
     case S_IDLE:
+      readJSONDocuemntFromSerial();
       if (isValidCommand(CALIBRATE)) {
         changeStateTo(S_CALIBRATION);
       }
@@ -93,7 +95,6 @@ void loop() {
       break;
 
     case S_MOVE_TO_OBJECT: {
-        readMotorPositions();
         float errorX = abs(targetX - actualX);
         float errorY = abs(targetY - actualY);
         manualX = actualX;
@@ -118,7 +119,6 @@ void loop() {
       break;
 
     case S_MOVE_TO_DROP: {
-        readMotorPositions();
         float errorX = abs(targetX - actualX);
         float errorY = abs(targetY - actualY);
         manualX = actualX;
@@ -153,7 +153,6 @@ void loop() {
       break;
 
     case S_RESET: {
-        readMotorPositions();
         float errorX = abs(targetX - actualX);
         float errorY = abs(targetY - actualY);
         manualX = actualX;
@@ -182,7 +181,7 @@ void loop() {
       changeStateTo(S_IDLE);
       break;
   }
-  edgeDetection();
+  //edgeDetection();
   writeToSerial(UPDATE_SERIAL_TIME);
 }
 
@@ -204,11 +203,12 @@ void writeToSerial(unsigned long updateTime) {
   over Serial.
 */
 void sendJSONDocumentToSerial() {
-  DynamicJsonDocument doc(64);
+  DynamicJsonDocument doc(220);
   doc["state"] = currentState;
   doc["x"] = actualX;
   doc["y"] = actualY;
   doc["error"] = errCode;
+  doc["command"] = recCommand;
   serializeJson(doc, Serial);
   Serial.print("\n");
 }
@@ -218,7 +218,7 @@ void sendJSONDocumentToSerial() {
 */
 void readJSONDocuemntFromSerial() {
   if (Serial.available() > 0) {
-    const size_t capacity = 10 * JSON_ARRAY_SIZE(2) + JSON_ARRAY_SIZE(10) + 11 * JSON_OBJECT_SIZE(3) + 220;
+    const size_t capacity = 10 * JSON_ARRAY_SIZE(2) + JSON_ARRAY_SIZE(10) + 11 * JSON_OBJECT_SIZE(3) + 420;
     DynamicJsonDocument doc(capacity);
     DeserializationError error = deserializeJson(doc, Serial);
     if (error) {
@@ -326,7 +326,7 @@ void calibreateMotors() {
   variable.
 */
 void readMotorPositions() {
-  static const unsigned long duration = 10000;
+  static const unsigned long duration = 5;
   unsigned long start = millis();
   while (millis() - start < duration) {
     for (int motorNumber = 0; motorNumber < 2; ++motorNumber) {
@@ -454,7 +454,7 @@ boolean dropObject() {
 
 /**
   Stop motors immediately.
- */
+*/
 void terminateMotors() {
   int requested_state;
   requested_state = ODriveArduino::AXIS_STATE_IDLE;

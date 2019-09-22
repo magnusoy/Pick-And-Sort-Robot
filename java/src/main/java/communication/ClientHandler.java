@@ -16,7 +16,7 @@ public class ClientHandler extends Thread {
     private final DataInputStream dataInputStream;      // Input from client
     private final DataOutputStream dataOutputStream;    // Output to client
     private final Socket socket;                        // Client socket
-    private Database db;                                // Shared resource
+    private final Database db;                                // Shared resource
 
 
     /**
@@ -68,7 +68,7 @@ public class ClientHandler extends Thread {
                         break;
 
                     case "GET/Objects":
-                        toReturn = this.db.getObjects().toJSONString();
+                        toReturn = this.db.getObjects().toString();
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 

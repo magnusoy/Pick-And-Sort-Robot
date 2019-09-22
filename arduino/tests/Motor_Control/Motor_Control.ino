@@ -1,4 +1,4 @@
-#include <SoftwareSerial.h>
+
 #include <ODriveArduino.h>
 
 // Printing with stream operator
@@ -11,13 +11,12 @@ template<>        inline Print& operator <<(Print &obj, float arg) {
   return obj;
 }
 
-// Serial to the ODrive
-SoftwareSerial odrive_serial(8, 9); //RX (ODrive TX), TX (ODrive RX)
-// Note: you must also connect GND on ODrive to GND on Arduino!
+
+#define odrive_serial Serial1 // RX, TX (0, 1)
+// Note: must also connect GND on ODrive to GND on Arduino!
 
 // ODrive object
 ODriveArduino odrive(odrive_serial);
-
 void setup() {
   // ODrive uses 115200 baud
   odrive_serial.begin(115200);
@@ -54,6 +53,7 @@ void loop() {
     if (c == '0' || c == '1') {
       int motornum = c - '0';
       int requested_state;
+      Serial.println(motornum);
 
       requested_state = ODriveArduino::AXIS_STATE_MOTOR_CALIBRATION;
       Serial << "Axis" << c << ": Requesting state " << requested_state << '\n';
@@ -66,18 +66,6 @@ void loop() {
       requested_state = ODriveArduino::AXIS_STATE_CLOSED_LOOP_CONTROL;
       Serial << "Axis" << c << ": Requesting state " << requested_state << '\n';
       odrive.run_state(motornum, requested_state, false); // don't wait
-    }
-
-    // Sinusoidal test move
-    if (c == 's') {
-      Serial.println("Executing test move");
-      for (float ph = 0.0f; ph < 6.28318530718f; ph += 0.01f) {
-        float pos_m0 = 20000.0f * cos(ph);
-        float pos_m1 = 20000.0f * sin(ph);
-        odrive.SetPosition(0, pos_m0);
-        odrive.SetPosition(1, pos_m1);
-        delay(5);
-      }
     }
 
     // Read bus voltage
@@ -100,5 +88,3 @@ void loop() {
     }
   }
 }
-
-void 
