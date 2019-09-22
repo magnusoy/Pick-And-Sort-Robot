@@ -10,7 +10,6 @@ import java.util.Scanner;
  */
 public class Client {
 
-    // Define socket and input, output streams
     private InetAddress ip;                             // Host name to server
     private final Scanner in;                           // Scanner for userinput
     private final DataInputStream dataInputStream;      // Input from Serial
@@ -22,7 +21,7 @@ public class Client {
      *
      * @param host where to connect
      * @param port communication port
-     * @throws IOException
+     * @throws IOException, Exception
      */
     public Client(String host, int port) throws IOException {
         this.in = new Scanner(System.in);

@@ -19,7 +19,7 @@ import main.java.utility.Database;
  * the UART protocol.
  */
 public class SerialHandler extends Thread implements SerialPortEventListener  {
-    SerialPort serialPort;
+    private SerialPort serialPort;
     /** The port we're normally going to use. */
     private static final String[] PORT_NAMES = {
             "COM8"// Windows
@@ -29,8 +29,8 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
     private OutputStream output;                    // Write out to Serial
     private static final int TIME_OUT = 2000;       // Milliseconds to block while waiting for port open
     private static final int DATA_RATE = 115200;    // Data boudrate
-    private JSONObject jsonObject;                  // Received JSON from teensy
-    private Database db;                            // Shared resource between classes
+    private JSONObject jsonFromTeensy;              // Received JSON from teensy
+    private Database database;                      // Shared resource between classes
 
 
     /**
@@ -40,7 +40,7 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
      * @param database, Shared resource
      */
     public SerialHandler(Database database) {
-        this.db = database;
+        this.database = database;
     }
 
     /**
@@ -128,8 +128,8 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
     public synchronized void serialEvent(SerialPortEvent oEvent) {
         if (oEvent.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
             try {
-                this.jsonObject = new JSONObject(input.readLine());
-                db.putObj(this.jsonObject);
+                this.jsonFromTeensy = new JSONObject(input.readLine());
+                database.setJsonFromTeensy(this.jsonFromTeensy);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -143,11 +143,10 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
      *
      * @param data json to be sent
      */
-    public synchronized void sendData(org.json.JSONObject data){
+    public synchronized void sendData(JSONObject data){
         if (data != null) {
             try {
                 output.write(data.toString().getBytes(StandardCharsets.UTF_8));
-                //output.println(data.toString().getBytes(StandardCharsets.UTF_8));
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -158,10 +157,10 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
      *
      * @return
      */
-    public synchronized JSONObject getJsonObject() {
+    public synchronized JSONObject getJsonFromTeensy() {
         JSONObject temp;
-        if (this.jsonObject != null) {
-            temp = this.jsonObject;
+        if (this.jsonFromTeensy != null) {
+            temp = this.jsonFromTeensy;
         } else {
             temp = new JSONObject();
         }

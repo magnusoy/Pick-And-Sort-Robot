@@ -3,7 +3,6 @@ package main.java.utility;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
-import java.util.List;
 
 /**
  * This class works as a binding point for
@@ -12,82 +11,82 @@ import java.util.List;
  */
 public class Database {
 
-    private Integer command;                     // A number that instructs the Teensy
-    private int type;                            // Object type represented as int
+    private Integer userCommand;                 // A number that instructs the Teensy
+    private int shapeType;                       // Object type represented as int
     private double manualX;                      // Manual X input from joystick
     private double manualY;                      // Manual Y input from joystick
-    private final ObjectHandler objectHandler;   // Handles the storage of the object data
-    private final ObjectPicker objectPicker;     // Handles the figure type to be sorted
-    private JSONObject obj;                      // JSON format of the tracked object
-    private JSONObject objToSend;                // JSON format of the data that the Teensy will have
+    private final ShapeFileHandler shapeFileHandler;   // Handles the storage of the object data
+    private final ShapePlanner shapePlanner;     // Handles the figure type to be sorted
+    private JSONObject jsonFromTeensy;           // JSON format of the tracked object
+    private JSONObject jsonToTeensy;             // JSON format of the data that the Teensy will have
 
     /**
      * Database constructor, initializes the variables
      * and objects.
      */
     public Database() {
-        this.command = 0;
-        this.objectHandler = new ObjectHandler();
-        this.objectPicker = new ObjectPicker(this.objectHandler);
-        this.obj = new JSONObject();
-        this.objToSend = new JSONObject();
-        this.type = 10;      // Has to be 10 to match picker cases
+        this.userCommand = 0;
+        this.shapeFileHandler = new ShapeFileHandler();
+        this.shapePlanner = new ShapePlanner(this.shapeFileHandler);
+        this.jsonFromTeensy = new JSONObject();
+        this.jsonToTeensy = new JSONObject();
+        this.shapeType = 10;                     // Has to be 10 to match picker state machine
         this.manualX = 0.0;
         this.manualY = 0.0;
     }
 
     /**
-     * Returns all of the stored objects.
+     * Returns all of the stored shapes.
      *
-     * @return all of the stored objects
+     * @return all of the stored shapes
      */
-    public synchronized JSONArray getObjects() {
-        return this.objectHandler.getAll();
+    public synchronized JSONArray getAllShapes() {
+        return this.shapeFileHandler.getAll();
     }
 
     /**
-     * Set a new command to be sent.
+     * Set a new user command to be sent.
      *
-     * @param command, an Integer positive number.
+     * @param userCommand, an Integer positive number.
      */
-    public void putCommand(Integer command) {
-        this.command = command;
+    public void setUserCommand(Integer userCommand) {
+        this.userCommand = userCommand;
     }
 
     /**
-     * Returns the current command.
+     * Returns the user current command.
      *
-     * @return command, the current command
+     * @return userCommand, the current user command
      */
-    public Integer getCommand() {
-        return this.command;
+    public Integer getUserCommand() {
+        return this.userCommand;
     }
 
     /**
-     * Set a new type to be sent.
+     * Set a new shape type to be sent.
      *
-     * @param type, an Integer positive number.
+     * @param shapeType, an Integer positive number.
      */
-    public void putType(int type) {
-        this.type = type;
+    public void putType(int shapeType) {
+        this.shapeType = shapeType;
     }
 
     /**
-     * Returns the current command.
+     * Returns the current shape type.
      *
-     * @return type, the current command
+     * @return shapeType, the current shape type
      */
-    public int getType() {
-        return this.type;
+    public int getShapeType() {
+        return this.shapeType;
     }
 
     /**
      * Receives new JSON from Teensy.
      *
-     * @param obj received JSON from Teensy
+     * @param jsonFromTeensy received JSON from Teensy
      */
-    public synchronized void putObj(JSONObject obj) {
-        this.obj = obj;
+    public synchronized void setJsonFromTeensy(JSONObject jsonFromTeensy) {
+        this.jsonFromTeensy = jsonFromTeensy;
     }
 
     /**
@@ -95,10 +94,10 @@ public class Database {
      *
      * @return received JSON from Teensy
      */
-    public synchronized JSONObject getObj() {
+    public synchronized JSONObject getJsonFromTeensy() {
         JSONObject temp;
-        if (this.obj != null) {
-            temp = this.obj;
+        if (this.jsonFromTeensy != null) {
+            temp = this.jsonFromTeensy;
         } else {
             temp = new JSONObject();
         }
@@ -111,15 +110,14 @@ public class Database {
      *
      * @return JSON structure
      */
-    public synchronized JSONObject getObjToSend() {
-        this.objectPicker.setType(this.type);
-        this.objToSend = this.objectPicker.getObject();
-        this.objToSend.put("command", this.command);
-        this.objToSend.put("manX", this.manualX);
-        this.objToSend.put("manY", this.manualY);
-        this.objToSend.put("size", this.objectPicker.getSize());
-        this.command = 0; // Resets the command after object has been created.
-        return this.objToSend;
+    public synchronized JSONObject getJsonToTeensy() {
+        this.shapePlanner.setShapeType(this.shapeType);
+        this.jsonToTeensy = this.shapePlanner.getShape();
+        this.jsonToTeensy.put("command", this.userCommand);
+        this.jsonToTeensy.put("manX", this.manualX);
+        this.jsonToTeensy.put("manY", this.manualY);
+        this.jsonToTeensy.put("size", this.shapePlanner.getSize());
+        this.userCommand = 0; // Resets the command after object has been created.
+        return this.jsonToTeensy;
     }
-
 }

@@ -17,7 +17,7 @@ public class Server {
 
     private ServerSocket serverSocket;    // Initialize socket
     private int port;                     // Socket port
-    private Database db;                  // Shared resource
+    private Database database;            // Shared resource
 
     /**
      * Server constructor. Initialize socket and
@@ -27,7 +27,7 @@ public class Server {
      * @param database, shared resource
      */
     public Server(int port, Database database) {
-        this.db = database;
+        this.database = database;
         this.port = port;
         try {
             this.serverSocket = new ServerSocket(this.port);
@@ -40,7 +40,7 @@ public class Server {
      * Start the server and creates a new thread for
      * new client requests.
      *
-     * @throws IOException
+     * @throws IOException, Exception
      */
     public void start() throws IOException {
         while (true) {
@@ -54,7 +54,10 @@ public class Server {
                 DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
 
                 // Assigning new thread for this client
-                Thread clientThread = new ClientHandler(socket, dataInputStream, dataOutputStream, this.db);
+                Thread clientThread = new ClientHandler(socket,
+                                                        dataInputStream,
+                                                        dataOutputStream,
+                                                        this.database);
 
                 clientThread.start();
             } catch (Exception e) {

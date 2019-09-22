@@ -12,5 +12,6 @@ const int S_DROP_OBJECT = 6;
 const int S_COMPLETED = 7;
 const int S_RESET = 8;
 const int S_MANUAL = 9;
+const int S_CONFIGURE = 10;
 
 #endif // _STATES_H 

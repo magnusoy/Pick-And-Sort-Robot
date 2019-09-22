@@ -13,11 +13,9 @@ import java.io.IOException;
 public class Main {
 
     public static void main(String[] args) {
-        Database db = new Database();
-
-        Server server = new Server(5056, db);
-        SerialHandler serialHandler = new SerialHandler(db);
-
+        Database database = new Database();
+        Server server = new Server(5056, database);
+        SerialHandler serialHandler = new SerialHandler(database);
 
         try {
             serialHandler.run();
@@ -30,21 +28,18 @@ public class Main {
                         e.printStackTrace();
                     }
                     while (true) {
-                        serialHandler.sendData(db.getObjToSend());
+                        serialHandler.sendData(database.getJsonToTeensy());
                         try {
                             Thread.sleep(20);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
-
                 }
             }).start();
             server.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
-
 }

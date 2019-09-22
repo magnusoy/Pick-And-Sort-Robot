@@ -9,8 +9,8 @@
   ArduinoJSON - https://github.com/bblanchon/ArduinoJson
   -----------------------------------------------------------
   Code by: Magnus Kvendseth Øye, Vegard Solheim, Petter Drønnen
-  Date: 17.09-2019
-  Version: 1.5
+  Date: 22.09-2019
+  Version: 1.6
   Website: https://github.com/magnusoy/Pick-And-Sort-Robot
 */
 
@@ -28,7 +28,6 @@
 #define UPDATE_SERIAL_TIME 100 // In millis
 
 #define ODRIVE_SERIAL Serial1 // RX, TX (0, 1)
-// Note: must also connect GND on ODrive to GND on Arduino!
 
 // ODrive object
 ODriveArduino odrive(ODRIVE_SERIAL);
@@ -56,6 +55,8 @@ int currentState = S_IDLE;
 // Variables storing object data
 int objectType = 0;
 int objectsRemaining = 0;
+int inputX;
+int inputY;
 int recCommand;
 
 void setup() {
@@ -70,12 +71,13 @@ void setup() {
 }
 
 void loop() {
+  // Read motor position at any given state
   readMotorPositions();
   // State machine
   switch (currentState) {
     case S_IDLE:
       readJSONDocuemntFromSerial();
-      if (isValidCommand(CALIBRATE)) {
+      if (isCommandValid(CALIBRATE)) {
         changeStateTo(S_CALIBRATION);
       }
       break;
@@ -87,10 +89,13 @@ void loop() {
 
     case S_READY:
       readJSONDocuemntFromSerial();
-      if (isValidCommand(START)) {
+      if (isCommandValid(START) ||
+          isCommandValid(AUTOMATIC_CONTROL)) {
         changeStateTo(S_MOVE_TO_OBJECT);
-      } else if (isValidCommand(MANUAL_CONTROL)) {
+      } else if (isCommandValid(MANUAL_CONTROL)) {
         changeStateTo(S_MANUAL);
+      } else if (isCommandValid(CONFIGURE)) {
+        changeStateTo(S_CONFIGURE);
       }
       break;
 
@@ -169,15 +174,24 @@ void loop() {
 
     case S_MANUAL:
       readJSONDocuemntFromSerial();
+      manualX += (10 * inputX);
+      manualY += (10 * inputY);
       setMotorPosition(MOTOR_X, manualX);
       setMotorPosition(MOTOR_X, manualY);
-      if (isValidCommand(AUTOMATIC_CONTROL)) {
+      if (isCommandValid(AUTOMATIC_CONTROL)) {
         changeStateTo(S_READY);
+      } else if (isCommandValid(CONFIGURE)) {
+        changeStateTo(S_CONFIGURE);
       }
+      break;
+
+    case S_CONFIGURE:
+
       break;
 
     default:
       // Tries to change state to S_IDLE
+      terminateMotors();
       changeStateTo(S_IDLE);
       break;
   }
@@ -230,8 +244,8 @@ void readJSONDocuemntFromSerial() {
     objectsRemaining = obj["num"];
     targetX = obj["x"];
     targetY = obj["y"];
-    manualX = obj["manX"];
-    manualY = obj["manY"];
+    inputX = obj["manX"];
+    inputY = obj["manY"];
     objectsRemaining = obj["size"];
     recCommand = obj["command"];
   }
@@ -246,7 +260,7 @@ void readJSONDocuemntFromSerial() {
   @return true if input matches,
           else false
 */
-boolean isValidCommand(int inputCommand) {
+boolean isCommandValid(int inputCommand) {
   boolean valid = false;
   if (recCommand == inputCommand) {
     valid = true;

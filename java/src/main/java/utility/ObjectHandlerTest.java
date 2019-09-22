@@ -1,6 +1,5 @@
 package main.java.utility;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 
@@ -11,7 +10,7 @@ import org.json.JSONObject;
 public class ObjectHandlerTest {
 
     public static void main(String[] args) {
-        ObjectHandler jsonHandler = new ObjectHandler();
+        ShapeFileHandler jsonHandler = new ShapeFileHandler();
         JSONObject object = jsonHandler.get(0);
         System.out.println(object.toString());
         int size = jsonHandler.getSize();

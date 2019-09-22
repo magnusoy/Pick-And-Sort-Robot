@@ -9,35 +9,35 @@ import java.io.*;
 
 /**
  * ObjectHandler handles reading and writing from the
- * Objects file.
+ * Shapes file.
  */
-public class ObjectHandler {
+public class ShapeFileHandler {
 
-    private static final String FILE_PATH = "..\\resources\\Objects\\objects.json";
+    private static final String PATH_TO_SHAPES = "..\\resources\\Objects\\objects.json";
 
     /**
      *ObjecHandler constructor.
      */
-    public ObjectHandler() {
+    public ShapeFileHandler() {
     }
 
     /**
-     * Returns the number of objects remaining.
+     * Returns the number of shapes remaining.
      *
-     * @return the number of objects remaining.
+     * @return the number of shapes remaining.
      */
     public int getSize() {
-        JSONArray objectList = new JSONArray();
-        File file = new File(FILE_PATH);
+        JSONArray shapeList = new JSONArray();
+        File file = new File(PATH_TO_SHAPES);
 
         try {
             String content = FileUtils.readFileToString(file, "utf-8");
-            objectList.put(content);
+            shapeList.put(content);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        return objectList.length();
+        return shapeList.length();
     }
 
     /**
@@ -47,20 +47,20 @@ public class ObjectHandler {
      * @return all of the objects
      */
     public synchronized JSONArray getAll() {
-        JSONArray objectList = new JSONArray();
+        JSONArray shapeList = new JSONArray();
         BufferedReader reader;
         try {
-            reader = new BufferedReader(new FileReader(FILE_PATH));
+            reader = new BufferedReader(new FileReader(PATH_TO_SHAPES));
             String line = reader.readLine();
             while (line != null) {
-                objectList.put(line);
+                shapeList.put(line);
                 line = reader.readLine();
             }
         reader.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return objectList;
+        return shapeList;
     }
 
 
@@ -72,8 +72,8 @@ public class ObjectHandler {
      * @return a single JSON object
      */
     public synchronized JSONObject get(int index) {
-        JSONArray list = getAll();
-        return new JSONObject(list.get(index).toString());
+        JSONArray shapeList = getAll();
+        return new JSONObject(shapeList.get(index).toString());
     }
 }
 

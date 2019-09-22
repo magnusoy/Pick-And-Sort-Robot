@@ -16,7 +16,7 @@ public class ClientHandler extends Thread {
     private final DataInputStream dataInputStream;      // Input from client
     private final DataOutputStream dataOutputStream;    // Output to client
     private final Socket socket;                        // Client socket
-    private final Database db;                                // Shared resource
+    private final Database database;                    // Shared resource
 
 
     /**
@@ -29,7 +29,7 @@ public class ClientHandler extends Thread {
      */
     public ClientHandler(Socket socket, DataInputStream dataInputStream,
                          DataOutputStream dataOutputStream, Database database) {
-        this.db = database;
+        this.database = database;
         this.dataInputStream = dataInputStream;
         this.dataOutputStream = dataOutputStream;
         this.socket = socket;
@@ -51,95 +51,91 @@ public class ClientHandler extends Thread {
 
                 received = in.readLine();
 
-                if (received.equals("Exit")) {
-                    System.out.println("Client " + this.socket + " sends exit...");
-                    System.out.println("Closing this connection.");
-                    this.socket.close();
-                    System.out.println("Connection closed");
-                    break;
-                }
-
-                // Write on outputstream based on the
-                // answer from the client
                 switch (received) {
                     case "GET/Status":
-                        toReturn = this.db.getObj().toString();
+                        toReturn = this.database.getJsonFromTeensy().toString();
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "GET/Objects":
-                        toReturn = this.db.getObjects().toString();
+                        toReturn = this.database.getAllShapes().toString();
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Nothing":
-                        this.db.putCommand(0);
+                        this.database.setUserCommand(0);
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Start":
-                        this.db.putCommand(1);
+                        this.database.setUserCommand(1);
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Stop":
-                        this.db.putCommand(2);
+                        this.database.setUserCommand(2);
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Reset":
-                        this.db.putCommand(3);
+                        this.database.setUserCommand(3);
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Manual":
-                        this.db.putCommand(4);
+                        this.database.setUserCommand(4);
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Automatic":
-                        this.db.putCommand(5);
+                        this.database.setUserCommand(5);
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Calibrate":
-                        this.db.putCommand(6);
+                        this.database.setUserCommand(6);
+                        toReturn = "received";
+                        this.dataOutputStream.writeUTF(toReturn);
+                        break;
+
+                    case "POST/Configure":
+                        this.database.setUserCommand(7);
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/All":
-                        this.db.putType(10);
+                        this.database.putType(10);
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Squares":
-                        this.db.putType(11);
+                        this.database.putType(11);
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Circles":
-                        this.db.putType(12);
+                        this.database.putType(12);
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Rectangles":
-                        this.db.putType(13);
+                        this.database.putType(13);
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Triangles":
-                        this.db.putType(14);
+                        this.database.putType(14);
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
@@ -175,5 +171,4 @@ public class ClientHandler extends Thread {
             ioe.printStackTrace();
         }
     }
-
 }

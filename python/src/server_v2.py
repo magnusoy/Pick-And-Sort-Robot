@@ -10,6 +10,7 @@ from shape_detection.shape_detection_v2 import ShapeDetection
 from utils.client import Client
 
 
+# Define flask application
 app = Flask(__name__)
 
 # Create GUI threads that access application server
@@ -103,6 +104,15 @@ def stop():
 def calibrate():
     """Sends a calibrate call to the system."""
     command = "POST/Calibrate"
+    command_client.write(command)
+    content = command_client.read()
+    return "nothing"
+
+
+@app.route('/configure')
+def calibrate():
+    """Sends a configure call to the system."""
+    command = "POST/Configure"
     command_client.write(command)
     content = command_client.read()
     return "nothing"

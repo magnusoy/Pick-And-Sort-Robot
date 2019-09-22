@@ -17,7 +17,7 @@ public class SerialHandlerTest {
         System.out.println("Started");
 
         while(true) {
-            JSONObject objRead = serialHandler.getJsonObject();
+            JSONObject objRead = serialHandler.getJsonFromTeensy();
             String data = objRead.toString();
             System.out.println(data);
 
