@@ -18,8 +18,9 @@ class ShapeDetector:
         shape = "unidentified"
         peri = cv2.arcLength(c, True)
         approx = cv2.approxPolyDP(c, 0.02 * peri, True)
+        print(len(approx))
 
-        if len(approx) > 3 and len(approx) <= 7:
+        if len(approx) > 5 and len(approx) <= 7:
             shape = "triangle"
 
         elif len(approx) == 4:
@@ -40,8 +41,8 @@ class ShapeDetection:
     """docstring"""
 
     def __init__(self):
-        self.lower = np.array([0, 214, 98])
-        self.upper = np.array([179, 255, 253])
+        self.lower = np.array([0, 227, 142])
+        self.upper = np.array([179, 255, 227])
         self.kernel = np.ones((5, 5), np.uint(8))
         self.sd = ShapeDetector()
         self.capture = cv2.VideoCapture(0)
@@ -51,11 +52,17 @@ class ShapeDetection:
     def run(self, debug=False):
         """docstring"""
         _, frame = self.capture.read()
+        roi = frame[22: 451, 71: 509]
+        frame = cv2.bitwise_and(roi, roi)
         ratio = frame.shape[0] / float(frame.shape[0])
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         mask = cv2.inRange(hsv, self.lower, self.upper)
         erosion = cv2.erode(mask, self.kernel)
-        cnts = cv2.findContours(erosion.copy(), cv2.RETR_EXTERNAL,
+        gray = cv2.cvtColor(hsv, cv2.COLOR_BGR2GRAY)
+        blurred_frame = cv2.GaussianBlur(erosion, (5, 5), 0)
+        canny = cv2.Canny(blurred_frame, 100, 150)
+
+        cnts = cv2.findContours(canny.copy(), cv2.RETR_EXTERNAL,
                                 cv2.CHAIN_APPROX_SIMPLE)
         cnts = cnts[0] if imutils.is_cv2() else cnts[1]
 

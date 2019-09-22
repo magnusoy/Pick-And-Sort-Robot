@@ -13,8 +13,8 @@ from utils.client import Client
 app = Flask(__name__)
 
 # Create GUI threads that access application server
-object_client = Client("10.10.10.219", 5056, rate=0.1)
-state_client = Client("10.10.10.219", 5056, rate=0.2)
+object_client = Client("10.10.10.219", 5056, rate=0.5)
+state_client = Client("10.10.10.219", 5056, rate=0.5)
 command_client = Client("10.10.10.219", 5056, rate=0)
 object_client.command = "GET/Objects"
 state_client.command = "GET/Status"
