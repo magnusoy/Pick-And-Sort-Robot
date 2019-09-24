@@ -854,7 +854,6 @@ def write_objects_to_file(data):
   index = -1
   path = "C:\\Users\\Magnus\\Documents\\Pick-And-Sort-Robot\\resources\\Objects\\objects.json"
   f = open(path, "w")
-  f.write("[\n")
   f.close()
   if len(data.items()) > 0:
     f = open(path, "a")
@@ -869,7 +868,6 @@ def write_objects_to_file(data):
       index += 1
       write_to_file = {"object": index, "type": figure, "x": x, "y": y, "probability": probability}
       f.write("    " + str(json.dumps(write_to_file)) + "\n")
-    f.write("]")
     f.close()
 
 

@@ -4,35 +4,16 @@
 # Importing packages
 from flask import Flask, render_template, Response, jsonify, request
 import cv2
-import sys
-import os
-import time
 
-from object_detection.model import ObjectDetection
 from utils.client import Client
-
-
-# Opens webcamera, changing the resolution
-video = cv2.VideoCapture(0) # Change to 1 if device have more cameras
-ret = video.set(3, 640)
-ret = video.set(4, 480)
-
-# Change working directory for accessing inference graph and labelmap
-os.chdir('C:\\Users\\Magnus\\Documents\\Pick-And-Sort-Robot\\resources')
-
-CWD_PATH = os.getcwd()
-PATH_TO_CKPT = os.path.join(CWD_PATH, 'model', 'frozen_inference_graph.pb')
-PATH_TO_LABELS = os.path.join(CWD_PATH, 'model', 'labelmap.pbtxt')
-
-# Cahge working directory back to source for initializing flask server
-os.chdir('C:\\Users\\Magnus\\Documents\\Pick-And-Sort-Robot\\python\\src')
+from utils.shape_detector import RemoteShapeDetector
 
 app = Flask(__name__)
 
 # Create GUI threads that access application server
-object_client = Client("127.0.0.1", 5056, rate=0.1)
-state_client = Client("127.0.0.1", 5056, rate=0.2)
-command_client = Client("127.0.0.1", 5056, rate=0)
+object_client = Client("10.10.10.219", 5056, rate=0.5)
+state_client = Client("10.10.10.219", 5056, rate=0.5)
+command_client = Client("10.10.10.219", 5056, rate=0)
 object_client.command = "GET/Objects"
 state_client.command = "GET/Status"
 object_client.start()
@@ -40,21 +21,18 @@ state_client.start()
 command_client.connect()
 
 # Global video variables
-video_camera = None
 global_frame = None
+
+detector = RemoteShapeDetector('localhost', 8089)
+detector.start()
 
 
 def video_stream():
     """Forwards webcame frame with predictions."""
-    global video_camera
     global global_frame
 
-    if video_camera == None:
-        video_camera = ObjectDetection(PATH_TO_CKPT, PATH_TO_LABELS)
-        video_camera.initialize()
-
     while True:
-        frame = video_camera.run(video)
+        frame = detector.get_frame()
         if frame != None:
             global_frame = frame
             yield (b'--frame\r\n'
@@ -91,7 +69,7 @@ def objects():
 @app.route('/state')
 def state():
     """Returns system states from the application server."""
-    state = "S_IDLE"
+    state = state_client.content
     return render_template('state.html', state=state)
 
 
@@ -123,6 +101,15 @@ def stop():
 def calibrate():
     """Sends a calibrate call to the system."""
     command = "POST/Calibrate"
+    command_client.write(command)
+    content = command_client.read()
+    return "nothing"
+
+
+@app.route('/configure')
+def calibrate():
+    """Sends a configure call to the system."""
+    command = "POST/Configure"
     command_client.write(command)
     content = command_client.read()
     return "nothing"

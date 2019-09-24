@@ -13,7 +13,7 @@ from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
 
 
-class ObjectDetection(object):
+class ObjectDetector(object):
     """Performs object detection through webcamera."""
 
     def __init__(self, path_to_ckpt, path_to_labels):
@@ -64,9 +64,8 @@ class ObjectDetection(object):
         self.num_detections = detection_graph.get_tensor_by_name(
             'num_detections:0')
 
-    def run(self, capture, debug=False):
+    def run(self, frame, debug=False):
         """Runs the object detection on the assigned capture."""
-        _ , frame = capture.read()
         frame_expanded = np.expand_dims(frame, axis=0)
 
         # Perform the detection by running the model with the image as input
@@ -83,33 +82,11 @@ class ObjectDetection(object):
             np.squeeze(scores),
             self.category_index,
             use_normalized_coordinates=True,
-            line_thickness=4,
+            line_thickness=3,
             min_score_thresh=0.60)
 
         if debug:
-            cv2.imshow('Object detector', frame)
+            cv2.imshow('Frame', frame)
         
         _ , jpeg = cv2.imencode('.jpg', frame)
         return jpeg.tobytes()
-    
-
-# Example of usage
-if __name__ == "__main__":
-    # Open camerafeed and adjust videoresolution
-    video = cv2.VideoCapture(0)
-    ret = video.set(3, 640)
-    ret = video.set(4, 480)
-
-    object_detection = ObjectDetection()
-    object_detection.initialize()
-
-    while True:
-        object_detection.run(video)
-
-        # Press 'q' to quit
-        if cv2.waitKey(1) == ord('q'):
-            break
-
-    # Clean up
-    video.release()
-    cv2.destroyAllWindows()
