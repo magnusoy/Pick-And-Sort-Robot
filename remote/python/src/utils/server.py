@@ -6,12 +6,13 @@ import pickle
 import socket
 import struct
 import cv2
+import joblib
 
 
 class RemoteShapeDetectorServer:
     """docstring"""
 
-    def __init__(self, host="localhost", port=8089):
+    def __init__(self, host="0.0.0.0", port=8089):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connection = None
         self.addr = None
@@ -19,7 +20,7 @@ class RemoteShapeDetectorServer:
         self.data = b''
         self.payload_size = struct.calcsize("L")
 
-    def initialize(self, host="localhost", port=8089):
+    def initialize(self, host="0.0.0.0", port=8089):
         """docstring"""
         addr = (host, port)
         self.socket.bind(addr)
@@ -33,21 +34,20 @@ class RemoteShapeDetectorServer:
 
         packed_msg_size = self.data[:self.payload_size]
         self.data = self.data[self.payload_size:]
-        msg_size = struct.unpack("L", packed_msg_size)[0]
+        msg_size = struct.unpack("=L", packed_msg_size)[0]
 
         while len(self.data) < msg_size:
             self.data += self.connection.recv(4096)
 
         frame_data = self.data[:msg_size]
         self.data = self.data[msg_size:]
-
-        frame = pickle.loads(frame_data)
+        frame = pickle.loads(frame_data, encoding='latin1')
         return frame
 
 
 # Example of usage
 if __name__ == "__main__":
-    rsds = RemoteShapeDetectorServer(host="localhost", port=8089)
+    rsds = RemoteShapeDetectorServer(host="0.0.0.0", port=8089)
 
     while True:
         frame = rsds.get_frame()

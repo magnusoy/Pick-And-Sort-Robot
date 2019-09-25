@@ -36,7 +36,7 @@ class RemoteShapeDetector(Thread):
         self.is_connected = False
         self.terminate = False
         self.content = None
-        self.video_camera = VideoCamera(source=1)
+        self.video_camera = VideoCamera(source=0)
         self.frame = None
 
     def run(self):
@@ -45,7 +45,7 @@ class RemoteShapeDetector(Thread):
         while not self.terminate:
             self.frame = self.video_camera.run()
             data = pickle.dumps(self.frame)
-            message_size = struct.pack("L", len(data))
+            message_size = struct.pack("=L", len(data))
             self.write(message_size + data)
 
     def connect(self):
@@ -79,5 +79,5 @@ class RemoteShapeDetector(Thread):
 
 # Example of usage
 if __name__ == "__main__":
-    detector = RemoteShapeDetector('localhost', 8089)
+    detector = RemoteShapeDetector('83.243.219.245', 8089)
     detector.start()
