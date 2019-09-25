@@ -12,7 +12,7 @@ import sys
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
 
-
+# TODO: Get information without drawing everything on frame
 class ObjectDetector(object):
     """Performs object detection through webcamera."""
 

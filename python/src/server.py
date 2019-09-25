@@ -22,17 +22,21 @@ command_client.connect()
 
 # Global video variables
 global_frame = None
-
-detector = RemoteShapeDetector('83.243.219.245', 8089)
-detector.start()
+video_camera = None
 
 
 def video_stream():
     """Forwards webcame frame with predictions."""
     global global_frame
+    global video_camera 
+
+    if video_camera == None:
+        video_camera = RemoteShapeDetector('localhost', 8089) #'83.243.219.245'
+        video_camera.connect()
 
     while True:
-        frame = detector.get_frame()
+        frame = video_camera.runEverything()
+        
         if frame != None:
             global_frame = frame
             yield (b'--frame\r\n'
