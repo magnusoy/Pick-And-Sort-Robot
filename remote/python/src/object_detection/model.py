@@ -88,5 +88,5 @@ class ObjectDetector(object):
         if debug:
             cv2.imshow('Frame', frame)
         
-        _ , jpeg = cv2.imencode('.jpg', frame)
-        return jpeg.tobytes()
+        #_ , jpeg = cv2.imencode('.jpg', frame)
+        #return jpeg.tobytes()

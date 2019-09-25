@@ -6,11 +6,15 @@ import cv2
 import sys
 import os
 
+# Importing utility and model
 from object_detection.model import ObjectDetector
 from utils.server import RemoteShapeDetectorServer
+from utils.client import DetectionDataSender
 
+# Change working directory to get the inference graph and labelmap
 os.chdir('C:\\Users\\Petter\\Documents\\Pick-And-Sort-Robot\\resources')
 
+# Get file paths to frozen inference graph and labelmap
 CWD_PATH = os.getcwd()
 PATH_TO_CKPT = os.path.join(CWD_PATH, 'model', 'frozen_inference_graph.pb')
 PATH_TO_LABELS = os.path.join(CWD_PATH, 'model', 'labelmap.pbtxt')
@@ -18,15 +22,23 @@ PATH_TO_LABELS = os.path.join(CWD_PATH, 'model', 'labelmap.pbtxt')
 # Change working directory back to source
 os.chdir('C:\\Users\\Petter\\Documents\\Pick-And-Sort-Robot\\remote\\python\\src')
 
+# Initialize object detector model
 object_detector = ObjectDetector(PATH_TO_CKPT, PATH_TO_LABELS)
 object_detector.initialize()
 
-rsds = RemoteShapeDetectorServer(host="0.0.0.0", port=8089)  
+# Creates a TCP Server
+rsds = RemoteShapeDetectorServer(host="0.0.0.0", port=8089)
 
+# Create a thread reading from file and sends it to Jetson
+sender = DetectionDataSender("0.0.0.0", 5056) # TODO: Fix up address to match Jetson
+sender.start()
 
+# Collects frames recieved from client on server
+# Computes the Object detection and sends back
+# JSON of the results.
 while True:
     frame = rsds.get_frame()
-    
-    if len(frame) == 480:
+
+    if len(frame) == 480:  # Check if resolution match
         object_detector.run(frame, debug=True)
     cv2.waitKey(1)

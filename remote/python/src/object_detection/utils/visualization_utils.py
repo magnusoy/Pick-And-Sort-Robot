@@ -852,7 +852,7 @@ def visualize_boxes_and_labels_on_image_array(
 def write_objects_to_file(data):
   """Write objectdata to file."""
   index = -1
-  path = "C:\\Users\\Magnus\\Documents\\Pick-And-Sort-Robot\\resources\\Objects\\objects.json"
+  path = "C:\\Users\\Petter\\Documents\\Pick-And-Sort-Robot\\resources\\Objects\\objects.json"
   f = open(path, "w")
   f.close()
   if len(data.items()) > 0:
@@ -866,12 +866,9 @@ def write_objects_to_file(data):
       figure = out[0]
       probability = out[1]
       index += 1
-      write_to_file = {"object": index, "type": figure, "x": x, "y": y, "probability": probability}
+      write_to_file = {"object": index, "type": figure, "x": x, "y": y, "box": box, "probability": probability}
       f.write("    " + str(json.dumps(write_to_file)) + "\n")
     f.close()
-
-
-
 
 def add_cdf_image_summary(values, name):
   """Adds a tf.summary.image for a CDF plot of the values.

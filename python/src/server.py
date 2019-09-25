@@ -23,7 +23,7 @@ command_client.connect()
 # Global video variables
 global_frame = None
 
-detector = RemoteShapeDetector('localhost', 8089)
+detector = RemoteShapeDetector('83.243.219.245', 8089)
 detector.start()
 
 

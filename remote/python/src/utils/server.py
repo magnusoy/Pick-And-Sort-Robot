@@ -6,35 +6,36 @@ import pickle
 import socket
 import struct
 import cv2
-import joblib
 
 
 class RemoteShapeDetectorServer:
-    """docstring"""
+    """This class is a TCP Server used to 
+    collect incoming frames from Jetson Nano."""
 
     def __init__(self, host="0.0.0.0", port=8089):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connection = None
         self.addr = None
-        self.initialize()
+        self.initialize(host, port)
         self.data = b''
         self.payload_size = struct.calcsize("L")
 
     def initialize(self, host="0.0.0.0", port=8089):
-        """docstring"""
+        """Initializes the server."""
         addr = (host, port)
         self.socket.bind(addr)
         self.socket.listen(10)
         self.connection, self.addr = self.socket.accept()
 
     def get_frame(self):
-        """docstring"""
+        """Recieves frames as incoming bytestreams.
+        Returns videoframe from stream."""
         while len(self.data) < self.payload_size:
             self.data += self.connection.recv(4096)
 
         packed_msg_size = self.data[:self.payload_size]
         self.data = self.data[self.payload_size:]
-        msg_size = struct.unpack("=L", packed_msg_size)[0]
+        msg_size = struct.unpack("=L", packed_msg_size)[0] # Change to "L" if windows <-> Windows
 
         while len(self.data) < msg_size:
             self.data += self.connection.recv(4096)
