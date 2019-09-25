@@ -852,7 +852,7 @@ def visualize_boxes_and_labels_on_image_array(
 def write_objects_to_file(data):
   """Write objectdata to file."""
   index = -1
-  path = "C:\\Users\\Petter\\Documents\\Pick-And-Sort-Robot\\resources\\Objects\\objects.json"
+  path = "C:\\Users\\Petter\\Documents\\Pick-And-Sort-Robot\\resources\\remote\\objects.json"
   f = open(path, "w")
   f.close()
   if len(data.items()) > 0:

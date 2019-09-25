@@ -11,14 +11,14 @@ import org.json.JSONArray;
  */
 public class Database {
 
-    private Integer userCommand;                 // A number that instructs the Teensy
-    private int shapeType;                       // Object type represented as int
-    private double manualX;                      // Manual X input from joystick
-    private double manualY;                      // Manual Y input from joystick
-    private final ShapeFileHandler shapeFileHandler;   // Handles the storage of the object data
-    private final ShapePlanner shapePlanner;     // Handles the figure type to be sorted
-    private JSONObject jsonFromTeensy;           // JSON format of the tracked object
-    private JSONObject jsonToTeensy;             // JSON format of the data that the Teensy will have
+    private Integer userCommand;                        // A number that instructs the Teensy
+    private int shapeType;                              // Object type represented as int
+    private double manualX;                             // Manual X input from joystick
+    private double manualY;                             // Manual Y input from joystick
+    private final ShapeFileHandler shapeFileHandler;    // Handles the storage of the object data
+    private final ShapePlanner shapePlanner;            // Handles the figure type to be sorted
+    private JSONObject jsonFromTeensy;                  // JSON format of the tracked object
+    private JSONObject jsonToTeensy;                    // JSON format of the data that the Teensy will have
 
     /**
      * Database constructor, initializes the variables
@@ -30,7 +30,7 @@ public class Database {
         this.shapePlanner = new ShapePlanner(this.shapeFileHandler);
         this.jsonFromTeensy = new JSONObject();
         this.jsonToTeensy = new JSONObject();
-        this.shapeType = 10;                     // Has to be 10 to match picker state machine
+        this.shapeType = 10;                            // Has to be 10 to match picker state machine
         this.manualX = 0.0;
         this.manualY = 0.0;
     }

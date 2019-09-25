@@ -9,14 +9,13 @@ import sys
 import pickle
 import struct
 from threading import Thread
-import json
 
 
 class VideoCamera:
     """docstring"""
 
     def __init__(self, source=0, resolution=(640, 480)):
-        self.capture = cv2.VideoCapture(source)
+        self.capture = cv2.VideoCapture(source + cv2.CAP_DSHOW)
         ret = self.capture.set(3, resolution[0])
         ret = self.capture.set(4, resolution[1])
 
@@ -36,7 +35,7 @@ class RemoteShapeDetector(Thread):
         self.is_connected = False
         self.terminate = False
         self.content = None
-        self.video_camera = VideoCamera(source=0)
+        self.video_camera = VideoCamera(source=1)
         self.frame = None
 
     def run(self):
@@ -45,8 +44,16 @@ class RemoteShapeDetector(Thread):
         while not self.terminate:
             self.frame = self.video_camera.run()
             data = pickle.dumps(self.frame)
-            message_size = struct.pack("=L", len(data))
+            message_size = struct.pack("L", len(data)) # Change to "L" if windows <-> Windows
             self.write(message_size + data)
+
+    def runEverything(self):
+        self.frame = self.video_camera.run()
+        data = pickle.dumps(self.frame)
+        message_size = struct.pack("L", len(data)) # Change to "L" if windows <-> Windows
+        self.write(message_size + data)
+        _ , jpeg = cv2.imencode('.jpg', self.frame)
+        return jpeg.tobytes()
 
     def connect(self):
         """Establish a secure connection to server."""
@@ -74,10 +81,13 @@ class RemoteShapeDetector(Thread):
     
     def get_frame(self):
         """ Returns current videoframe."""
-        return self.frame
-
+        _ , jpeg = cv2.imencode('.jpg', self.frame)
+        return jpeg.tobytes()
 
 # Example of usage
 if __name__ == "__main__":
-    detector = RemoteShapeDetector('83.243.219.245', 8089)
+    detector = RemoteShapeDetector('localhost', 8089) # 83.243.219.245
     detector.start()
+    while True:
+        cv2.imshow("show", detector.frame)
+        cv2.waitKey(1)

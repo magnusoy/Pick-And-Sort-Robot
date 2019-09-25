@@ -35,7 +35,7 @@ class RemoteShapeDetectorServer:
 
         packed_msg_size = self.data[:self.payload_size]
         self.data = self.data[self.payload_size:]
-        msg_size = struct.unpack("=L", packed_msg_size)[0] # Change to "L" if windows <-> Windows
+        msg_size = struct.unpack("L", packed_msg_size)[0] # Change to "L" if windows <-> Windows
 
         while len(self.data) < msg_size:
             self.data += self.connection.recv(4096)

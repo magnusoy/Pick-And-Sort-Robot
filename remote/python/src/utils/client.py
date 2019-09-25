@@ -21,7 +21,7 @@ class DetectionDataSender(Thread):
         self.terminate = False
         self.command = "POST/Detections"
         self.content = None
-        self.data_reader = FileHandler("C:\\Users\\Magnus\\Documents\\Pick-And-Sort-Robot\\resources\\Objects\\objects.json")
+        self.data_reader = FileHandler("C:\\Users\\Petter\\Documents\\Pick-And-Sort-Robot\\resources\\remote\\objects.json")
 
     def run(self):
         self.connect()
@@ -61,7 +61,7 @@ class DetectionDataSender(Thread):
 # Example of usage
 if __name__ == "__main__":
 
-    object_client = Client("0.0.0.0", 5056)
+    object_client = Client("localhost", 5056)
 
 
     while True:

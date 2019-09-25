@@ -183,13 +183,10 @@
 
     <div class="centered">
       <h1>Videostream</h1>
-        <img
-        id="video"
-        src="http://www.mazegenerator.net/static/orthogonal_maze_with_20_by_20_cells.png"
-      />
+      <img id="video" src="{{ url_for('video_viewer') }}" />
     </div>
 
-    <!--<img id="video" src="{{ url_for('video_viewer') }}" />  -->
+    
     
 
     <div id="object_list">{{ objects }}</div>

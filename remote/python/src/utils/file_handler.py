@@ -52,5 +52,5 @@ class FileHandler(Thread):
 # Example of usage
 if __name__ == "__main__":
     jsonc = FileHandler(
-        "C:\\Users\\Magnus\\Documents\\Pick-And-Sort-Robot\\resources\\Objects\\objects.json")
+        "C:\\Users\\Petter\\Documents\\Pick-And-Sort-Robot\\resources\\remote\\objects.json")
     print(jsonc.read())
