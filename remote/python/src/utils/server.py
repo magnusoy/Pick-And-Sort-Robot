@@ -7,6 +7,8 @@ import socket
 import struct
 import cv2
 
+from .file_handler import FileHandler
+
 
 class RemoteShapeDetectorServer:
     """This class is a TCP Server used to 

@@ -4,6 +4,7 @@
 # Importing packages
 from flask import Flask, render_template, Response, jsonify, request
 import cv2
+import time
 
 from utils.client import Client
 from utils.shape_detector import RemoteShapeDetector
@@ -26,12 +27,18 @@ command_client.connect()
 # Global video variables
 global_frame = None
 video_camera = None
+lastUpdate = 0.0
+
+
+def millis():
+    return int(round(time.time() * 1000))
 
 
 def video_stream():
-    """Forwards webcame frame with predictions."""
+    """Forwards webcam frame with predictions."""
     global global_frame
     global video_camera 
+    global lastUpdate
 
     if video_camera == None:
         video_camera = RemoteShapeDetector('83.243.219.245', 8089) #'83.243.219.245'
@@ -39,8 +46,13 @@ def video_stream():
 
     while True:
         frame = video_camera.send()
-        data = video_camera.read()
-        object_writer.write(data)
+        now = millis()
+        timeDifference = now - lastUpdate
+        if timeDifference > 1000:
+            data = video_camera.read()
+            object_writer.write(data)
+            lastUpdate = millis()
+
         
         if frame != None:
             global_frame = frame

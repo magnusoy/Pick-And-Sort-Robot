@@ -42,3 +42,4 @@ while True:
     if len(frame) == 480:  # Check if resolution match
         object_detector.run(frame, debug=True)
     cv2.waitKey(1)
+    rsds.send_data()
