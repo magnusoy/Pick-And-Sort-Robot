@@ -11,7 +11,7 @@ from server import RemoteShapeDetectorServer
 from client import DetectionDataSender
 
 # Creates a TCP Server
-rsds = RemoteShapeDetectorServer(host="localhost", port=8089)
+rsds = RemoteShapeDetectorServer(host="0.0.0.0", port=8089)
 
 # Create a thread reading from file and sends it to Jetson
 #sender = DetectionDataSender("localhost", 5056) # TODO: Fix up address to match Jetson

@@ -7,12 +7,15 @@ import cv2
 
 from utils.client import Client
 from utils.shape_detector import RemoteShapeDetector
+from utils.file_handler import FileHandler
 
 app = Flask(__name__)
 
+object_writer = FileHandler("/home/batman/Pick-And-Sort-Robot/resources/Objects/objects.json")
+
 # Create GUI threads that access application server
 object_client = Client("10.10.10.219", 5056, rate=0.5)
-state_client = Client("10.10.10.219", 5056, rate=0.5)
+state_client = Client("10.10.10.219", 5056, rate=0.2)
 command_client = Client("10.10.10.219", 5056, rate=0)
 object_client.command = "GET/Objects"
 state_client.command = "GET/Status"
@@ -31,11 +34,13 @@ def video_stream():
     global video_camera 
 
     if video_camera == None:
-        video_camera = RemoteShapeDetector('localhost', 8089) #'83.243.219.245'
+        video_camera = RemoteShapeDetector('83.243.219.245', 8089) #'83.243.219.245'
         video_camera.connect()
 
     while True:
-        frame = video_camera.runEverything()
+        frame = video_camera.send()
+        data = video_camera.read()
+        object_writer.write(data)
         
         if frame != None:
             global_frame = frame
@@ -111,7 +116,7 @@ def calibrate():
 
 
 @app.route('/configure')
-def calibrate():
+def configure():
     """Sends a configure call to the system."""
     command = "POST/Configure"
     command_client.write(command)

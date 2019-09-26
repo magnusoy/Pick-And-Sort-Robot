@@ -866,8 +866,8 @@ def write_objects_to_file(data):
       figure = out[0]
       probability = out[1]
       index += 1
-      write_to_file = {"object": index, "type": figure, "x": x, "y": y, "box": box, "probability": probability}
-      f.write("    " + str(json.dumps(write_to_file)) + "\n")
+      write_to_file = {"object": index, "type": figure, "x": x, "y": y, "box": [ymin, xmin, ymax, xmax], "probability": probability}
+      f.write(str(json.dumps(write_to_file)) + "-")
     f.close()
 
 def add_cdf_image_summary(values, name):

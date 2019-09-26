@@ -5,7 +5,7 @@
 import socket
 from threading import Thread
 import time
-from file_handler import FileHandler
+from .file_handler import FileHandler
 
 
 class DetectionDataSender(Thread):

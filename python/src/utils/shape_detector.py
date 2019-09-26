@@ -9,13 +9,14 @@ import sys
 import pickle
 import struct
 from threading import Thread
+import time
 
 
 class VideoCamera:
     """docstring"""
 
     def __init__(self, source=0, resolution=(640, 480)):
-        self.capture = cv2.VideoCapture(source + cv2.CAP_DSHOW)
+        self.capture = cv2.VideoCapture(source)
         ret = self.capture.set(3, resolution[0])
         ret = self.capture.set(4, resolution[1])
 
@@ -35,7 +36,7 @@ class RemoteShapeDetector(Thread):
         self.is_connected = False
         self.terminate = False
         self.content = None
-        self.video_camera = VideoCamera(source=1)
+        self.video_camera = VideoCamera(source=0)
         self.frame = None
 
     def run(self):
@@ -44,13 +45,13 @@ class RemoteShapeDetector(Thread):
         while not self.terminate:
             self.frame = self.video_camera.run()
             data = pickle.dumps(self.frame)
-            message_size = struct.pack("L", len(data)) # Change to "L" if windows <-> Windows
+            message_size = struct.pack("=L", len(data)) # Change to "L" if windows <-> Windows
             self.write(message_size + data)
 
-    def runEverything(self):
+    def send(self):
         self.frame = self.video_camera.run()
         data = pickle.dumps(self.frame)
-        message_size = struct.pack("L", len(data)) # Change to "L" if windows <-> Windows
+        message_size = struct.pack("=L", len(data)) # Change to "L" if windows <-> Windows
         self.write(message_size + data)
         _ , jpeg = cv2.imencode('.jpg', self.frame)
         return jpeg.tobytes()
@@ -63,6 +64,7 @@ class RemoteShapeDetector(Thread):
             pass
         finally:
             self.is_connected = True
+            time.sleep(3)
 
     def disconnect(self):
         """Close connection."""
@@ -77,6 +79,7 @@ class RemoteShapeDetector(Thread):
     def read(self) -> str:
         """Read received data from server."""
         msg = self.socket.recv(4096)
+        
         return msg.decode("latin-1")
     
     def get_frame(self):
@@ -86,8 +89,9 @@ class RemoteShapeDetector(Thread):
 
 # Example of usage
 if __name__ == "__main__":
-    detector = RemoteShapeDetector('localhost', 8089) # 83.243.219.245
-    detector.start()
+    detector = RemoteShapeDetector('83.243.219.245', 8089) # 83.243.219.245
+    detector.connect()
     while True:
+        detector.runEverything()
         cv2.imshow("show", detector.frame)
         cv2.waitKey(1)
