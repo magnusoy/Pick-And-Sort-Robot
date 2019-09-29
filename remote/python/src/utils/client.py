@@ -29,7 +29,6 @@ class DetectionDataSender(Thread):
             data = self.data_reader.read()
             msg = self.command + data
             self.write(msg)
-            self.content = self.read()
             time.sleep(self.rate)
 
     def connect(self):

@@ -1,4 +1,4 @@
-package main.java.utility;
+package main.java.utility.deprecated;
 
 import org.apache.commons.io.FileUtils;
 import org.json.JSONArray;

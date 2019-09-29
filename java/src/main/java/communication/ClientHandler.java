@@ -51,10 +51,6 @@ public class ClientHandler extends Thread {
 
                 received = in.readLine();
 
-                if (received.startsWith("POST/Detections")) {
-                    writeShapesToFile(received);
-                }
-
                 switch (received) {
                     case "GET/Status":
                         toReturn = this.database.getJsonFromTeensy().toString();
@@ -174,22 +170,5 @@ public class ClientHandler extends Thread {
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
-    }
-
-    /**
-     * Writes shape detection data to file
-     * for later usages in the planning.
-     *
-     * @param data to be written in file
-     * @throws IOException if file does not exist
-     */
-    private void writeShapesToFile(String data) throws IOException {
-        String modifiedData = data.substring(15);
-        String[] array = modifiedData.split("-");
-        BufferedWriter writer = new BufferedWriter(new FileWriter("..\\resources\\Objects\\objects.json"));
-        for (String obj : array) {
-            writer.write(obj);
-        }
-        writer.close();
     }
 }

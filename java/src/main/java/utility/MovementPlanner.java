@@ -6,27 +6,21 @@ import org.json.JSONObject;
 import java.util.Iterator;
 
 /**
- * ShapePlanner is controlling the shape data
- * that is sent to trough the Serial over to
- * the Teensy.
- *
+ * MovementPlanner decides what should be sent to
+ * Teensy.
  */
-public class ShapePlanner {
+public class MovementPlanner {
 
     private int shapeType;                                // Object type represented as int
     private int size;                                     // Number of objects left
-    private final ShapeFileHandler shapeFileHandler;      // Takes care of reading from file
-
+    RequestRemoteData remoteData;                         // Fetching remote data
 
     /**
-     * ObjectPicker constructor initializes the
-     * objecthandler that takes care of the file
-     * all the located objects are stored.
-     *
-     * @param shapeFileHandler, Filehandler for shapes
+     * MovementPlanner constructor initializes the
+     * remoteData that fetches new data from server.
      */
-    public ShapePlanner(ShapeFileHandler shapeFileHandler) {
-        this.shapeFileHandler = shapeFileHandler;
+    public MovementPlanner() {
+         this.remoteData = new RequestRemoteData();
         this.shapeType = 10;
         this.size = 0;
     }
@@ -35,7 +29,7 @@ public class ShapePlanner {
      * Sets the sort of type the robot
      * should pick.
      *
-     * @param shapeType, object type represented as int
+     * @param shapeType, (circle, rectangle, square, triangle)
      */
     public void setShapeType(int shapeType) {
         this.shapeType = shapeType;
@@ -69,12 +63,13 @@ public class ShapePlanner {
     public JSONObject getShape() {
         String shapeType = "";
         JSONObject shape = null;
-        this.size = this.shapeFileHandler.getSize();
+        this.remoteData.update();
+        this.size = this.remoteData.getSize();
 
         if (this.size > 0) {
             switch (this.shapeType) {
                 case 10:
-                    shape = this.shapeFileHandler.get(0);
+                    shape = this.remoteData.get(0);
                     break;
 
                 case 11:
@@ -98,7 +93,7 @@ public class ShapePlanner {
                     break;
             }
             if (this.shapeType != 10) {
-                JSONArray jsonArray = this.shapeFileHandler.getAll();
+                JSONArray jsonArray = this.remoteData.getAll();
                 shape = this.getShapeByType(shapeType, jsonArray);
             }
         }

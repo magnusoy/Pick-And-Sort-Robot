@@ -1,7 +1,12 @@
 package main.java.utility;
 
+import main.java.utility.deprecated.ShapeFileHandler;
+import main.java.utility.deprecated.ShapePlanner;
 import org.json.JSONObject;
 import org.json.JSONArray;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
 
 
 /**
@@ -15,8 +20,8 @@ public class Database {
     private int shapeType;                              // Object type represented as int
     private double manualX;                             // Manual X input from joystick
     private double manualY;                             // Manual Y input from joystick
-    private final ShapeFileHandler shapeFileHandler;    // Handles the storage of the object data
-    private final ShapePlanner shapePlanner;            // Handles the figure type to be sorted
+    private final RequestRemoteData remoteData;         // REST API Call to remote server
+    private final MovementPlanner movementPlanner;      // Handles the figure type to be sorted
     private JSONObject jsonFromTeensy;                  // JSON format of the tracked object
     private JSONObject jsonToTeensy;                    // JSON format of the data that the Teensy will have
 
@@ -26,8 +31,8 @@ public class Database {
      */
     public Database() {
         this.userCommand = 0;
-        this.shapeFileHandler = new ShapeFileHandler();
-        this.shapePlanner = new ShapePlanner(this.shapeFileHandler);
+        this.remoteData = new RequestRemoteData();
+        this.movementPlanner = new MovementPlanner();
         this.jsonFromTeensy = new JSONObject();
         this.jsonToTeensy = new JSONObject();
         this.shapeType = 10;                            // Has to be 10 to match picker state machine
@@ -41,7 +46,8 @@ public class Database {
      * @return all of the stored shapes
      */
     public synchronized JSONArray getAllShapes() {
-        return this.shapeFileHandler.getAll();
+        this.remoteData.update();
+        return this.remoteData.getAll();
     }
 
     /**
@@ -111,12 +117,12 @@ public class Database {
      * @return JSON structure
      */
     public synchronized JSONObject getJsonToTeensy() {
-        this.shapePlanner.setShapeType(this.shapeType);
-        this.jsonToTeensy = this.shapePlanner.getShape();
+        this.movementPlanner.setShapeType(this.shapeType);
+        this.jsonToTeensy = this.movementPlanner.getShape();
         this.jsonToTeensy.put("command", this.userCommand);
         this.jsonToTeensy.put("manX", this.manualX);
         this.jsonToTeensy.put("manY", this.manualY);
-        this.jsonToTeensy.put("size", this.shapePlanner.getSize());
+        this.jsonToTeensy.put("size", this.movementPlanner.getSize());
         this.userCommand = 0; // Resets the command after object has been created.
         return this.jsonToTeensy;
     }

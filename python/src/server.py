@@ -4,15 +4,13 @@
 # Importing packages
 from flask import Flask, render_template, Response, jsonify, request
 import cv2
-import time
-
+# Importing utils
 from utils.client import Client
 from utils.shape_detector import RemoteShapeDetector
-from utils.file_handler import FileHandler
 
+# Define Flask server
 app = Flask(__name__)
 
-object_writer = FileHandler("/home/batman/Pick-And-Sort-Robot/resources/Objects/objects.json")
 
 # Create GUI threads that access application server
 object_client = Client("10.10.10.219", 5056, rate=0.5)
@@ -27,33 +25,21 @@ command_client.connect()
 # Global video variables
 global_frame = None
 video_camera = None
-lastUpdate = 0.0
-
-
-def millis():
-    return int(round(time.time() * 1000))
 
 
 def video_stream():
     """Forwards webcam frame with predictions."""
     global global_frame
-    global video_camera 
-    global lastUpdate
+    global video_camera
 
     if video_camera == None:
-        video_camera = RemoteShapeDetector('83.243.219.245', 8089) #'83.243.219.245'
+        video_camera = RemoteShapeDetector(
+            '83.243.219.245', 8089)  # '83.243.219.245'
         video_camera.connect()
 
     while True:
         frame = video_camera.send()
-        now = millis()
-        timeDifference = now - lastUpdate
-        if timeDifference > 1000:
-            data = video_camera.read()
-            object_writer.write(data)
-            lastUpdate = millis()
 
-        
         if frame != None:
             global_frame = frame
             yield (b'--frame\r\n'
