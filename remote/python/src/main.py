@@ -29,16 +29,14 @@ object_detector.initialize()
 # Creates a TCP Server
 rsds = RemoteShapeDetectorServer(host="0.0.0.0", port=8089)
 
-# Create a thread reading from file and sends it to Jetson
-#sender = DetectionDataSender("10.10.10.219", 5056) # TODO: Fix up address to match Jetson
-#sender.start()
 
 # Collects frames recieved from client on server
-# Computes the Object detection and sends back
-# JSON of the results.
-while True:
-    frame = rsds.get_frame()
+# Computes the Object detection
+# and stores them in file.
+if __name__ == "__main__":
+    while True:
+        frame = rsds.get_frame()
 
-    if len(frame) == 480:  # Check if resolution match
-        object_detector.run(frame, debug=True)
-    cv2.waitKey(1)
+        if len(frame) == 480:  # Check if resolution match
+            object_detector.run(frame, debug=True)
+        cv2.waitKey(1)

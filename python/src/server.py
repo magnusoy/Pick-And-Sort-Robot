@@ -3,14 +3,20 @@
 
 # Importing packages
 from flask import Flask, render_template, Response, jsonify, request
+import logging
 import cv2
+
 # Importing utils
 from utils.client import Client
 from utils.shape_detector import RemoteShapeDetector
+from utils.visual import FrameDrawer
 
 # Define Flask server
 app = Flask(__name__)
 
+# Removes logging in terminal
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 # Create GUI threads that access application server
 object_client = Client("10.10.10.219", 5056, rate=0.5)
@@ -25,14 +31,17 @@ command_client.connect()
 # Global video variables
 global_frame = None
 video_camera = None
+objects_received = None
 
 
 def video_stream():
     """Forwards webcam frame with predictions."""
     global global_frame
     global video_camera
+    global objects_received
 
     if video_camera == None:
+        drawer = FrameDrawer()
         video_camera = RemoteShapeDetector(
             '83.243.219.245', 8089)  # '83.243.219.245'
         video_camera.connect()
@@ -41,9 +50,11 @@ def video_stream():
         frame = video_camera.send()
 
         if frame != None:
-            global_frame = frame
+            result = drawer.draw_containers(frame)
+            #result = drawer.draw_circles(result, objects_received)
+            global_frame = result
             yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+                   b'Content-Type: image/jpeg\r\n\r\n' + result + b'\r\n\r\n')
         else:
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + global_frame + b'\r\n\r\n')
@@ -53,6 +64,12 @@ def video_stream():
 def index():
     """Route to main page."""
     return render_template('index.html')
+
+
+@app.route('/login')
+def login():
+    """Route to login page."""
+    return render_template('login.html')
 
 
 @app.route('/video_viewer')
@@ -65,11 +82,13 @@ def video_viewer():
 @app.route('/objects')
 def objects():
     """Returns object list from the application server."""
+    global objects_received
+
     object_list = []
-    msg = object_client.content
-    if msg is not None:
-        msg = msg.split("{")
-        object_list = msg
+    objects_received = object_client.content
+    if objects_received is not None:
+        objects_received = objects_received.split("{")
+        object_list = objects_received
     return render_template('objects.html', objects=object_list)
 
 

@@ -1,1 +1,0 @@
-Icons will be stored here.
