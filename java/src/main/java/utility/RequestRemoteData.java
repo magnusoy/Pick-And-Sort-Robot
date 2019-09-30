@@ -18,7 +18,7 @@ import java.net.URL;
  */
 public class RequestRemoteData {
 
-    private static final String REMOTE_URL = "http://localhost:5000/";  // Url where the data is stored
+    private static final String REMOTE_URL = "http://83.243.185.249:5000/";  // Url where the data is stored
     private URL url;                                                    // URL object
     private JSONArray content;                                          // Stores fetched data
 
@@ -59,7 +59,7 @@ public class RequestRemoteData {
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 if (!line.isEmpty()) {
-                    String[] lines = line.split("-");
+                    String[] lines = line.replace("\\", "").split("-");
                     for (String json : lines) {
                         result.put(json);
                     }
@@ -97,6 +97,11 @@ public class RequestRemoteData {
      * @return JSONObject from given index.
      */
     public JSONObject get(int index) {
-        return new JSONObject(this.content.get(index).toString());
+        String data = "";
+        if (this.content.length() <= index) {
+            String jsonAsString = this.content.get(index).toString();
+            data = jsonAsString.substring(jsonAsString.indexOf('{'));
+        }
+        return new JSONObject(data);
     }
 }

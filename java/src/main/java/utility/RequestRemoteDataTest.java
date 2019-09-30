@@ -8,5 +8,6 @@ public class RequestRemoteDataTest {
         RequestRemoteData requestRemoteData = new RequestRemoteData();
         requestRemoteData.update();
         System.out.println(requestRemoteData.getAll().get(0).toString());
+        System.out.println(requestRemoteData.get(0).toString());
     }
 }
