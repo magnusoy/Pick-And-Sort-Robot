@@ -66,12 +66,6 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/login')
-def login():
-    """Route to login page."""
-    return render_template('login.html')
-
-
 @app.route('/video_viewer')
 def video_viewer():
     """Returns the video stream from webcamera."""
