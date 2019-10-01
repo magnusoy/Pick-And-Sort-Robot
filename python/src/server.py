@@ -43,18 +43,19 @@ def video_stream():
     if video_camera == None:
         drawer = FrameDrawer()
         video_camera = RemoteShapeDetector(
-            '83.243.219.245', 8089)  # '83.243.219.245'
+            '83.243.251.62', 8089)  # '83.243.219.245'
         video_camera.connect()
 
     while True:
         frame = video_camera.send()
 
         if frame != None:
-            result = drawer.draw_containers(frame)
+            result = drawer.draw_containers(video_camera.frame)
             #result = drawer.draw_circles(result, objects_received)
-            global_frame = result
+            #_, jpeg = cv2.imencode('.jpg', result)
+            global_frame = frame
             yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + result + b'\r\n\r\n')
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
         else:
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + global_frame + b'\r\n\r\n')
@@ -80,6 +81,7 @@ def objects():
 
     object_list = []
     objects_received = object_client.content
+    print(objects_received)
     if objects_received is not None:
         objects_received = objects_received.split("{")
         object_list = objects_received

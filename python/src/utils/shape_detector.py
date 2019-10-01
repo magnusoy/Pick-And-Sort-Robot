@@ -21,8 +21,8 @@ class VideoCamera:
         ret = self.capture.set(3, resolution[0])
         ret = self.capture.set(4, resolution[1])
         self.kernel = np.ones((5, 5), np.uint8)
-        self.lower_cal_color = np.array([29, 125, 85])
-        self.upper_cal_color = np.array([39, 181, 182])
+        self.lower_cal_color = np.array([30, 37, 106])
+        self.upper_cal_color = np.array([64, 133, 197])
         self.calibration_roi = []
 
     def calibrate(self):
@@ -51,7 +51,8 @@ class VideoCamera:
     def run(self):
         """Returns current frame."""
         _, frame = self.capture.read()
-        return frame
+        roi = frame[0: 480, 89: 553]
+        return roi
 
 
 class RemoteShapeDetector(Thread):
@@ -119,6 +120,7 @@ class RemoteShapeDetector(Thread):
         return jpeg.tobytes()
 
 
+"""
 # Example of usage
 if __name__ == "__main__":
     detector = RemoteShapeDetector('83.243.219.245', 8089)  # 83.243.219.245
@@ -126,4 +128,18 @@ if __name__ == "__main__":
     while True:
         detector.runEverything()
         cv2.imshow("show", detector.frame)
+        cv2.waitKey(1)
+"""
+
+
+# Example of usage
+if __name__ == "__main__":
+    from visual import FrameDrawer
+
+    vc = VideoCamera()
+    drawer = FrameDrawer()
+    while True:
+        frame = vc.run()
+        result = drawer.draw_containers(frame)
+        cv2.imshow("show", result)
         cv2.waitKey(1)
