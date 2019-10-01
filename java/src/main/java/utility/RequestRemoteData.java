@@ -19,8 +19,8 @@ import java.net.URL;
 public class RequestRemoteData {
 
     private static final String REMOTE_URL = "http://83.243.185.249:5000/";  // Url where the data is stored
-    private URL url;                                                    // URL object
-    private JSONArray content;                                          // Stores fetched data
+    private URL url;                                                         // URL object
+    private JSONArray content;                                               // Stores fetched data
 
     /**
      * RequestRemoteData constructor, initializes
@@ -98,7 +98,7 @@ public class RequestRemoteData {
      */
     public JSONObject get(int index) {
         String data = "";
-        if (this.content.length() <= index) {
+        if (this.content.length() >= index) {
             String jsonAsString = this.content.get(index).toString();
             data = jsonAsString.substring(jsonAsString.indexOf('{'));
         }

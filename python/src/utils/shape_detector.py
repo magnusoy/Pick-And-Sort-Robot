@@ -10,7 +10,6 @@ import pickle
 import struct
 from threading import Thread
 import time
-import imutils
 
 
 class VideoCamera:
@@ -20,33 +19,6 @@ class VideoCamera:
         self.capture = cv2.VideoCapture(source)
         ret = self.capture.set(3, resolution[0])
         ret = self.capture.set(4, resolution[1])
-        self.kernel = np.ones((5, 5), np.uint8)
-        self.lower_cal_color = np.array([30, 37, 106])
-        self.upper_cal_color = np.array([64, 133, 197])
-        self.calibration_roi = []
-
-    def calibrate(self):
-        """Run region of interest calibration."""
-        _, frame = self.capture.read()
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        mask = cv2.inRange(hsv, self.lower_cal_color, self.upper_cal_color)
-        erosion = cv2.erode(mask, self.kernel)
-        blurred_frame = cv2.GaussianBlur(erosion, (5, 5), 0)
-        canny = cv2.Canny(blurred_frame, 100, 150)
-        cnts = cv2.findContours(canny.copy(), cv2.RETR_EXTERNAL,
-                                cv2.CHAIN_APPROX_SIMPLE)
-        cnts = cnts[0] if imutils.is_cv2() else cnts[1]
-        if len(cnts) > 0:
-            for c in cnts:
-                try:
-                    M = cv2.moments(c)
-                    center = (int(M["m10"] / M["m00"]),
-                              int(M["m01"] / M["m00"]))
-                    self.calibration_roi.append(center)
-                except(ZeroDivisionError):
-                    continue
-        #roi = frame[0: 465, 94: 530]
-        # return roi
 
     def run(self):
         """Returns current frame."""
@@ -81,11 +53,13 @@ class RemoteShapeDetector(Thread):
     def send(self):
         """Convert and send frame as bytes."""
         self.frame = self.video_camera.run()
-        data = pickle.dumps(self.frame)
+        # Create a region of interest that excludes the sorted zone
+        roi = self.frame[100: 480, 89: 553]
+        data = pickle.dumps(roi)
         # Change to "L" if windows <-> Windows
         message_size = struct.pack("=L", len(data))
         self.write(message_size + data)
-        _, jpeg = cv2.imencode('.jpg', self.frame)
+        _, jpeg = cv2.imencode('.jpg', roi)
         return jpeg.tobytes()
 
     def connect(self):
@@ -135,11 +109,17 @@ if __name__ == "__main__":
 # Example of usage
 if __name__ == "__main__":
     from visual import FrameDrawer
+    from formater import JsonConverter
 
     vc = VideoCamera()
     drawer = FrameDrawer()
+    converter = JsonConverter()
+    obj = '["{"object": 0, "type": "triangle", "x": 203, "y": 256, "probability": "99"}, {"object": 1, "type": "rectangle", "x": 105, "y": 78, "probability": "91"}, "]'
+
     while True:
         frame = vc.run()
-        result = drawer.draw_containers(frame)
-        cv2.imshow("show", result)
+        data = converter.convert_to_json(obj)
+        result1 = drawer.draw_containers(frame)
+        result2 = drawer.draw_circles(result1, data)
+        cv2.imshow("show", result2)
         cv2.waitKey(1)

@@ -859,8 +859,8 @@ def write_objects_to_file(data):
     f = open(path, "a")
     for box, figure in data.items():
       ymin, xmin, ymax, xmax = box
-      x = int((xmax+xmin)/2*640) # Change to fit resolution
-      y = int((ymax+ymin)/2*480) # Change to fit resolution
+      x = int((xmax+xmin)/2*464) # Change to fit resolution
+      y = int((ymax+ymin)/2*380) # Change to fit resolution
       text = str(figure[0])
       out = text.replace(": ", ",").replace("%", "").split(",")
       figure = out[0]

@@ -13,7 +13,7 @@ public class MovementPlanner {
 
     private int shapeType;                                // Object type represented as int
     private int size;                                     // Number of objects left
-    RequestRemoteData remoteData;                         // Fetching remote data
+    private RequestRemoteData remoteData;                 // Fetching remote data
 
     /**
      * MovementPlanner constructor initializes the

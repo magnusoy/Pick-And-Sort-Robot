@@ -1,6 +1,5 @@
-package main.java.utility;
+package main.java.utility.deprecated;
 
-import main.java.utility.deprecated.ShapeFileHandler;
 import org.json.JSONObject;
 
 

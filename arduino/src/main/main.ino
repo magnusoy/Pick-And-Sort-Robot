@@ -63,8 +63,8 @@ void setup() {
   // Initialize Serial ports
   startSerial();
 
-  // Initialize limit switches
   initializeSwitches();
+  initializeValveOperations();
 
   // Initialize motor parameters
   configureMotors();
@@ -383,6 +383,16 @@ void initializeSwitches() {
 }
 
 /**
+  Initialize valve operations to outputs.
+*/
+void initializeValveOperations() {
+  pinMode(PISTON_DOWN, OUTPUT);
+  pinMode(PISTON_UP, OUTPUT);
+  pinMode(VACUUM_ON, OUTPUT);
+  pinMode(VACUUM_OFF, OUTPUT);
+}
+
+/**
   Changes state to S_IDLE if any
   limit switch is pressed.
 */
@@ -407,8 +417,8 @@ void edgeDetection() {
   @param y, new y position
 */
 void setPosition(float x, float y) {
-  targetX = x;
-  targetY = y;
+  targetX = convertTargetXToCounts(x);
+  targetY = convertTargetYToCounts(y);
 }
 
 
@@ -453,7 +463,12 @@ void objectSorter(int object) {
   Pick object sequence.
 */
 boolean pickObject() {
-  //TODO: Create sequence
+  digitalWrite(PISTON_UP, LOW);
+  digitalWrite(PISTON_DOWN, HIGH);
+  digitalWrite(VACUUM_ON, HIGH);
+  delay(20);
+  digitalWrite(PISTON_DOWN, LOW);
+  digitalWrite(PISTON_UP, HIGH);
   return true;
 }
 
@@ -461,8 +476,33 @@ boolean pickObject() {
   Drop object sequence.
 */
 boolean dropObject() {
-  //TODO: Create sequence
+  digitalWrite(PISTON_UP, LOW);
+  digitalWrite(PISTON_DOWN, HIGH);
+  digitalWrite(VACUUM_ON, LOW);
+  delay(20);
+  digitalWrite(PISTON_DOWN, LOW);
+  digitalWrite(PISTON_UP, HIGH);
   return true;
+}
+
+/**
+  Converts pixels to counts,
+  mapped to X-Axis
+*/
+int convertTargetXToCounts(int pixels) {
+  int inputX = constrain(pixels, 0, 480);
+  int outputX = map(inputX, 0, 480, MOTOR_X_MIN_COUNTS, MOTOR_X_MAX_COUNTS);
+  return outputX;
+}
+
+/**
+  Converts pixels to counts,
+  mapped to Y-Axis
+*/
+int convertTargetYToCounts(int pixels) {
+  int inputY = constrain(pixels, 0, 464);
+  int outputY = map(inputY, 0, 464, MOTOR_Y_MIN_COUNTS, MOTOR_Y_MAX_COUNTS);
+  return outputY;
 }
 
 

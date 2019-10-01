@@ -10,6 +10,8 @@ import cv2
 from utils.client import Client
 from utils.shape_detector import RemoteShapeDetector
 from utils.visual import FrameDrawer
+from utils.formater import JsonConverter
+
 
 # Define Flask server
 app = Flask(__name__)
@@ -27,6 +29,8 @@ state_client.command = "GET/Status"
 object_client.start()
 state_client.start()
 command_client.connect()
+
+converter = JsonConverter()
 
 # Global video variables
 global_frame = None
@@ -78,14 +82,8 @@ def video_viewer():
 def objects():
     """Returns object list from the application server."""
     global objects_received
-
-    object_list = []
-    objects_received = object_client.content
-    print(objects_received)
-    if objects_received is not None:
-        objects_received = objects_received.split("{")
-        object_list = objects_received
-    return render_template('objects.html', objects=object_list)
+    objects_received = converter.convert_to_json(object_client.content)
+    return render_template('objects.html', objects=objects_received)
 
 
 @app.route('/state')

@@ -44,7 +44,7 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
     }
 
     /**
-     *
+     * Run SerialHandler in a thread.
      */
     @Override
     public void run() {
@@ -154,8 +154,10 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
     }
 
     /**
+     * Returns data received from Teensy
+     * as JSON.
      *
-     * @return
+     * @return data received from Teensy as JSON
      */
     public synchronized JSONObject getJsonFromTeensy() {
         JSONObject temp;

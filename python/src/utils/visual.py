@@ -1,9 +1,8 @@
 # #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Importing packages
+# Importing OpenCV
 import cv2
-import json
 
 
 class FrameDrawer():
@@ -25,8 +24,7 @@ class FrameDrawer():
         """Draws circles around shapes on frame."""
         result = frame
         for shape in shapes:
-            obj = json.loads(shape)
-            center_coordinates = (obj['x'], obj['y'])
+            center_coordinates = (shape['x'], shape['y'])
             result = cv2.circle(result, center_coordinates,
                                 self.radius, self.shapecolor, self.circlethickness)
         return result
