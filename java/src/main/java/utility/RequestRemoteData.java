@@ -7,10 +7,7 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
+import java.net.*;
 
 /**
  * RequestRemoteData fetches data from the remote REST-API Server
@@ -18,7 +15,7 @@ import java.net.URL;
  */
 public class RequestRemoteData {
 
-    private static final String REMOTE_URL = "http://83.243.251.62:5000/";  // Url where the data is stored
+    private static final String REMOTE_URL = "http://83.243.251.62:5000/";   // Url where the data is stored
     private URL url;                                                         // URL object
     private JSONArray content;                                               // Stores fetched data
 

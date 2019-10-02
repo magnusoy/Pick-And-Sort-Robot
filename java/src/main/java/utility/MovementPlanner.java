@@ -21,8 +21,8 @@ public class MovementPlanner {
      */
     public MovementPlanner() {
          this.remoteData = new RequestRemoteData();
-        this.shapeType = 10;
-        this.size = 0;
+         this.shapeType = 10;
+         this.size = 0;
     }
 
     /**

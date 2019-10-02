@@ -95,6 +95,14 @@ public class Database {
         this.jsonFromTeensy = jsonFromTeensy;
     }
 
+    public void putManualX(double manualX) {
+        this.manualX = manualX;
+    }
+
+    public void putManualY(double manualY) {
+        this.manualY = manualY;
+    }
+
     /**
      * Returns received JSON from Teensy.
      *

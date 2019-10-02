@@ -1,6 +1,7 @@
 package main.java.communication;
 
 import main.java.utility.Database;
+import org.json.JSONObject;
 
 import java.io.*;
 import java.net.Socket;
@@ -50,6 +51,14 @@ public class ClientHandler extends Thread {
                 PrintWriter out = new PrintWriter(this.socket.getOutputStream(), true);
 
                 received = in.readLine();
+
+                if (received.startsWith("POST/Controller")) {
+                    JSONObject controllerData = extractControllerInputs(received);
+                    double x = Double.parseDouble(controllerData.get("x").toString());
+                    double y = Double.parseDouble(controllerData.get("y").toString());
+                    this.database.putManualX(x);
+                    this.database.putManualY(y);
+                }
 
                 switch (received) {
                     case "GET/Status":
@@ -170,5 +179,10 @@ public class ClientHandler extends Thread {
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
+    }
+
+    private JSONObject extractControllerInputs(String input) {
+        String stringToBeParsed = input.substring(15);
+        return new JSONObject(stringToBeParsed);
     }
 }

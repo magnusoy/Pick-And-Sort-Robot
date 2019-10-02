@@ -1,3 +1,0 @@
-The server will have to serve the gui with data
-continuously and on request.
-
