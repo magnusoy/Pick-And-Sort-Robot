@@ -58,7 +58,7 @@ public class ClientHandler extends Thread {
                         break;
 
                     case "GET/Objects":
-                        toReturn = this.database.getAllShapes().toString();
+                        toReturn = this.database.getAllShapes().toList().toString();
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 

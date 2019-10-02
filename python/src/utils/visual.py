@@ -10,7 +10,7 @@ class FrameDrawer():
 
     def __init__(self):
         self.radius = 20
-        self.shapecolor = (255, 0, 0)
+        self.shapecolor = (0, 165, 255)
         self.circlethickness = 2
         self.linethickness = 2
         self.linebegin = (5, 100)  # x1, y1
@@ -27,6 +27,7 @@ class FrameDrawer():
             center_coordinates = (shape['x'], shape['y'])
             result = cv2.circle(result, center_coordinates,
                                 self.radius, self.shapecolor, self.circlethickness)
+            cv2.putText(result, shape['type'], center_coordinates, self.font, self.fontscale*0.8, self.fontcolor, 1) 
         return result
 
     def draw_containers(self, frame):

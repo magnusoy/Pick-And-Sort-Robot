@@ -18,7 +18,7 @@ import java.net.URL;
  */
 public class RequestRemoteData {
 
-    private static final String REMOTE_URL = "http://83.243.185.249:5000/";  // Url where the data is stored
+    private static final String REMOTE_URL = "http://83.243.251.62:5000/";  // Url where the data is stored
     private URL url;                                                         // URL object
     private JSONArray content;                                               // Stores fetched data
 

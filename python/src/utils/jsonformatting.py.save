@@ -1,0 +1,9 @@
+import json
+
+obj = '["{"object": 0, "type": "triangle", "x": 203, "y": 256, "probability": "99"}, {"object": 1, "type": "rectangle", "x": 105, "y": 78, "probability": "91"}, "]'
+good = obj.replace('"', '')
+#print(good)
+#print(json.dumps(good))
+json_obj = json.dumps(obj)
+["{"object": 0, "type": "triangle", "x": 203, "y": 256, "probability": "99"}, {"object": 1, "type": "rectangle", "x": 105, "y": 78, "probability": "91"}, "]
+

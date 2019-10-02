@@ -866,7 +866,7 @@ def write_objects_to_file(data):
       figure = out[0]
       probability = out[1]
       index += 1
-      write_to_file = {"object": index, "type": figure, "x": x, "y": y, "probability": probability}
+      write_to_file = {"object": index, "type": figure, "x": x-4, "y": y+100, "probability": probability}
       f.write(str(json.dumps(write_to_file)) + "-")
     f.close()
 

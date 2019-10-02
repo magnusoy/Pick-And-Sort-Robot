@@ -16,7 +16,7 @@ class JsonConverter:
     def convert_to_json(self, obj):
         """Converts string to json"""
         json_list = []
-        data = obj[2: -2]
+        data = obj[4: -2]
         arr = self.splitkeepsep(data, '}')
         arr.pop()
         index = 0
@@ -40,6 +40,6 @@ class JsonConverter:
 if __name__ == "__main__":
     jf = JsonConverter()
     # Giving example data
-    obj = '["{"object": 0, "type": "triangle", "x": 203, "y": 256, "probability": "99"}, {"object": 1, "type": "rectangle", "x": 105, "y": 78, "probability": "91"}, "]'
-    data = jf.convert_to_json(obj)
-    print(data[0]['type'])
+    obj1 = '["{"object": 0, "type": "circle", "x": 306, "y": 260, "probability": "98"}, {"object": 1, "type": "triangle", "x": 259, "y": 65, "probability": "97"}, "]'
+    data = jf.convert_to_json(obj1)
+    print(data[0]['x'])

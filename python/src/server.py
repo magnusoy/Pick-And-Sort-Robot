@@ -47,7 +47,7 @@ def video_stream():
     if video_camera == None:
         drawer = FrameDrawer()
         video_camera = RemoteShapeDetector(
-            '83.243.251.62', 8089)  # '83.243.219.245'
+            '83.243.251.62', 8089)  # '83.243.251.62'
         video_camera.connect()
 
     while True:
@@ -55,8 +55,8 @@ def video_stream():
 
         if frame != None:
             result = drawer.draw_containers(video_camera.frame)
-            #result = drawer.draw_circles(result, objects_received)
-            #_, jpeg = cv2.imencode('.jpg', result)
+            result = drawer.draw_circles(result, objects_received)
+            frame = video_camera.convert_to_jpeg(result)
             global_frame = frame
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
@@ -82,8 +82,13 @@ def video_viewer():
 def objects():
     """Returns object list from the application server."""
     global objects_received
-    objects_received = converter.convert_to_json(object_client.content)
-    return render_template('objects.html', objects=objects_received)
+    objects = []
+    msg = object_client.content
+    if msg is not None:
+        new = msg.split("{")
+        objects = new
+        objects_received = converter.convert_to_json(msg)
+    return render_template('objects.html', objects=objects)
 
 
 @app.route('/state')
