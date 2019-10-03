@@ -15,7 +15,7 @@ import java.net.*;
  */
 public class RequestRemoteData {
 
-    private static final String REMOTE_URL = "http://83.243.251.62:5000/";   // Url where the data is stored
+    private static final String REMOTE_URL = "http://83.243.251.62:5000/";   // End point
     private URL url;                                                         // URL object
     private JSONArray content;                                               // Stores fetched data
 
@@ -36,7 +36,7 @@ public class RequestRemoteData {
      * Fetches data from the REST Server.
      * Stores the data as JSON in content.
      */
-    public void update() {
+    public synchronized void update() {
         JSONArray result = new JSONArray();
         HttpURLConnection conn = null;
         try {
@@ -50,7 +50,7 @@ public class RequestRemoteData {
         } catch (ProtocolException e) {
             e.printStackTrace();
         }
-        BufferedReader bufferedReader = null;
+        BufferedReader bufferedReader;
         try {
             bufferedReader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             String line;
@@ -63,7 +63,7 @@ public class RequestRemoteData {
                 }
             }
             bufferedReader.close();
-        } catch (IOException e) {
+        } catch (IOException | StringIndexOutOfBoundsException e) {
             e.printStackTrace();
         }
         this.content = result;
@@ -74,7 +74,7 @@ public class RequestRemoteData {
      *
      * @return All of the stored data
      */
-    public JSONArray getAll() {
+    public synchronized JSONArray getAll() {
         return this.content;
     }
 
@@ -83,7 +83,7 @@ public class RequestRemoteData {
      *
      * @return number of json strings
      */
-    public int getSize() {
+    public synchronized int getSize() {
         return this.content.length();
     }
 
@@ -93,8 +93,8 @@ public class RequestRemoteData {
      * @param index where to extract object
      * @return JSONObject from given index.
      */
-    public JSONObject get(int index) {
-        String data = "";
+    public synchronized JSONObject get(int index) {
+        String data;
         JSONObject jsonObject = null;
         try {
             if (this.content.length() >= index) {
@@ -104,8 +104,8 @@ public class RequestRemoteData {
             } else {
                 jsonObject = new JSONObject();
             }
-        } catch (StringIndexOutOfBoundsException sieobe) {
-            sieobe.printStackTrace();
+        } catch (StringIndexOutOfBoundsException e) {
+            e.printStackTrace();
         }
         return jsonObject;
     }

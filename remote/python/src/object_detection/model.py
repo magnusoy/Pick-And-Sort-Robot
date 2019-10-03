@@ -2,11 +2,9 @@
 # -*- coding: utf-8 -*-
 
 # Import packages
-import os
 import cv2
 import numpy as np
 import tensorflow as tf
-import sys
 
 # Import utilites
 from object_detection.utils import label_map_util
@@ -87,6 +85,4 @@ class ObjectDetector(object):
 
         if debug:
             cv2.imshow('Frame', frame)
-        
-        #_ , jpeg = cv2.imencode('.jpg', frame)
-        #return jpeg.tobytes()
+

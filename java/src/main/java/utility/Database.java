@@ -1,12 +1,8 @@
 package main.java.utility;
 
-import main.java.utility.deprecated.ShapeFileHandler;
-import main.java.utility.deprecated.ShapePlanner;
+
 import org.json.JSONObject;
 import org.json.JSONArray;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
 
 
 /**
@@ -18,10 +14,9 @@ public class Database {
 
     private Integer userCommand;                        // A number that instructs the Teensy
     private int shapeType;                              // Object type represented as int
-    private double manualX;                             // Manual X input from joystick
-    private double manualY;                             // Manual Y input from joystick
     private final RequestRemoteData remoteData;         // REST API Call to remote server
     private final MovementPlanner movementPlanner;      // Handles the figure type to be sorted
+    private final ControllerHandler controllerHandler;  // Parses data from Xbox controller
     private JSONObject jsonFromTeensy;                  // JSON format of the tracked object
     private JSONObject jsonToTeensy;                    // JSON format of the data that the Teensy will have
 
@@ -35,9 +30,8 @@ public class Database {
         this.movementPlanner = new MovementPlanner();
         this.jsonFromTeensy = new JSONObject();
         this.jsonToTeensy = new JSONObject();
+        this.controllerHandler = new ControllerHandler();
         this.shapeType = 10;                            // Has to be 10 to match picker state machine
-        this.manualX = 0.0;
-        this.manualY = 0.0;
     }
 
     /**
@@ -45,7 +39,7 @@ public class Database {
      *
      * @return all of the stored shapes
      */
-    public synchronized JSONArray getAllShapes() {
+    public JSONArray getAllShapes() {
         this.remoteData.update();
         return this.remoteData.getAll();
     }
@@ -55,17 +49,8 @@ public class Database {
      *
      * @param userCommand, an Integer positive number.
      */
-    public void setUserCommand(Integer userCommand) {
+    public synchronized void setUserCommand(Integer userCommand) {
         this.userCommand = userCommand;
-    }
-
-    /**
-     * Returns the user current command.
-     *
-     * @return userCommand, the current user command
-     */
-    public Integer getUserCommand() {
-        return this.userCommand;
     }
 
     /**
@@ -73,17 +58,8 @@ public class Database {
      *
      * @param shapeType, an Integer positive number.
      */
-    public void putType(int shapeType) {
+    public synchronized void putType(int shapeType) {
         this.shapeType = shapeType;
-    }
-
-    /**
-     * Returns the current shape type.
-     *
-     * @return shapeType, the current shape type
-     */
-    public int getShapeType() {
-        return this.shapeType;
     }
 
     /**
@@ -91,24 +67,26 @@ public class Database {
      *
      * @param jsonFromTeensy received JSON from Teensy
      */
-    public synchronized void setJsonFromTeensy(JSONObject jsonFromTeensy) {
+    public void setJsonFromTeensy(JSONObject jsonFromTeensy) {
         this.jsonFromTeensy = jsonFromTeensy;
     }
 
-    public void putManualX(double manualX) {
-        this.manualX = manualX;
+    /**
+     * Puts Received data from xbox to parser.
+     *
+     * @param jsonObject data from xbox controller
+     */
+    public void putXboxControllerData(JSONObject jsonObject) {
+        this.controllerHandler.setJsonObject(jsonObject);
     }
 
-    public void putManualY(double manualY) {
-        this.manualY = manualY;
-    }
 
     /**
      * Returns received JSON from Teensy.
      *
      * @return received JSON from Teensy
      */
-    public synchronized JSONObject getJsonFromTeensy() {
+    public JSONObject getJsonFromTeensy() {
         JSONObject temp;
         if (this.jsonFromTeensy != null) {
             temp = this.jsonFromTeensy;
@@ -124,15 +102,14 @@ public class Database {
      *
      * @return JSON structure
      */
-    public synchronized JSONObject getJsonToTeensy() {
+    public JSONObject getJsonToTeensy() {
         this.movementPlanner.setShapeType(this.shapeType);
         this.jsonToTeensy = this.movementPlanner.getShape();
         this.jsonToTeensy.put("command", this.userCommand);
-        this.jsonToTeensy.put("manX", this.manualX);
-        this.jsonToTeensy.put("manY", this.manualY);
+        this.jsonToTeensy.put("manX", this.controllerHandler.getRightX());
+        this.jsonToTeensy.put("manY", this.controllerHandler.getRightY());
         this.jsonToTeensy.put("size", this.movementPlanner.getSize());
-        this.userCommand = 0; // Resets the command after object has been created.
-        System.out.println(this.jsonToTeensy.toString());
+        //System.out.println(this.jsonToTeensy.toString());
         return this.jsonToTeensy;
     }
 }

@@ -1,7 +1,7 @@
 #ifndef _OdriveParameters_H
 #define _OdriveParameters_H
 
-#define MOTOR_SPEED_LIMIT 22000.0f
+#define MOTOR_SPEED_LIMIT 40000.0f
 #define MOTOR_CURRENT_LIMIT 7.0f
 
 #define MOTOR_X 0

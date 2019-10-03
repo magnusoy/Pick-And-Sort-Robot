@@ -1,12 +1,11 @@
 # #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os
+# Importing json
 import json
-from threading import Thread
 
 
-class FileHandler(Thread):
+class FileHandler():
     """FileHandler takes care of reading
         and writing data to files."""
 

@@ -4,7 +4,7 @@
 #define NOTHING 0
 #define START 1
 #define STOP 2
-#define REST 3 
+#define RESET 3 
 #define MANUAL_CONTROL 4
 #define AUTOMATIC_CONTROL 5
 #define CALIBRATE 6

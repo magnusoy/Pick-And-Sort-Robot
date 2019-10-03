@@ -9,8 +9,8 @@
   ArduinoJSON - https://github.com/bblanchon/ArduinoJson
   -----------------------------------------------------------
   Code by: Magnus Kvendseth Øye, Vegard Solheim, Petter Drønnen
-  Date: 22.09-2019
-  Version: 1.6
+  Date: 03.10-2019
+  Version: 1.7
   Website: https://github.com/magnusoy/Pick-And-Sort-Robot
 */
 
@@ -55,9 +55,11 @@ int currentState = S_IDLE; // S_IDLE
 // Variables storing object data
 int objectType = 0;
 int objectsRemaining = 0;
-int inputX;
-int inputY;
-int recCommand;
+int inputX = 0;
+int inputY = 0;
+int oldCommand = 0;
+int recCommand = 0;
+
 
 void setup() {
   // Initialize Serial ports
@@ -71,6 +73,9 @@ void setup() {
 }
 
 void loop() {
+  if (isCommandValid(STOP)) {
+    changeStateTo(S_IDLE);
+  }
   // Read motor position at any given state
   readMotorPositions();
   // State machine
@@ -96,6 +101,8 @@ void loop() {
         changeStateTo(S_MANUAL);
       } else if (isCommandValid(CONFIGURE)) {
         changeStateTo(S_CONFIGURE);
+      } else if (isCommandValid(RESET)) {
+        changeStateTo(S_IDLE);
       }
       break;
 
@@ -174,13 +181,8 @@ void loop() {
 
     case S_MANUAL:
       readJSONDocuemntFromSerial();
-      if (inputX != 0) {
-        manualX += (100 * inputX);
-
-      }
-      if (inputY != 0) {
-        manualY += (100 * inputY);
-      }
+      manualX += (100 * inputX);
+      manualY += (100 * inputY);
       setMotorPosition(MOTOR_X, manualX);
       setMotorPosition(MOTOR_Y, manualY);
       if (isCommandValid(AUTOMATIC_CONTROL)) {
@@ -191,7 +193,10 @@ void loop() {
       break;
 
     case S_CONFIGURE:
-
+      // TODO: Add ODrive configurations
+      if (isCommandValid(RESET)) {
+        changeStateTo(S_IDLE);
+      }
       break;
 
     default:
@@ -200,10 +205,9 @@ void loop() {
       changeStateTo(S_IDLE);
       break;
   }
-  //edgeDetection();
+  edgeDetection();
   writeToSerial(UPDATE_SERIAL_TIME);
 }
-
 
 /**
   Writes periodically to the Serial.
@@ -275,12 +279,15 @@ boolean isCommandValid(int inputCommand) {
 
 /**
    Change the state of the statemachine to the new state
-   given by the parameter newState
+   given by the parameter newState only if the command
+   received is changed.
 
    @param newState The new state to set the statemachine to
 */
 void changeStateTo(int newState) {
-  currentState = newState;
+  if (isCommandChanged()) {
+    currentState = newState;
+  }
 }
 
 /**
@@ -323,7 +330,7 @@ void startSerial() {
 
 /**
   Calibreates motors.
-  Be aware the motors will move during this process.
+  Be aware the motors will move during this process!
 */
 void calibreateMotors() {
   int requested_state;
@@ -509,6 +516,21 @@ int convertTargetYToCounts(int pixels) {
   return outputY;
 }
 
+/**
+  Change only command on new change.
+
+  @return true if changed,
+          else false
+*/
+boolean isCommandChanged() {
+  boolean result = false;
+  if (recCommand != oldCommand) {
+    oldCommand = recCommand;
+    result = true;
+  }
+  return result;
+}
+
 
 /**
   Stop motors immediately.
@@ -521,7 +543,7 @@ void terminateMotors() {
 }
 
 /**
-  Templates for printing
+  Template for printing
   to ODrive v3.6
 */
 template<class T> inline Print& operator <<(Print &obj,     T arg) {
@@ -529,6 +551,10 @@ template<class T> inline Print& operator <<(Print &obj,     T arg) {
   return obj;
 }
 
+/**
+  Template for printing
+  to ODrive v3.6
+*/
 template<>        inline Print& operator <<(Print &obj, float arg) {
   obj.print(arg, 4);
   return obj;

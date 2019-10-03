@@ -27,7 +27,8 @@ class FrameDrawer():
             center_coordinates = (shape['x'], shape['y'])
             result = cv2.circle(result, center_coordinates,
                                 self.radius, self.shapecolor, self.circlethickness)
-            cv2.putText(result, shape['type'], center_coordinates, self.font, self.fontscale*0.8, self.fontcolor, 1) 
+            cv2.putText(result, shape['type'], center_coordinates,
+                        self.font, self.fontscale*0.8, self.fontcolor, 1)
         return result
 
     def draw_containers(self, frame):

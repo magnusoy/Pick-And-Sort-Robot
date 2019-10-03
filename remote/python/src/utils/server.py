@@ -21,7 +21,8 @@ class RemoteShapeDetectorServer:
         self.initialize(host, port)
         self.data = b''
         self.payload_size = struct.calcsize("L")
-        self.data_reader = FileHandler("C:\\Users\\Petter\\Documents\\Pick-And-Sort-Robot\\resources\\remote\\objects.json")
+        self.data_reader = FileHandler(
+            "C:\\Users\\Petter\\Documents\\Pick-And-Sort-Robot\\resources\\remote\\objects.json")
 
     def initialize(self, host="0.0.0.0", port=8089):
         """Initializes the server."""
@@ -48,11 +49,6 @@ class RemoteShapeDetectorServer:
         self.data = self.data[msg_size:]
         frame = pickle.loads(frame_data, encoding='latin1')
         return frame
-
-    def send_data(self):
-        data = self.data_reader.read()
-        msg = data + "/n"
-        self.connection.sendall(msg.encode())
 
 
 # Example of usage

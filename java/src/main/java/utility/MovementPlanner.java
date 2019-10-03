@@ -13,7 +13,7 @@ public class MovementPlanner {
 
     private int shapeType;                                // Object type represented as int
     private int size;                                     // Number of objects left
-    private RequestRemoteData remoteData;                 // Fetching remote data
+    private final RequestRemoteData remoteData;           // Fetching remote data
 
     /**
      * MovementPlanner constructor initializes the
@@ -33,15 +33,6 @@ public class MovementPlanner {
      */
     public void setShapeType(int shapeType) {
         this.shapeType = shapeType;
-    }
-
-    /**
-     * Returns object type represented as int
-     *
-     * @return type, object represented as int
-     */
-    public int getShapeType() {
-        return this.shapeType;
     }
 
     /**

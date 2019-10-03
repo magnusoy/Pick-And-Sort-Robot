@@ -19,21 +19,18 @@ public class Main {
 
         try {
             serialHandler.run();
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
+            new Thread(() -> {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                while (true) {
+                    serialHandler.sendData(database.getJsonToTeensy());
                     try {
-                        Thread.sleep(2000);
+                        Thread.sleep(20);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
-                    }
-                    while (true) {
-                        serialHandler.sendData(database.getJsonToTeensy());
-                        try {
-                            Thread.sleep(20);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
                     }
                 }
             }).start();

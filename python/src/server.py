@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Importing packages
-from flask import Flask, render_template, Response, jsonify, request
+from flask import Flask, render_template, Response
 import logging
 import cv2
 
@@ -30,6 +30,7 @@ object_client.start()
 state_client.start()
 command_client.connect()
 
+# Converts string to json
 converter = JsonConverter()
 
 # Global video variables
