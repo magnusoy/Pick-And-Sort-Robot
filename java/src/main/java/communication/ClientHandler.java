@@ -51,11 +51,10 @@ public class ClientHandler extends Thread {
                 PrintWriter out = new PrintWriter(this.socket.getOutputStream(), true);
 
                 received = in.readLine();
-
-                if (received.startsWith("POST/Controller")) {
+                if (received.substring(2).startsWith("POST/Controller")) {
                     JSONObject controllerData = extractControllerInputs(received);
-                    double x = Double.parseDouble(controllerData.get("x").toString());
-                    double y = Double.parseDouble(controllerData.get("y").toString());
+                    double x = Double.parseDouble(controllerData.get("Right X").toString());
+                    double y = Double.parseDouble(controllerData.get("Right Y").toString());
                     this.database.putManualX(x);
                     this.database.putManualY(y);
                 }
@@ -182,7 +181,7 @@ public class ClientHandler extends Thread {
     }
 
     private JSONObject extractControllerInputs(String input) {
-        String stringToBeParsed = input.substring(15);
+        String stringToBeParsed = input.substring(17);
         return new JSONObject(stringToBeParsed);
     }
 }

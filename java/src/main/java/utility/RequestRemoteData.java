@@ -95,10 +95,18 @@ public class RequestRemoteData {
      */
     public JSONObject get(int index) {
         String data = "";
-        if (this.content.length() >= index) {
-            String jsonAsString = this.content.get(index).toString();
-            data = jsonAsString.substring(jsonAsString.indexOf('{'));
+        JSONObject jsonObject = null;
+        try {
+            if (this.content.length() >= index) {
+                String jsonAsString = this.content.get(index).toString();
+                data = jsonAsString.substring(jsonAsString.indexOf('{'));
+                jsonObject = new JSONObject(data);
+            } else {
+                jsonObject = new JSONObject();
+            }
+        } catch (StringIndexOutOfBoundsException sieobe) {
+            sieobe.printStackTrace();
         }
-        return new JSONObject(data);
+        return jsonObject;
     }
 }

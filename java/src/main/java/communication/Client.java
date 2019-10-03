@@ -49,7 +49,7 @@ public class Client {
             while (true) {
                 System.out.println(this.dataInputStream.readUTF());
                 String toSend = this.in.nextLine();
-                this.dataOutputStream.writeUTF(toSend);
+                this.dataOutputStream.writeUTF(toSend + "\n");
 
                 if (toSend.equals("Exit")) {
                     System.out.println("Closing this connection: " + this.socket);

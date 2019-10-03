@@ -50,7 +50,7 @@ float manualX = 0;
 float manualY = 0;
 
 // A variable holding the current state
-int currentState = S_IDLE;
+int currentState = S_IDLE; // S_IDLE
 
 // Variables storing object data
 int objectType = 0;
@@ -174,10 +174,15 @@ void loop() {
 
     case S_MANUAL:
       readJSONDocuemntFromSerial();
-      manualX += (10 * inputX);
-      manualY += (10 * inputY);
+      if (inputX != 0) {
+        manualX += (100 * inputX);
+
+      }
+      if (inputY != 0) {
+        manualY += (100 * inputY);
+      }
       setMotorPosition(MOTOR_X, manualX);
-      setMotorPosition(MOTOR_X, manualY);
+      setMotorPosition(MOTOR_Y, manualY);
       if (isCommandValid(AUTOMATIC_CONTROL)) {
         changeStateTo(S_READY);
       } else if (isCommandValid(CONFIGURE)) {
@@ -401,7 +406,6 @@ void edgeDetection() {
   int buttonState2 = digitalRead(LIMIT_SWITCH_X_RIGHT);
   int buttonState3 = digitalRead(LIMIT_SWITCH_Y_BOTTOM);
   int buttonState4 = digitalRead(LIMIT_SWITCH_Y_TOP);
-
   if (buttonState1 || buttonState2
       || buttonState3 || buttonState4) {
     terminateMotors();

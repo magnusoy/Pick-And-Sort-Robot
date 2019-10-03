@@ -132,6 +132,7 @@ public class Database {
         this.jsonToTeensy.put("manY", this.manualY);
         this.jsonToTeensy.put("size", this.movementPlanner.getSize());
         this.userCommand = 0; // Resets the command after object has been created.
+        System.out.println(this.jsonToTeensy.toString());
         return this.jsonToTeensy;
     }
 }
