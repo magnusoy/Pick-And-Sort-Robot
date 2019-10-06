@@ -38,6 +38,9 @@ int motorPosition[] = {0, 0};
 // Time for next timeout, in milliseconds
 unsigned long nextTimeout = 0;
 
+// A variable holding the current state
+int currentState = S_IDLE; // S_IDLE
+
 // Errorcode
 int errCode = 0;
 
@@ -49,17 +52,21 @@ float targetY = 0;
 float manualX = 0;
 float manualY = 0;
 
-// A variable holding the current state
-int currentState = S_IDLE; // S_IDLE
-
 // Variables storing object data
 int objectType = 0;
 int objectsRemaining = 0;
-int inputX = 0;
-int inputY = 0;
 int oldCommand = 0;
 int recCommand = 0;
 
+// Manual control variables
+float inputX = 0;
+float inputY = 0;
+float motorSpeed = 0.0f;
+boolean pick = false;
+boolean drop = false;
+
+// Speed variables
+int currentSpeed = MOTOR_SPEED_LIMIT;
 
 void setup() {
   // Initialize Serial ports
@@ -181,15 +188,30 @@ void loop() {
 
     case S_MANUAL:
       readJSONDocuemntFromSerial();
+
       manualX += (100 * inputX);
       manualY += (100 * inputY);
       setMotorPosition(MOTOR_X, manualX);
       setMotorPosition(MOTOR_Y, manualY);
+
+      if (motorSpeed != 0) {
+        setMotorSpeedFromController();
+      }
+
+      if (pick) {
+        pickObject();
+      }
+
+      if (drop) {
+        dropObject();
+      }
+
       if (isCommandValid(AUTOMATIC_CONTROL)) {
         changeStateTo(S_READY);
       } else if (isCommandValid(CONFIGURE)) {
         changeStateTo(S_CONFIGURE);
       }
+
       break;
 
     case S_CONFIGURE:
@@ -241,7 +263,7 @@ void sendJSONDocumentToSerial() {
 */
 void readJSONDocuemntFromSerial() {
   if (Serial.available() > 0) {
-    const size_t capacity = 10 * JSON_ARRAY_SIZE(2) + JSON_ARRAY_SIZE(10) + 11 * JSON_OBJECT_SIZE(3) + 420;
+    const size_t capacity = 15 * JSON_ARRAY_SIZE(2) + JSON_ARRAY_SIZE(10) + 11 * JSON_OBJECT_SIZE(3) + 520;
     DynamicJsonDocument doc(capacity);
     DeserializationError error = deserializeJson(doc, Serial);
     if (error) {
@@ -249,14 +271,19 @@ void readJSONDocuemntFromSerial() {
     }
     JsonObject obj = doc.as<JsonObject>();
 
+    recCommand = obj["command"];
     objectType = obj["type"];
-    objectsRemaining = obj["num"];
+    objectsRemaining = obj["size"];
+
     targetX = obj["x"];
     targetY = obj["y"];
+
     inputX = obj["manX"];
     inputY = obj["manY"];
-    objectsRemaining = obj["size"];
-    recCommand = obj["command"];
+    motorSpeed = obj["speed"];
+    pick = obj["pick"];
+    drop = obj["drop"];
+
   }
 }
 
@@ -382,6 +409,17 @@ void configureMotors() {
     ODRIVE_SERIAL << "w axis" << axis << ".controller.config.vel_limit " << MOTOR_SPEED_LIMIT << '\n';
     ODRIVE_SERIAL << "w axis" << axis << ".motor.config.current_lim " << MOTOR_CURRENT_LIMIT << '\n';
   }
+}
+
+/**
+  Change the speed of the motor.
+
+  @param speedLimit, the new speed to be set
+*/
+void setMotorSpeedFromController() {
+  currentSpeed += (100 * motorSpeed);
+  ODRIVE_SERIAL << "w axis" << MOTOR_X << ".controller.config.vel_limit " << currentSpeed << '\n';
+  ODRIVE_SERIAL << "w axis" << MOTOR_Y << ".controller.config.vel_limit " << currentSpeed << '\n';
 }
 
 /**
