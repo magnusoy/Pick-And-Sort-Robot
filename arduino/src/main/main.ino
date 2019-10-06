@@ -9,8 +9,8 @@
   ArduinoJSON - https://github.com/bblanchon/ArduinoJson
   -----------------------------------------------------------
   Code by: Magnus Kvendseth Øye, Vegard Solheim, Petter Drønnen
-  Date: 03.10-2019
-  Version: 1.7
+  Date: 06.10-2019
+  Version: 1.8
   Website: https://github.com/magnusoy/Pick-And-Sort-Robot
 */
 
@@ -45,22 +45,24 @@ int currentState = S_IDLE; // S_IDLE
 int errCode = 0;
 
 // Position control
-float actualX = 0;
-float actualY = 0;
-float targetX = 0;
-float targetY = 0;
-float manualX = 0;
-float manualY = 0;
+float actualX = 0.0f;
+float actualY = 0.0f;
+float targetX = 0.0f;
+float targetY = 0.0f;
+float manualX = 0.0f;
+float manualY = 0.0f;
 
 // Variables storing object data
 int objectType = 0;
 int objectsRemaining = 0;
 int oldCommand = 0;
 int recCommand = 0;
+float targetXPixels = 0.0f;
+float targetYPixels = 0.0f;
 
 // Manual control variables
-float inputX = 0;
-float inputY = 0;
+float inputX = 0.0f;
+float inputY = 0.0f;
 float motorSpeed = 0.0f;
 boolean pick = false;
 boolean drop = false;
@@ -80,11 +82,14 @@ void setup() {
 }
 
 void loop() {
+  // Safety procedure
   if (isCommandValid(STOP)) {
     changeStateTo(S_IDLE);
   }
+
   // Read motor position at any given state
   readMotorPositions();
+
   // State machine
   switch (currentState) {
     case S_IDLE:
@@ -103,6 +108,8 @@ void loop() {
       readJSONDocuemntFromSerial();
       if (isCommandValid(START) ||
           isCommandValid(AUTOMATIC_CONTROL)) {
+        targetX = convertFromPixelsToCountsX(targetXPixels);
+        targetY = convertFromPixelsToCountsY(targetYPixels);
         changeStateTo(S_MOVE_TO_OBJECT);
       } else if (isCommandValid(MANUAL_CONTROL)) {
         changeStateTo(S_MANUAL);
@@ -128,12 +135,10 @@ void loop() {
       }
       break;
 
-    case S_PICK_OBJECT: {
-        boolean pickedUp = pickObject();
-        if (pickedUp) {
-          objectSorter(objectType);
-          changeStateTo(S_MOVE_TO_DROP);
-        }
+    case S_PICK_OBJECT:
+      if (pickObject()) {
+        objectSorter(objectType);
+        changeStateTo(S_MOVE_TO_DROP);
       }
       break;
 
@@ -152,11 +157,9 @@ void loop() {
       }
       break;
 
-    case S_DROP_OBJECT: {
-        boolean dropped = dropObject();
-        if (dropped) {
-          changeStateTo(S_COMPLETED);
-        }
+    case S_DROP_OBJECT:
+      if (dropObject()) {
+        changeStateTo(S_COMPLETED);
       }
       break;
 
@@ -167,6 +170,8 @@ void loop() {
         changeStateTo(S_RESET);
       } else {
         objectSorter(objectType);
+        targetX = convertFromPixelsToCountsX(targetXPixels);
+        targetY = convertFromPixelsToCountsY(targetYPixels);
         changeStateTo(S_MOVE_TO_OBJECT);
       }
       break;
@@ -198,13 +203,8 @@ void loop() {
         setMotorSpeedFromController();
       }
 
-      if (pick) {
-        pickObject();
-      }
-
-      if (drop) {
-        dropObject();
-      }
+      if (pick) pickObject();
+      if (drop) dropObject();
 
       if (isCommandValid(AUTOMATIC_CONTROL)) {
         changeStateTo(S_READY);
@@ -275,15 +275,14 @@ void readJSONDocuemntFromSerial() {
     objectType = obj["type"];
     objectsRemaining = obj["size"];
 
-    targetX = obj["x"];
-    targetY = obj["y"];
+    targetXPixels = obj["x"];
+    targetYPixels = obj["y"];
 
     inputX = obj["manX"];
     inputY = obj["manY"];
     motorSpeed = obj["speed"];
     pick = obj["pick"];
     drop = obj["drop"];
-
   }
 }
 
@@ -466,8 +465,8 @@ void edgeDetection() {
   @param y, new y position
 */
 void setPosition(float x, float y) {
-  targetX = convertTargetXToCounts(x);
-  targetY = convertTargetYToCounts(y);
+  targetX = x;
+  targetY = y;
 }
 
 
@@ -538,7 +537,7 @@ boolean dropObject() {
   Converts pixels to counts,
   mapped to X-Axis
 */
-int convertTargetXToCounts(int pixels) {
+int convertFromPixelsToCountsX(int pixels) {
   int inputX = constrain(pixels, 0, 480);
   int outputX = map(inputX, 0, 480, MOTOR_X_MIN_COUNTS, MOTOR_X_MAX_COUNTS);
   return outputX;
@@ -548,7 +547,7 @@ int convertTargetXToCounts(int pixels) {
   Converts pixels to counts,
   mapped to Y-Axis
 */
-int convertTargetYToCounts(int pixels) {
+int convertFromPixelsToCountsY(int pixels) {
   int inputY = constrain(pixels, 0, 464);
   int outputY = map(inputY, 0, 464, MOTOR_Y_MIN_COUNTS, MOTOR_Y_MAX_COUNTS);
   return outputY;

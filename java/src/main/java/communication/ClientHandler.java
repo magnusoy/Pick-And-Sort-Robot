@@ -50,6 +50,7 @@ public class ClientHandler extends Thread {
                 BufferedReader in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
 
                 received = in.readLine();
+
                 if (received.substring(2).startsWith("POST/Controller")) {
                     JSONObject controllerData = extractControllerInputs(received);
                     this.database.putXboxControllerData(controllerData);
