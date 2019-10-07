@@ -10,7 +10,6 @@ const int LIMIT_SWITCH_Y_TOP = 5;
 // Defining valve operations
 const int PISTON_DOWN = 6;
 const int PISTON_UP = 7;
-const int VACUUM_ON = 8;
-const int VACUUM_OFF = 9;
+const int VACUUM = 8;
 
 #endif // _IO_H 

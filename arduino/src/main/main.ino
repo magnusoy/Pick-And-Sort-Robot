@@ -437,8 +437,7 @@ void initializeSwitches() {
 void initializeValveOperations() {
   pinMode(PISTON_DOWN, OUTPUT);
   pinMode(PISTON_UP, OUTPUT);
-  pinMode(VACUUM_ON, OUTPUT);
-  pinMode(VACUUM_OFF, OUTPUT);
+  pinMode(VACUUM, OUTPUT);
 }
 
 /**
@@ -513,7 +512,7 @@ void objectSorter(int object) {
 boolean pickObject() {
   digitalWrite(PISTON_UP, LOW);
   digitalWrite(PISTON_DOWN, HIGH);
-  digitalWrite(VACUUM_ON, HIGH);
+  digitalWrite(VACUUM, HIGH);
   delay(20);
   digitalWrite(PISTON_DOWN, LOW);
   digitalWrite(PISTON_UP, HIGH);
@@ -526,7 +525,7 @@ boolean pickObject() {
 boolean dropObject() {
   digitalWrite(PISTON_UP, LOW);
   digitalWrite(PISTON_DOWN, HIGH);
-  digitalWrite(VACUUM_ON, LOW);
+  digitalWrite(VACUUM, LOW);
   delay(20);
   digitalWrite(PISTON_DOWN, LOW);
   digitalWrite(PISTON_UP, HIGH);
