@@ -19,18 +19,18 @@ import main.java.utility.Database;
  * the UART protocol.
  */
 public class SerialHandler extends Thread implements SerialPortEventListener  {
-    private SerialPort serialPort;
+
     /** The port we're normally going to use. */
     private static final String[] PORT_NAMES = {
             "COM8"// Windows
     };
-
+    private SerialPort serialPort;                  // Serial object
     private BufferedReader input;                   // Read in from Serial
     private OutputStream output;                    // Write out to Serial
     private static final int TIME_OUT = 2000;       // Milliseconds to block while waiting for port open
     private static final int DATA_RATE = 115200;    // Data boudrate
     private JSONObject jsonFromTeensy;              // Received JSON from teensy
-    private Database database;                      // Shared resource between classes
+    private final Database database;                // Shared resource between classes
 
 
     /**
@@ -112,7 +112,7 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
      * This should be called when you stop using the port.
      * This will prevent port locking on platforms like Linux.
      */
-    public synchronized void close() {
+    public void close() {
         if (serialPort != null) {
             serialPort.removeEventListener();
             serialPort.close();

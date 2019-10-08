@@ -3,10 +3,9 @@
 
 # Import packages
 import cv2
-import sys
 import os
 
-# Importing utility and model
+# Importing model and utility
 from object_detection.model import ObjectDetector
 from utils.server import RemoteShapeDetectorServer
 from utils.client import DetectionDataSender

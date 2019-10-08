@@ -5,7 +5,6 @@
 import cv2
 import numpy as np
 import socket
-import sys
 import pickle
 import struct
 from threading import Thread

@@ -16,8 +16,7 @@ import java.net.Socket;
 public class Server {
 
     private ServerSocket serverSocket;    // Initialize socket
-    private int port;                     // Socket port
-    private Database database;            // Shared resource
+    private final Database database;      // Shared resource
 
     /**
      * Server constructor. Initialize socket and
@@ -28,9 +27,9 @@ public class Server {
      */
     public Server(int port, Database database) {
         this.database = database;
-        this.port = port;
+        // Socket port
         try {
-            this.serverSocket = new ServerSocket(this.port);
+            this.serverSocket = new ServerSocket(port);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -61,6 +60,7 @@ public class Server {
 
                 clientThread.start();
             } catch (Exception e) {
+                assert socket != null;
                 socket.close();
                 e.printStackTrace();
             }

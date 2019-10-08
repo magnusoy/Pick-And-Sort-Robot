@@ -9,8 +9,8 @@
   ArduinoJSON - https://github.com/bblanchon/ArduinoJson
   -----------------------------------------------------------
   Code by: Magnus Kvendseth Øye, Vegard Solheim, Petter Drønnen
-  Date: 22.09-2019
-  Version: 1.6
+  Date: 06.10-2019
+  Version: 1.8
   Website: https://github.com/magnusoy/Pick-And-Sort-Robot
 */
 
@@ -38,26 +38,37 @@ int motorPosition[] = {0, 0};
 // Time for next timeout, in milliseconds
 unsigned long nextTimeout = 0;
 
+// A variable holding the current state
+int currentState = S_IDLE; // S_IDLE
+
 // Errorcode
 int errCode = 0;
 
 // Position control
-float actualX = 0;
-float actualY = 0;
-float targetX = 0;
-float targetY = 0;
-float manualX = 0;
-float manualY = 0;
-
-// A variable holding the current state
-int currentState = S_IDLE;
+float actualX = 0.0f;
+float actualY = 0.0f;
+float targetX = 0.0f;
+float targetY = 0.0f;
+float manualX = 0.0f;
+float manualY = 0.0f;
 
 // Variables storing object data
 int objectType = 0;
 int objectsRemaining = 0;
-int inputX;
-int inputY;
-int recCommand;
+int oldCommand = 0;
+int recCommand = 0;
+float targetXPixels = 0.0f;
+float targetYPixels = 0.0f;
+
+// Manual control variables
+float inputX = 0.0f;
+float inputY = 0.0f;
+float motorSpeed = 0.0f;
+boolean pick = false;
+boolean drop = false;
+
+// Speed variables
+int currentSpeed = MOTOR_SPEED_LIMIT;
 
 void setup() {
   // Initialize Serial ports
@@ -71,8 +82,14 @@ void setup() {
 }
 
 void loop() {
+  // Safety procedure
+  if (isCommandValid(STOP)) {
+    changeStateTo(S_IDLE);
+  }
+
   // Read motor position at any given state
   readMotorPositions();
+
   // State machine
   switch (currentState) {
     case S_IDLE:
@@ -91,11 +108,15 @@ void loop() {
       readJSONDocuemntFromSerial();
       if (isCommandValid(START) ||
           isCommandValid(AUTOMATIC_CONTROL)) {
+        targetX = convertFromPixelsToCountsX(targetXPixels);
+        targetY = convertFromPixelsToCountsY(targetYPixels);
         changeStateTo(S_MOVE_TO_OBJECT);
       } else if (isCommandValid(MANUAL_CONTROL)) {
         changeStateTo(S_MANUAL);
       } else if (isCommandValid(CONFIGURE)) {
         changeStateTo(S_CONFIGURE);
+      } else if (isCommandValid(RESET)) {
+        changeStateTo(S_IDLE);
       }
       break;
 
@@ -114,12 +135,10 @@ void loop() {
       }
       break;
 
-    case S_PICK_OBJECT: {
-        boolean pickedUp = pickObject();
-        if (pickedUp) {
-          objectSorter(objectType);
-          changeStateTo(S_MOVE_TO_DROP);
-        }
+    case S_PICK_OBJECT:
+      if (pickObject()) {
+        objectSorter(objectType);
+        changeStateTo(S_MOVE_TO_DROP);
       }
       break;
 
@@ -138,11 +157,9 @@ void loop() {
       }
       break;
 
-    case S_DROP_OBJECT: {
-        boolean dropped = dropObject();
-        if (dropped) {
-          changeStateTo(S_COMPLETED);
-        }
+    case S_DROP_OBJECT:
+      if (dropObject()) {
+        changeStateTo(S_COMPLETED);
       }
       break;
 
@@ -153,6 +170,8 @@ void loop() {
         changeStateTo(S_RESET);
       } else {
         objectSorter(objectType);
+        targetX = convertFromPixelsToCountsX(targetXPixels);
+        targetY = convertFromPixelsToCountsY(targetYPixels);
         changeStateTo(S_MOVE_TO_OBJECT);
       }
       break;
@@ -174,19 +193,32 @@ void loop() {
 
     case S_MANUAL:
       readJSONDocuemntFromSerial();
-      manualX += (10 * inputX);
-      manualY += (10 * inputY);
+
+      manualX += (100 * inputX);
+      manualY += (100 * inputY);
       setMotorPosition(MOTOR_X, manualX);
-      setMotorPosition(MOTOR_X, manualY);
+      setMotorPosition(MOTOR_Y, manualY);
+
+      if (motorSpeed != 0) {
+        setMotorSpeedFromController();
+      }
+
+      if (pick) pickObject();
+      if (drop) dropObject();
+
       if (isCommandValid(AUTOMATIC_CONTROL)) {
         changeStateTo(S_READY);
       } else if (isCommandValid(CONFIGURE)) {
         changeStateTo(S_CONFIGURE);
       }
+
       break;
 
     case S_CONFIGURE:
-
+      // TODO: Add ODrive configurations
+      if (isCommandValid(RESET)) {
+        changeStateTo(S_IDLE);
+      }
       break;
 
     default:
@@ -195,10 +227,9 @@ void loop() {
       changeStateTo(S_IDLE);
       break;
   }
-  //edgeDetection();
+  edgeDetection();
   writeToSerial(UPDATE_SERIAL_TIME);
 }
-
 
 /**
   Writes periodically to the Serial.
@@ -232,7 +263,7 @@ void sendJSONDocumentToSerial() {
 */
 void readJSONDocuemntFromSerial() {
   if (Serial.available() > 0) {
-    const size_t capacity = 10 * JSON_ARRAY_SIZE(2) + JSON_ARRAY_SIZE(10) + 11 * JSON_OBJECT_SIZE(3) + 420;
+    const size_t capacity = 15 * JSON_ARRAY_SIZE(2) + JSON_ARRAY_SIZE(10) + 11 * JSON_OBJECT_SIZE(3) + 520;
     DynamicJsonDocument doc(capacity);
     DeserializationError error = deserializeJson(doc, Serial);
     if (error) {
@@ -240,14 +271,18 @@ void readJSONDocuemntFromSerial() {
     }
     JsonObject obj = doc.as<JsonObject>();
 
+    recCommand = obj["command"];
     objectType = obj["type"];
-    objectsRemaining = obj["num"];
-    targetX = obj["x"];
-    targetY = obj["y"];
+    objectsRemaining = obj["size"];
+
+    targetXPixels = obj["x"];
+    targetYPixels = obj["y"];
+
     inputX = obj["manX"];
     inputY = obj["manY"];
-    objectsRemaining = obj["size"];
-    recCommand = obj["command"];
+    motorSpeed = obj["speed"];
+    pick = obj["pick"];
+    drop = obj["drop"];
   }
 }
 
@@ -270,12 +305,15 @@ boolean isCommandValid(int inputCommand) {
 
 /**
    Change the state of the statemachine to the new state
-   given by the parameter newState
+   given by the parameter newState only if the command
+   received is changed.
 
    @param newState The new state to set the statemachine to
 */
 void changeStateTo(int newState) {
-  currentState = newState;
+  if (isCommandChanged()) {
+    currentState = newState;
+  }
 }
 
 /**
@@ -318,7 +356,7 @@ void startSerial() {
 
 /**
   Calibreates motors.
-  Be aware the motors will move during this process.
+  Be aware the motors will move during this process!
 */
 void calibreateMotors() {
   int requested_state;
@@ -373,6 +411,17 @@ void configureMotors() {
 }
 
 /**
+  Change the speed of the motor.
+
+  @param speedLimit, the new speed to be set
+*/
+void setMotorSpeedFromController() {
+  currentSpeed += (100 * motorSpeed);
+  ODRIVE_SERIAL << "w axis" << MOTOR_X << ".controller.config.vel_limit " << currentSpeed << '\n';
+  ODRIVE_SERIAL << "w axis" << MOTOR_Y << ".controller.config.vel_limit " << currentSpeed << '\n';
+}
+
+/**
   Initialize limit switches to inputs.
 */
 void initializeSwitches() {
@@ -388,8 +437,7 @@ void initializeSwitches() {
 void initializeValveOperations() {
   pinMode(PISTON_DOWN, OUTPUT);
   pinMode(PISTON_UP, OUTPUT);
-  pinMode(VACUUM_ON, OUTPUT);
-  pinMode(VACUUM_OFF, OUTPUT);
+  pinMode(VACUUM, OUTPUT);
 }
 
 /**
@@ -401,7 +449,6 @@ void edgeDetection() {
   int buttonState2 = digitalRead(LIMIT_SWITCH_X_RIGHT);
   int buttonState3 = digitalRead(LIMIT_SWITCH_Y_BOTTOM);
   int buttonState4 = digitalRead(LIMIT_SWITCH_Y_TOP);
-
   if (buttonState1 || buttonState2
       || buttonState3 || buttonState4) {
     terminateMotors();
@@ -417,8 +464,8 @@ void edgeDetection() {
   @param y, new y position
 */
 void setPosition(float x, float y) {
-  targetX = convertTargetXToCounts(x);
-  targetY = convertTargetYToCounts(y);
+  targetX = x;
+  targetY = y;
 }
 
 
@@ -465,7 +512,7 @@ void objectSorter(int object) {
 boolean pickObject() {
   digitalWrite(PISTON_UP, LOW);
   digitalWrite(PISTON_DOWN, HIGH);
-  digitalWrite(VACUUM_ON, HIGH);
+  digitalWrite(VACUUM, HIGH);
   delay(20);
   digitalWrite(PISTON_DOWN, LOW);
   digitalWrite(PISTON_UP, HIGH);
@@ -478,7 +525,7 @@ boolean pickObject() {
 boolean dropObject() {
   digitalWrite(PISTON_UP, LOW);
   digitalWrite(PISTON_DOWN, HIGH);
-  digitalWrite(VACUUM_ON, LOW);
+  digitalWrite(VACUUM, LOW);
   delay(20);
   digitalWrite(PISTON_DOWN, LOW);
   digitalWrite(PISTON_UP, HIGH);
@@ -489,7 +536,7 @@ boolean dropObject() {
   Converts pixels to counts,
   mapped to X-Axis
 */
-int convertTargetXToCounts(int pixels) {
+int convertFromPixelsToCountsX(int pixels) {
   int inputX = constrain(pixels, 0, 480);
   int outputX = map(inputX, 0, 480, MOTOR_X_MIN_COUNTS, MOTOR_X_MAX_COUNTS);
   return outputX;
@@ -499,10 +546,25 @@ int convertTargetXToCounts(int pixels) {
   Converts pixels to counts,
   mapped to Y-Axis
 */
-int convertTargetYToCounts(int pixels) {
+int convertFromPixelsToCountsY(int pixels) {
   int inputY = constrain(pixels, 0, 464);
   int outputY = map(inputY, 0, 464, MOTOR_Y_MIN_COUNTS, MOTOR_Y_MAX_COUNTS);
   return outputY;
+}
+
+/**
+  Change only command on new change.
+
+  @return true if changed,
+          else false
+*/
+boolean isCommandChanged() {
+  boolean result = false;
+  if (recCommand != oldCommand) {
+    oldCommand = recCommand;
+    result = true;
+  }
+  return result;
 }
 
 
@@ -517,7 +579,7 @@ void terminateMotors() {
 }
 
 /**
-  Templates for printing
+  Template for printing
   to ODrive v3.6
 */
 template<class T> inline Print& operator <<(Print &obj,     T arg) {
@@ -525,6 +587,10 @@ template<class T> inline Print& operator <<(Print &obj,     T arg) {
   return obj;
 }
 
+/**
+  Template for printing
+  to ODrive v3.6
+*/
 template<>        inline Print& operator <<(Print &obj, float arg) {
   obj.print(arg, 4);
   return obj;
