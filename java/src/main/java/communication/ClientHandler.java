@@ -51,9 +51,11 @@ public class ClientHandler extends Thread {
 
                 received = in.readLine();
 
+                // Handling Xbox controller inputs
                 if (received.substring(2).startsWith("POST/Controller")) {
                     JSONObject controllerData = extractControllerInputs(received);
                     this.database.putXboxControllerData(controllerData);
+                    //return;
                 }
 
                 switch (received) {

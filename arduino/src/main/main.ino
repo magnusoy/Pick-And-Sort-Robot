@@ -9,8 +9,8 @@
   ArduinoJSON - https://github.com/bblanchon/ArduinoJson
   -----------------------------------------------------------
   Code by: Magnus Kvendseth Øye, Vegard Solheim, Petter Drønnen
-  Date: 06.10-2019
-  Version: 1.8
+  Date: 08.10-2019
+  Version: 1.9
   Website: https://github.com/magnusoy/Pick-And-Sort-Robot
 */
 
@@ -39,7 +39,7 @@ int motorPosition[] = {0, 0};
 unsigned long nextTimeout = 0;
 
 // A variable holding the current state
-int currentState = S_IDLE; // S_IDLE
+int currentState = S_READY; // S_IDLE
 
 // Errorcode
 int errCode = 0;
@@ -81,12 +81,15 @@ void setup() {
   configureMotors();
   resetValves();
   calibreateMotors();
+
+  // Wait to proceed until Server connects
+  while (!Serial);
 }
 
 void loop() {
   // Safety procedure
   if (isCommandValid(STOP)) {
-    changeStateTo(S_IDLE);
+    changeStateTo(S_READY);
   }
 
   // Read motor position at any given state
@@ -95,10 +98,10 @@ void loop() {
   // State machine
   switch (currentState) {
     case S_IDLE:
-      //readJSONDocuemntFromSerial();
-      //if (isCommandValid(CALIBRATE)) {
-      //  changeStateTo(S_CALIBRATION);
-      //}
+      readJSONDocumentFromSerial();
+      if (isCommandValid(CALIBRATE)) {
+        changeStateTo(S_READY);
+      }
       break;
 
     case S_CALIBRATION:
@@ -107,7 +110,7 @@ void loop() {
       break;
 
     case S_READY:
-      readJSONDocuemntFromSerial();
+      readJSONDocumentFromSerial();
       if (isCommandValid(START) ||
           isCommandValid(AUTOMATIC_CONTROL)) {
         targetX = convertFromPixelsToCountsX(targetXPixels);
@@ -122,18 +125,13 @@ void loop() {
       }
       break;
 
-    case S_MOVE_TO_OBJECT: {
-        float errorX = abs(targetX - actualX);
-        float errorY = abs(targetY - actualY);
-        manualX = actualX;
-        manualY = actualY;
-        setMotorPosition(MOTOR_X, targetX);
-        setMotorPosition(MOTOR_Y, targetY);
+    case S_MOVE_TO_OBJECT:
+      updateManualPosition();
+      setMotorPosition(MOTOR_X, targetX);
+      setMotorPosition(MOTOR_Y, targetY);
 
-        if ((errorX == 0) &&
-            (errorY == 0)) {
-          changeStateTo(S_PICK_OBJECT);
-        }
+      if (onTarget()) {
+        changeStateTo(S_PICK_OBJECT);
       }
       break;
 
@@ -144,30 +142,24 @@ void loop() {
       }
       break;
 
-    case S_MOVE_TO_DROP: {
-        float errorX = abs(targetX - actualX);
-        float errorY = abs(targetY - actualY);
-        manualX = actualX;
-        manualY = actualY;
-        setMotorPosition(MOTOR_X, targetX);
-        setMotorPosition(MOTOR_Y, targetY);
+    case S_MOVE_TO_DROP:
+      updateManualPosition();
+      setMotorPosition(MOTOR_X, targetX);
+      setMotorPosition(MOTOR_Y, targetY);
 
-        if ((errorX == 0) &&
-            (errorY == 0)) {
-          changeStateTo(S_DROP_OBJECT);
-        }
+      if (onTarget()) {
+        changeStateTo(S_DROP_OBJECT);
       }
       break;
 
     case S_DROP_OBJECT:
-      if (dropObject()) {
-        changeStateTo(S_COMPLETED);
-      }
+      if (dropObject()) changeStateTo(S_COMPLETED);
       break;
 
     case S_COMPLETED:
-      readJSONDocuemntFromSerial();
-      if (objectsRemaining == 0) {
+      readJSONDocumentFromSerial();
+
+      if (areThereMoreObjects()) {
         objectSorter(0);
         changeStateTo(S_RESET);
       } else {
@@ -178,32 +170,25 @@ void loop() {
       }
       break;
 
-    case S_RESET: {
-        float errorX = abs(targetX - actualX);
-        float errorY = abs(targetY - actualY);
-        manualX = actualX;
-        manualY = actualY;
-        setMotorPosition(MOTOR_X, targetX);
-        setMotorPosition(MOTOR_Y, targetY);
+    case S_RESET:
+      updateManualPosition();
+      setMotorPosition(MOTOR_X, targetX);
+      setMotorPosition(MOTOR_Y, targetY);
 
-        if ((errorX == 0) &&
-            (errorY == 0)) {
-          changeStateTo(S_READY);
-        }
+      if (onTarget()) {
+        changeStateTo(S_READY);
       }
       break;
 
     case S_MANUAL:
-      readJSONDocuemntFromSerial();
+      readJSONDocumentFromSerial();
 
       manualX += (100 * inputX);
       manualY += (100 * inputY);
       setMotorPosition(MOTOR_X, manualX);
       setMotorPosition(MOTOR_Y, manualY);
 
-      if (motorSpeed != 0) {
-        setMotorSpeedFromController();
-      }
+      setMotorSpeedFromController();
 
       if (pick) pickObject();
       if (drop) dropObject();
@@ -213,7 +198,6 @@ void loop() {
       } else if (isCommandValid(CONFIGURE)) {
         changeStateTo(S_CONFIGURE);
       }
-
       break;
 
     case S_CONFIGURE:
@@ -230,7 +214,7 @@ void loop() {
       break;
   }
   //edgeDetection();
-  //writeToSerial(UPDATE_SERIAL_TIME);
+  writeToSerial(UPDATE_SERIAL_TIME);
 }
 
 /**
@@ -264,7 +248,7 @@ void sendJSONDocumentToSerial() {
 /**
   Read JSON from Serial and parses it.
 */
-void readJSONDocuemntFromSerial() {
+void readJSONDocumentFromSerial() {
   if (Serial.available() > 0) {
     const size_t capacity = 15 * JSON_ARRAY_SIZE(2) + JSON_ARRAY_SIZE(10) + 11 * JSON_OBJECT_SIZE(3) + 520;
     DynamicJsonDocument doc(capacity);
@@ -299,11 +283,17 @@ void readJSONDocuemntFromSerial() {
           else false
 */
 boolean isCommandValid(int inputCommand) {
-  boolean valid = false;
-  if (recCommand == inputCommand) {
-    valid = true;
-  }
-  return valid;
+  return (recCommand == inputCommand) ? true : false;
+}
+
+/**
+  Change only command on new change.
+
+  @return true if changed,
+          else false
+*/
+boolean isCommandChanged() {
+  return (recCommand != oldCommand) ? true : false;
 }
 
 /**
@@ -327,11 +317,7 @@ void changeStateTo(int newState) {
    @return true if timer has expired, false if not
 */
 boolean timerHasExpired() {
-  boolean hasExpired = false;
-  if (millis() > nextTimeout) {
-    hasExpired = true;
-  }
-  return hasExpired;
+  return (millis() > nextTimeout) ? true : false;
 }
 
 /**
@@ -376,9 +362,9 @@ void calibreateMotors() {
   requested_state = ODriveArduino::AXIS_STATE_CLOSED_LOOP_CONTROL;
   odrive.run_state(MOTOR_Y, requested_state, false); // don't wait
   delay(1000);
+
   readMotorPositions();
-  manualX = actualX;
-  manualY = actualY;
+  updateManualPosition();
 }
 
 /**
@@ -425,9 +411,13 @@ void configureMotors() {
   @param speedLimit, the new speed to be set
 */
 void setMotorSpeedFromController() {
-  currentSpeed += (100 * motorSpeed);
-  ODRIVE_SERIAL << "w axis" << MOTOR_X << ".controller.config.vel_limit " << currentSpeed << '\n';
-  ODRIVE_SERIAL << "w axis" << MOTOR_Y << ".controller.config.vel_limit " << currentSpeed << '\n';
+  if (motorSpeed != 0) {
+    currentSpeed += (100 * motorSpeed);
+    for (int axis = 0; axis < 2; ++axis) {
+      ODRIVE_SERIAL << "w axis" << axis << ".controller.config.vel_limit " << currentSpeed << '\n';
+    }
+  }
+
 }
 
 /**
@@ -572,22 +562,6 @@ int convertFromPixelsToCountsY(int pixels) {
 }
 
 /**
-  Change only command on new change.
-
-  @return true if changed,
-          else false
-*/
-boolean isCommandChanged() {
-  boolean result = false;
-  if (recCommand != oldCommand) {
-    oldCommand = recCommand;
-    result = true;
-  }
-  return result;
-}
-
-
-/**
   Stop motors immediately.
 */
 void terminateMotors() {
@@ -595,6 +569,40 @@ void terminateMotors() {
   requested_state = ODriveArduino::AXIS_STATE_IDLE;
   odrive.run_state(MOTOR_X, requested_state, true);
   odrive.run_state(MOTOR_Y, requested_state, true);
+}
+
+/**
+  Updates manual position to what
+  it currenty is. This to eliminate
+  any big leaps with change to
+  manual control.
+*/
+void updateManualPosition() {
+  manualX = actualX;
+  manualY = actualY;
+}
+
+/**
+  Checks if robot is on target.
+
+  @return true if error is 0
+         else false
+*/
+boolean onTarget() {
+  float errorX = abs(targetX - actualX);
+  float errorY = abs(targetY - actualY);
+  return ((errorX == 0) && (errorY == 0)) ? true : false;
+}
+
+/**
+  Checks if there are more objects
+  in the field.
+
+  @return true if found,
+          else false
+*/
+boolean areThereMoreObjects() {
+  return (objectsRemaining != 0) ? true : false;
 }
 
 /**

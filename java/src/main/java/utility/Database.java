@@ -80,7 +80,6 @@ public class Database {
         this.controllerHandler.setJsonObject(jsonObject);
     }
 
-
     /**
      * Returns received JSON from Teensy.
      *
