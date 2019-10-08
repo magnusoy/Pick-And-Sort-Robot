@@ -48,29 +48,34 @@ public class Client implements Runnable {
      * Establishing connection and
      * communication with the server is now possible.
      */
-    public void connect()  {
+    public void send(String data)  {
         try {
-            while (true) {
-                System.out.println(this.dataInputStream.readUTF());
-                String toSend = this.in.nextLine();
+            //System.out.println(this.dataInputStream.readUTF());
+            String header = "POST/Controller";
+            //this.dataOutputStream.writeUTF(header + data);
+            String dataToSend = header + data + "\n";
+            //System.out.println(dataToSend);
 
-                this.dataOutputStream.writeUTF(toSend);
-
-                if (toSend.equals("Exit")) {
-                    System.out.println("Closing this connection: " + this.socket);
-                    this.socket.close();
-                    System.out.println("Connection closed.");
-                    break;
-                }
-                String received = this.dataInputStream.readUTF();
-                System.out.println(received);
-            }
-            this.in.close();
-            this.dataInputStream.close();
-            this.dataOutputStream.close();
+            this.dataOutputStream.writeUTF(dataToSend);
+            //String received = this.dataInputStream.readUTF();
+            //System.out.println(received);
 
         } catch (IOException ioe) {
             ioe.printStackTrace();
+        }
+    }
+
+    /**
+     * Disconnects the client from the server
+     */
+    public void disconnect(){
+        this.in.close();
+
+        try {
+            this.dataInputStream.close();
+            this.dataOutputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

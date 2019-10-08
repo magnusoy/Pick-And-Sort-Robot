@@ -23,6 +23,7 @@ public class Controller {
     TextArea console;
     private PrintStream ps ;
     private Timer timer;
+    private Client client;
 
     private boolean connectedToController = false;
     private boolean ConnectedToServer = false;
@@ -43,6 +44,10 @@ public class Controller {
         public void gotData(JSONObject jsonObject) {
             System.out.println("Got data!");
             System.out.println(jsonObject.toString(2));
+
+            if (ConnectedToServer){
+                client.send(jsonObject.toString());
+            }
         }
 
         @Override
@@ -120,7 +125,7 @@ public class Controller {
 
             try{
                 //int deviceNumber = Integer.parseInt(controllerNumberTextField.getText());
-                xboxController = new XboxController(0, controllerListener, 1000);
+                xboxController = new XboxController(0, controllerListener, 100);
 
             }catch (Exception e){
                 System.out.println("No Controllers Available");
@@ -171,6 +176,16 @@ public class Controller {
 
             serverConnectButton.setText("Disconnect");
             ConnectedToServer = !ConnectedToServer;
+            String ip = serverIPTextField.getText();
+            int port = Integer.parseInt(serverPortTextField.getText());
+
+            try {
+                client = new Client(ip, port);
+            } catch (IOException e) {
+                System.out.println("Could not connect to server");
+                e.printStackTrace();
+            }
+            System.out.println("Connected to server");
 
         }else{
 

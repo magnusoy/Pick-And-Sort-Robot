@@ -61,14 +61,15 @@ public class XboxController extends TimerTask {
                 public void run() {
                     if(!stop){
 
-                        jsonObject.append("Left X", roundTo3Decimal(axes.lx));
-                        jsonObject.append("Left Y", roundTo3Decimal(axes.ly));
+                        jsonObject.put("Left X", roundTo3Decimal(axes.lx));
 
-                        jsonObject.append("Right X", roundTo3Decimal(axes.rx));
-                        jsonObject.append("Right Y", roundTo3Decimal(axes.ry));
+                        jsonObject.put("Left Y", roundTo3Decimal(axes.ly));
 
-                        jsonObject.append("Left T", roundTo3Decimal(axes.lt));
-                        jsonObject.append("Right T", roundTo3Decimal(axes.rt));
+                        jsonObject.put("Right X", roundTo3Decimal(axes.rx));
+                        jsonObject.put("Right Y", roundTo3Decimal(axes.ry));
+
+                        jsonObject.put("Left T", roundTo3Decimal(axes.lt));
+                        jsonObject.put("Right T", roundTo3Decimal(axes.rt));
 
                         controllerListener.gotData(jsonObject);
                     }
@@ -115,7 +116,7 @@ public class XboxController extends TimerTask {
             System.out.print("Button " + button.name());
             System.out.println(" "+ (pressed ? "Pressed" : "Released"));
 
-            jsonObject.append(button.name(), pressed);
+            jsonObject.put(button.name(), pressed);
         }
     };
 
