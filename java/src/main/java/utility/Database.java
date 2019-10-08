@@ -106,13 +106,16 @@ public class Database {
         this.movementPlanner.setShapeType(this.shapeType);
         this.jsonToTeensy = this.movementPlanner.getShape();
         this.jsonToTeensy.put("command", this.userCommand);
-        this.jsonToTeensy.put("manX", this.controllerHandler.getRightX());
-        this.jsonToTeensy.put("manY", this.controllerHandler.getRightY());
-        this.jsonToTeensy.put("speed", this.controllerHandler.getLeftY());
-        this.jsonToTeensy.put("pick", this.controllerHandler.getButtonA());
-        this.jsonToTeensy.put("drop", this.controllerHandler.getButtonB());
-        this.jsonToTeensy.put("size", this.movementPlanner.getSize());
 
+        if (this.controllerHandler.getLength() > 0) {
+            this.jsonToTeensy.put("manX", this.controllerHandler.getRightX());
+            this.jsonToTeensy.put("manY", this.controllerHandler.getRightY());
+            this.jsonToTeensy.put("speed", this.controllerHandler.getLeftY());
+            this.jsonToTeensy.put("pick", this.controllerHandler.getButtonA());
+            this.jsonToTeensy.put("drop", this.controllerHandler.getButtonX());
+        }
+        this.jsonToTeensy.put("size", this.movementPlanner.getSize());
+        System.out.println(this.jsonFromTeensy.toString());
         //System.out.println(this.jsonToTeensy.toString());
         return this.jsonToTeensy;
     }

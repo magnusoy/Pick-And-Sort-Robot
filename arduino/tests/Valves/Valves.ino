@@ -1,5 +1,5 @@
-const int PISTON_UP = 6;
-const int PISTON_DOWN = 7;
+const int PISTON_DOWN = 6;
+const int PISTON_UP = 7;
 const int VACUUM = 8;
 
 void setup() {
@@ -27,6 +27,11 @@ void loop() {
     if (c == 'b') {
       digitalWrite(VACUUM, LOW);
     }
+    if (c == 'r') {
+      digitalWrite(PISTON_UP, LOW);
+      digitalWrite(PISTON_DOWN, LOW);
+      digitalWrite(VACUUM, LOW);
+    }
   }
 }
 
@@ -46,6 +51,8 @@ void startSerial() {
   Serial.println("Send the character 'u' to go up");
   Serial.println("Send the character 'v' to vacuum on");
   Serial.println("Send the character 'b' to vacuum off");
+  Serial.println("Send the character 'r' to reset ");
+  
 }
 
 

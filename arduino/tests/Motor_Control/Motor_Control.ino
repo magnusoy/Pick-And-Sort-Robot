@@ -76,7 +76,7 @@ void loop() {
 
     // print motor positions in a 10s loop
     if (c == 'p') {
-      static const unsigned long duration = 10000;
+      static const unsigned long duration = 100;
       unsigned long start = millis();
       while (millis() - start < duration) {
         for (int motor = 0; motor < 2; ++motor) {

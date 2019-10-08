@@ -79,6 +79,8 @@ void setup() {
 
   // Initialize motor parameters
   configureMotors();
+  resetValves();
+  calibreateMotors();
 }
 
 void loop() {
@@ -93,15 +95,15 @@ void loop() {
   // State machine
   switch (currentState) {
     case S_IDLE:
-      readJSONDocuemntFromSerial();
-      if (isCommandValid(CALIBRATE)) {
-        changeStateTo(S_CALIBRATION);
-      }
+      //readJSONDocuemntFromSerial();
+      //if (isCommandValid(CALIBRATE)) {
+      //  changeStateTo(S_CALIBRATION);
+      //}
       break;
 
     case S_CALIBRATION:
       calibreateMotors();
-      changeStateTo(S_READY);
+      changeStateTo(S_READY); // S_READY
       break;
 
     case S_READY:
@@ -227,8 +229,8 @@ void loop() {
       changeStateTo(S_IDLE);
       break;
   }
-  edgeDetection();
-  writeToSerial(UPDATE_SERIAL_TIME);
+  //edgeDetection();
+  //writeToSerial(UPDATE_SERIAL_TIME);
 }
 
 /**
@@ -254,6 +256,7 @@ void sendJSONDocumentToSerial() {
   doc["y"] = actualY;
   doc["error"] = errCode;
   doc["command"] = recCommand;
+  doc["manX"] = manualX;
   serializeJson(doc, Serial);
   Serial.print("\n");
 }
@@ -311,7 +314,7 @@ boolean isCommandValid(int inputCommand) {
    @param newState The new state to set the statemachine to
 */
 void changeStateTo(int newState) {
-  if (isCommandChanged()) {
+  if (isCommandChanged() || (newState == S_MANUAL)) {
     currentState = newState;
   }
 }
@@ -350,7 +353,6 @@ void startSerial() {
   ODRIVE_SERIAL.begin(115200);
   // Start Serial Communication
   Serial.begin(115200);
-  while (!Serial);
 }
 
 
@@ -360,16 +362,23 @@ void startSerial() {
 */
 void calibreateMotors() {
   int requested_state;
-  for (int motorNumber = 0; motorNumber < 2; ++motorNumber) {
-    requested_state = ODriveArduino::AXIS_STATE_MOTOR_CALIBRATION;
-    odrive.run_state(motorNumber, requested_state, true);
-
-    requested_state = ODriveArduino::AXIS_STATE_ENCODER_OFFSET_CALIBRATION;
-    odrive.run_state(motorNumber, requested_state, true);
-
-    requested_state = ODriveArduino::AXIS_STATE_CLOSED_LOOP_CONTROL;
-    odrive.run_state(motorNumber, requested_state, false); // don't wait
-  }
+  requested_state = ODriveArduino::AXIS_STATE_MOTOR_CALIBRATION;
+  odrive.run_state(MOTOR_X, requested_state, true);
+  requested_state = ODriveArduino::AXIS_STATE_ENCODER_OFFSET_CALIBRATION;
+  odrive.run_state(MOTOR_X, requested_state, true);
+  requested_state = ODriveArduino::AXIS_STATE_CLOSED_LOOP_CONTROL;
+  odrive.run_state(MOTOR_X, requested_state, false); // don't wait
+  delay(1000);
+  requested_state = ODriveArduino::AXIS_STATE_MOTOR_CALIBRATION;
+  odrive.run_state(MOTOR_Y, requested_state, true);
+  requested_state = ODriveArduino::AXIS_STATE_ENCODER_OFFSET_CALIBRATION;
+  odrive.run_state(MOTOR_Y, requested_state, true);
+  requested_state = ODriveArduino::AXIS_STATE_CLOSED_LOOP_CONTROL;
+  odrive.run_state(MOTOR_Y, requested_state, false); // don't wait
+  delay(1000);
+  readMotorPositions();
+  manualX = actualX;
+  manualY = actualY;
 }
 
 /**
@@ -452,7 +461,7 @@ void edgeDetection() {
   if (buttonState1 || buttonState2
       || buttonState3 || buttonState4) {
     terminateMotors();
-    changeStateTo(S_IDLE);
+    currentState = S_READY;
   }
 }
 
@@ -530,6 +539,16 @@ boolean dropObject() {
   digitalWrite(PISTON_DOWN, LOW);
   digitalWrite(PISTON_UP, HIGH);
   return true;
+}
+
+/**
+  Reset valves to init position.
+*/
+void resetValves() {
+  digitalWrite(PISTON_DOWN, LOW);
+  digitalWrite(PISTON_UP, HIGH);
+  digitalWrite(VACUUM, LOW);
+  digitalWrite(PISTON_UP, LOW);
 }
 
 /**

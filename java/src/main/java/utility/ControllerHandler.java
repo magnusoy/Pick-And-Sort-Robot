@@ -26,12 +26,21 @@ public class ControllerHandler {
     }
 
     /**
+     * Returns the length of the json.
+     *
+     * @return length of the json
+     */
+    public int getLength() {
+        return this.jsonObject.length();
+    }
+
+    /**
      * Returns value in X direction.
      *
      * @return Value in X direction
      */
     public double getRightX() {
-        return Double.parseDouble(this.jsonObject.getString("Right X"));
+        return Double.parseDouble(this.jsonObject.get("Right X").toString());
     }
 
     /**
@@ -40,7 +49,7 @@ public class ControllerHandler {
      * @return Value in Y direction
      */
     public double getRightY() {
-        return Double.parseDouble(this.jsonObject.getString("Right Y"));
+        return Double.parseDouble(this.jsonObject.get("Right Y").toString());
     }
 
     /**
@@ -49,7 +58,7 @@ public class ControllerHandler {
      * @return Value in X direction
      */
     public double getLeftX() {
-        return Double.parseDouble(this.jsonObject.getString("Left X"));
+        return Double.parseDouble(this.jsonObject.get("Left X").toString());
     }
 
     /**
@@ -58,7 +67,7 @@ public class ControllerHandler {
      * @return Value in Y direction
      */
     public double getLeftY() {
-        return Double.parseDouble(this.jsonObject.getString("Left Y"));
+        return Double.parseDouble(this.jsonObject.get("Left Y").toString());
     }
 
     /**
@@ -67,7 +76,7 @@ public class ControllerHandler {
      * @return button A pressed
      */
     public boolean getButtonA() {
-        return this.jsonObject.has("Button A");
+        return this.jsonObject.has("A");
     }
 
     /**
@@ -76,15 +85,24 @@ public class ControllerHandler {
      * @return button B pressed
      */
     public boolean getButtonB() {
-        return this.jsonObject.has("Button B");
+        return this.jsonObject.has("B");
     }
 
     /**
-     * Returns true if button C is pressed.
+     * Returns true if button X is pressed.
      *
-     * @return button C pressed
+     * @return button X pressed
      */
-    public boolean getButtonC() {
-        return this.jsonObject.has("Button C");
+    public boolean getButtonX() {
+        return this.jsonObject.has("X");
+    }
+
+    /**
+     * Returns true if button Y is pressed.
+     *
+     * @return button Y pressed
+     */
+    public boolean getButtonY() {
+        return this.jsonObject.has("Y");
     }
 }
