@@ -105,7 +105,6 @@ public class Database {
         this.movementPlanner.setShapeType(this.shapeType);
         this.jsonToTeensy = this.movementPlanner.getShape();
         this.jsonToTeensy.put("command", this.userCommand);
-
         if (this.controllerHandler.getLength() > 0) {
             this.jsonToTeensy.put("manX", this.controllerHandler.getRightX());
             this.jsonToTeensy.put("manY", this.controllerHandler.getRightY());

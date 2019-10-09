@@ -87,6 +87,8 @@ public class MovementPlanner {
                 JSONArray jsonArray = this.remoteData.getAll();
                 shape = this.getShapeByType(shapeType, jsonArray);
             }
+        } else {
+            shape = new JSONObject();
         }
         return shape;
     }

@@ -15,7 +15,7 @@ import java.net.*;
  */
 public class RequestRemoteData {
 
-    private static final String REMOTE_URL = "http://83.243.251.62:5000/";   // End point
+    private static final String REMOTE_URL = "http://83.243.253.223:5000/";  // End point
     private URL url;                                                         // URL object
     private JSONArray content;                                               // Stores fetched data
 
@@ -55,13 +55,14 @@ public class RequestRemoteData {
             bufferedReader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             String line;
             while ((line = bufferedReader.readLine()) != null) {
-                if (!line.isEmpty()) {
+                if (line.length() > 5) {
                     String[] lines = line.replace("\\", "").split("-");
                     for (String json : lines) {
                         result.put(json);
                     }
                 }
             }
+
             bufferedReader.close();
         } catch (IOException | StringIndexOutOfBoundsException e) {
             e.printStackTrace();
@@ -96,17 +97,15 @@ public class RequestRemoteData {
     public synchronized JSONObject get(int index) {
         String data;
         JSONObject jsonObject = null;
-        try {
-            if (this.content.length() >= index) {
-                String jsonAsString = this.content.get(index).toString();
-                data = jsonAsString.substring(jsonAsString.indexOf('{'));
-                jsonObject = new JSONObject(data);
-            } else {
-                jsonObject = new JSONObject();
-            }
-        } catch (StringIndexOutOfBoundsException e) {
-            e.printStackTrace();
+        System.out.println(this.content.length());
+        if (this.content.length() > index) {
+            String jsonAsString = this.content.get(index).toString();
+            data = jsonAsString.substring(jsonAsString.indexOf('{'));
+            jsonObject = new JSONObject(data);
+        } else {
+            jsonObject = new JSONObject();
         }
+
         return jsonObject;
     }
 }

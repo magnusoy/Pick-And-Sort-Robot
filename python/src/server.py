@@ -48,7 +48,7 @@ def video_stream():
     if video_camera == None:
         drawer = FrameDrawer()
         video_camera = RemoteShapeDetector(
-            '83.243.251.62', 8089)  # '83.243.251.62'
+            '83.243.253.223', 8089)  #
         video_camera.connect()
 
     while True:
