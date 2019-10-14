@@ -9,8 +9,8 @@
   ArduinoJSON - https://github.com/bblanchon/ArduinoJson
   -----------------------------------------------------------
   Code by: Magnus Kvendseth Øye, Vegard Solheim, Petter Drønnen
-  Date: 08.10-2019
-  Version: 1.9
+  Date: 14.10-2019
+  Version: 2.0
   Website: https://github.com/magnusoy/Pick-And-Sort-Robot
 */
 
@@ -27,6 +27,12 @@
 
 #define UPDATE_SERIAL_TIME 100 // In millis
 #define ACTIVE_END_SWITCH_TIME 10  // In millis
+
+// For mapping pixels to counts
+#define AXIS_X_LOWER 40
+#define AXIS_X_HIGHER 26
+#define AXIS_Y_LOWER 480
+#define AXIS_Y_HIGHER 470
 
 
 #define ODRIVE_SERIAL Serial1 // RX, TX (0, 1)
@@ -46,6 +52,8 @@ int currentState = S_READY; // S_IDLE
 
 // Errorcode
 int errCode = 0;
+
+int oldBtnState;
 
 // Position control
 float actualX = 0.0f;
@@ -575,8 +583,8 @@ void resetValves() {
   mapped to X-Axis
 */
 int convertFromPixelsToCountsX(int pixels) {
-  int inputX = constrain(pixels, 50, 480);
-  int outputX = map(inputX, 50, 480, encoderXOffset, motorXEndCounts);
+  int inputX = constrain(pixels, AXIS_X_LOWER, AXIS_X_HIGHER);
+  int outputX = map(inputX, AXIS_X_LOWER, AXIS_X_HIGHER, encoderXOffset, motorXEndCounts);
   return outputX;
 }
 
@@ -585,8 +593,8 @@ int convertFromPixelsToCountsX(int pixels) {
   mapped to Y-Axis
 */
 int convertFromPixelsToCountsY(int pixels) {
-  int inputY = constrain(pixels, 26, 470);
-  int outputY = map(inputY, 0, 413, motorYEndCounts, encoderYOffset);
+  int inputY = constrain(pixels, AXIS_Y_LOWER, AXIS_Y_HIGHER);
+  int outputY = map(inputY, AXIS_Y_LOWER, AXIS_Y_HIGHER, motorYEndCounts, encoderYOffset);
   return outputY;
 }
 
@@ -647,7 +655,6 @@ void encoderCalibration() {
     }
     setMotorPosition(MOTOR_X, counts);
   }
-
   for (int counts = 0; counts < 80000; counts += 5) {
     if (digitalRead(LIMIT_SWITCH_Y_BOTTOM)) {
       encoderYOffset = counts;
@@ -655,7 +662,6 @@ void encoderCalibration() {
     }
     setMotorPosition(MOTOR_Y, counts);
   }
-
   for (int counts = 0; counts < 80000; counts += 5) {
     int positionX = encoderXOffset + counts;
 
@@ -665,11 +671,9 @@ void encoderCalibration() {
     }
     setMotorPosition(MOTOR_X, positionX);
   }
-
   for (int counts = 0; counts > -80000; counts -= 5) {
     int positionY = encoderYOffset + counts;
-
-    if (digitalRead(LIMIT_SWITCH_Y_TOP)) {
+    if (isSwitchOn(LIMIT_SWITCH_Y_TOP)) {
       motorYEndCounts = positionY;
       break;
     }
@@ -677,14 +681,25 @@ void encoderCalibration() {
   }
 }
 
-boolean isSwitchOn(int endSwitch) {
-  boolean result = false;
-  if (buttonTimerHasExpired() && digitalRead(endSwitch)) {
+/**
+  Check if a switch is HIGH for longer
+  than the given duration.
+
+  @param btn, end switch
+
+  @return true if its high over the
+          exceeded time limit,
+          else false
+*/
+boolean isSwitchOn(int btn) {
+  int btnState = digitalRead(btn);
+  if (btnState != oldBtnState) {
+    oldBtnState = btnState;
     startButtonTimer(ACTIVE_END_SWITCH_TIME);
-    result = true;
   }
-  return result;
+  return ((buttonTimerHasExpired()) && (btnState)) ? true : false;
 }
+
 
 /**
   Template for printing
