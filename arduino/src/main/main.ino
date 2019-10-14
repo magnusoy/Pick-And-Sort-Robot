@@ -26,6 +26,8 @@
 
 
 #define UPDATE_SERIAL_TIME 100 // In millis
+#define ACTIVE_END_SWITCH_TIME 10  // In millis
+
 
 #define ODRIVE_SERIAL Serial1 // RX, TX (0, 1)
 
@@ -37,6 +39,7 @@ int motorPosition[] = {0, 0};
 
 // Time for next timeout, in milliseconds
 unsigned long nextTimeout = 0;
+unsigned long nextButtonTimeout = 0;
 
 // A variable holding the current state
 int currentState = S_READY; // S_IDLE
@@ -69,6 +72,10 @@ boolean drop = false;
 
 // Speed variables
 int currentSpeed = MOTOR_SPEED_LIMIT;
+int encoderXOffset = 0;
+int encoderYOffset = 0;
+int motorXEndCounts = 0;
+int motorYEndCounts = 0;
 
 void setup() {
   // Initialize Serial ports
@@ -81,6 +88,7 @@ void setup() {
   configureMotors();
   resetValves();
   calibreateMotors();
+  encoderCalibration();
 
   // Wait to proceed until Server connects
   while (!Serial);
@@ -326,6 +334,27 @@ boolean timerHasExpired() {
 
    @param duration The number of milliseconds until the timer expires.
 */
+void startButtonTimer(unsigned long duration) {
+  nextButtonTimeout = millis() + duration;
+}
+
+/**
+   Checks if the timer has expired. If the timer has expired,
+   true is returned. If the timer has not yet expired,
+   false is returned.
+
+   @return true if timer has expired, false if not
+*/
+boolean buttonTimerHasExpired() {
+  return (millis() > nextButtonTimeout) ? true : false;
+}
+
+/**
+   Starts the timer and set the timer to expire after the
+   number of milliseconds given by the parameter duration.
+
+   @param duration The number of milliseconds until the timer expires.
+*/
 void startTimer(unsigned long duration) {
   nextTimeout = millis() + duration;
 }
@@ -348,6 +377,7 @@ void startSerial() {
 */
 void calibreateMotors() {
   int requested_state;
+  requested_state = ODriveArduino::AXIS_STATE_MOTOR_CALIBRATION;
   requested_state = ODriveArduino::AXIS_STATE_MOTOR_CALIBRATION;
   odrive.run_state(MOTOR_X, requested_state, true);
   requested_state = ODriveArduino::AXIS_STATE_ENCODER_OFFSET_CALIBRATION;
@@ -414,7 +444,7 @@ void setMotorSpeedFromController() {
   if (motorSpeed != 0) {
     currentSpeed += (100 * motorSpeed);
     for (int axis = 0; axis < 2; ++axis) {
-      ODRIVE_SERIAL << "w axis" << axis << ".controller.config.vel_limit " << currentSpeed << '\n';
+      odrive.SetVelocity(axis, currentSpeed);
     }
   }
 
@@ -466,7 +496,6 @@ void setPosition(float x, float y) {
   targetX = x;
   targetY = y;
 }
-
 
 /**
   Assigns the drop coordinates based
@@ -546,8 +575,8 @@ void resetValves() {
   mapped to X-Axis
 */
 int convertFromPixelsToCountsX(int pixels) {
-  int inputX = constrain(pixels, 0, 480);
-  int outputX = map(inputX, 0, 480, MOTOR_X_MIN_COUNTS, MOTOR_X_MAX_COUNTS);
+  int inputX = constrain(pixels, 50, 480);
+  int outputX = map(inputX, 50, 480, encoderXOffset, motorXEndCounts);
   return outputX;
 }
 
@@ -556,8 +585,8 @@ int convertFromPixelsToCountsX(int pixels) {
   mapped to Y-Axis
 */
 int convertFromPixelsToCountsY(int pixels) {
-  int inputY = constrain(pixels, 0, 464);
-  int outputY = map(inputY, 0, 464, MOTOR_Y_MIN_COUNTS, MOTOR_Y_MAX_COUNTS);
+  int inputY = constrain(pixels, 26, 470);
+  int outputY = map(inputY, 0, 413, motorYEndCounts, encoderYOffset);
   return outputY;
 }
 
@@ -603,6 +632,58 @@ boolean onTarget() {
 */
 boolean areThereMoreObjects() {
   return (objectsRemaining != 0) ? true : false;
+}
+
+/**
+  Calibrates the encoders. Driving
+  them to end switches and stores
+  the offset.
+*/
+void encoderCalibration() {
+  for (int counts = 0; counts > -80000; counts -= 5) {
+    if (digitalRead(LIMIT_SWITCH_X_LEFT)) {
+      encoderXOffset = counts;
+      break;
+    }
+    setMotorPosition(MOTOR_X, counts);
+  }
+
+  for (int counts = 0; counts < 80000; counts += 5) {
+    if (digitalRead(LIMIT_SWITCH_Y_BOTTOM)) {
+      encoderYOffset = counts;
+      break;
+    }
+    setMotorPosition(MOTOR_Y, counts);
+  }
+
+  for (int counts = 0; counts < 80000; counts += 5) {
+    int positionX = encoderXOffset + counts;
+
+    if (digitalRead(LIMIT_SWITCH_X_RIGHT)) {
+      motorXEndCounts = positionX;
+      break;
+    }
+    setMotorPosition(MOTOR_X, positionX);
+  }
+
+  for (int counts = 0; counts > -80000; counts -= 5) {
+    int positionY = encoderYOffset + counts;
+
+    if (digitalRead(LIMIT_SWITCH_Y_TOP)) {
+      motorYEndCounts = positionY;
+      break;
+    }
+    setMotorPosition(MOTOR_Y, positionY);
+  }
+}
+
+boolean isSwitchOn(int endSwitch) {
+  boolean result = false;
+  if (buttonTimerHasExpired() && digitalRead(endSwitch)) {
+    startButtonTimer(ACTIVE_END_SWITCH_TIME);
+    result = true;
+  }
+  return result;
 }
 
 /**
