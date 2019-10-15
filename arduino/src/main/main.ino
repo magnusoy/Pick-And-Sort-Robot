@@ -18,6 +18,7 @@
 // Including libraries
 #include <ODriveArduino.h>
 #include <ArduinoJson.h>
+#include <Timer.h>
 #include "IO.h"
 #include "OdriveParameters.h"
 #include "States.h"
@@ -26,13 +27,21 @@
 
 
 #define UPDATE_SERIAL_TIME 100 // In millis
-#define ACTIVE_END_SWITCH_TIME 10  // In millis
+#define ACTIVE_END_SWITCH_TIME 20  // In millis
+
+Timer SwitchFilter1(ACTIVE_END_SWITCH_TIME);
+Timer SwitchFilter2(ACTIVE_END_SWITCH_TIME);
+Timer SwitchFilter3(ACTIVE_END_SWITCH_TIME);
+Timer SwitchFilter4(ACTIVE_END_SWITCH_TIME * 2);
 
 // For mapping pixels to counts
 #define AXIS_X_LOWER 40
 #define AXIS_X_HIGHER 26
 #define AXIS_Y_LOWER 480
 #define AXIS_Y_HIGHER 470
+
+#define TOOL_OFFSET_X 1017.5
+#define TOOL_OFFSET_Y 11575.8
 
 
 #define ODRIVE_SERIAL Serial1 // RX, TX (0, 1)
@@ -45,7 +54,6 @@ int motorPosition[] = {0, 0};
 
 // Time for next timeout, in milliseconds
 unsigned long nextTimeout = 0;
-unsigned long nextButtonTimeout = 0;
 
 // A variable holding the current state
 int currentState = S_READY; // S_IDLE
@@ -143,8 +151,8 @@ void loop() {
 
     case S_MOVE_TO_OBJECT:
       updateManualPosition();
-      setMotorPosition(MOTOR_X, targetX);
-      setMotorPosition(MOTOR_Y, targetY);
+      setToolPosition(MOTOR_X, targetX);
+      setToolPosition(MOTOR_Y, targetY);
 
       if (onTarget()) {
         changeStateTo(S_PICK_OBJECT);
@@ -160,8 +168,8 @@ void loop() {
 
     case S_MOVE_TO_DROP:
       updateManualPosition();
-      setMotorPosition(MOTOR_X, targetX);
-      setMotorPosition(MOTOR_Y, targetY);
+      setToolPosition(MOTOR_X, targetX);
+      setToolPosition(MOTOR_Y, targetY);
 
       if (onTarget()) {
         changeStateTo(S_DROP_OBJECT);
@@ -188,8 +196,8 @@ void loop() {
 
     case S_RESET:
       updateManualPosition();
-      setMotorPosition(MOTOR_X, targetX);
-      setMotorPosition(MOTOR_Y, targetY);
+      setToolPosition(MOTOR_X, targetX);
+      setToolPosition(MOTOR_Y, targetY);
 
       if (onTarget()) {
         changeStateTo(S_READY);
@@ -201,8 +209,8 @@ void loop() {
 
       manualX += (100 * inputX);
       manualY += (100 * inputY);
-      setMotorPosition(MOTOR_X, manualX);
-      setMotorPosition(MOTOR_Y, manualY);
+      setToolPosition(MOTOR_X, manualX);
+      setToolPosition(MOTOR_Y, manualY);
 
       setMotorSpeedFromController();
 
@@ -334,27 +342,6 @@ void changeStateTo(int newState) {
 */
 boolean timerHasExpired() {
   return (millis() > nextTimeout) ? true : false;
-}
-
-/**
-   Starts the timer and set the timer to expire after the
-   number of milliseconds given by the parameter duration.
-
-   @param duration The number of milliseconds until the timer expires.
-*/
-void startButtonTimer(unsigned long duration) {
-  nextButtonTimeout = millis() + duration;
-}
-
-/**
-   Checks if the timer has expired. If the timer has expired,
-   true is returned. If the timer has not yet expired,
-   false is returned.
-
-   @return true if timer has expired, false if not
-*/
-boolean buttonTimerHasExpired() {
-  return (millis() > nextButtonTimeout) ? true : false;
 }
 
 /**
@@ -513,7 +500,7 @@ void objectSorter(int object) {
   switch (object) {
     case 0:
       // Home position
-      setPosition(10000, 10000);
+      setPosition(39100, 2300);
       break;
 
     case 1:
@@ -648,58 +635,51 @@ boolean areThereMoreObjects() {
   the offset.
 */
 void encoderCalibration() {
-  for (int counts = 0; counts > -80000; counts -= 5) {
-    if (digitalRead(LIMIT_SWITCH_X_LEFT)) {
+  for (int counts = 0; counts > -80000; counts -= 10) {
+    if (SwitchFilter1.isSwitchOn(LIMIT_SWITCH_X_LEFT)) {
       encoderXOffset = counts;
       break;
     }
     setMotorPosition(MOTOR_X, counts);
   }
-  for (int counts = 0; counts < 80000; counts += 5) {
-    if (digitalRead(LIMIT_SWITCH_Y_BOTTOM)) {
+  for (int counts = 0; counts < 80000; counts += 10) {
+    if (SwitchFilter2.isSwitchOn(LIMIT_SWITCH_Y_BOTTOM)) {
       encoderYOffset = counts;
       break;
     }
     setMotorPosition(MOTOR_Y, counts);
   }
-  for (int counts = 0; counts < 80000; counts += 5) {
+  for (int counts = 0; counts < 80000; counts += 10) {
     int positionX = encoderXOffset + counts;
 
-    if (digitalRead(LIMIT_SWITCH_X_RIGHT)) {
+    if (SwitchFilter3.isSwitchOn(LIMIT_SWITCH_X_RIGHT)) {
       motorXEndCounts = positionX;
       break;
     }
     setMotorPosition(MOTOR_X, positionX);
   }
-  for (int counts = 0; counts > -80000; counts -= 5) {
+  for (int counts = 0; counts > -120000; counts -= 10) {
     int positionY = encoderYOffset + counts;
-    if (isSwitchOn(LIMIT_SWITCH_Y_TOP)) {
+    if (SwitchFilter4.isSwitchOn(LIMIT_SWITCH_Y_TOP)) {
       motorYEndCounts = positionY;
       break;
     }
     setMotorPosition(MOTOR_Y, positionY);
   }
+  delay(500);
+  setMotorPosition(MOTOR_X, encoderXOffset + 39100);
+  setMotorPosition(MOTOR_Y, encoderYOffset - 4000);
 }
 
 /**
-  Check if a switch is HIGH for longer
-  than the given duration.
-
-  @param btn, end switch
-
-  @return true if its high over the
-          exceeded time limit,
-          else false
+  TODO: Add comment
 */
-boolean isSwitchOn(int btn) {
-  int btnState = digitalRead(btn);
-  if (btnState != oldBtnState) {
-    oldBtnState = btnState;
-    startButtonTimer(ACTIVE_END_SWITCH_TIME);
-  }
-  return ((buttonTimerHasExpired()) && (btnState)) ? true : false;
+void setToolPosition(double x, double y) {
+  double xnew = encoderXOffset + TOOL_OFFSET_X + x;
+  double ynew = encoderYOffset - TOOL_OFFSET_Y - y;
+  setMotorPosition(MOTOR_X, xnew);
+  setMotorPosition(MOTOR_X, ynew);
 }
-
 
 /**
   Template for printing
