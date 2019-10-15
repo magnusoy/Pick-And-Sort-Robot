@@ -7,10 +7,11 @@
   Libraries used:
   Odrive - https://github.com/madcowswe/ODrive/tree/master/Arduino/ODriveArduino
   ArduinoJSON - https://github.com/bblanchon/ArduinoJson
+  ButtonTimer - https://github.com/magnusoy/Arduino-ButtonTimer-Library
   -----------------------------------------------------------
   Code by: Magnus Kvendseth Øye, Vegard Solheim, Petter Drønnen
-  Date: 14.10-2019
-  Version: 2.0
+  Date: 15.10-2019
+  Version: 2.1
   Website: https://github.com/magnusoy/Pick-And-Sort-Robot
 */
 
@@ -23,7 +24,6 @@
 #include "OdriveParameters.h"
 #include "States.h"
 #include "Commands.h"
-#include "Errors.h"
 
 
 #define UPDATE_SERIAL_TIME 100 // In millis
@@ -32,7 +32,7 @@
 ButtonTimer SwitchFilter1(ACTIVE_END_SWITCH_TIME);
 ButtonTimer SwitchFilter2(ACTIVE_END_SWITCH_TIME);
 ButtonTimer SwitchFilter3(ACTIVE_END_SWITCH_TIME);
-ButtonTimer SwitchFilter4(ACTIVE_END_SWITCH_TIME * 2);
+ButtonTimer SwitchFilter4(ACTIVE_END_SWITCH_TIME);
 
 // For mapping pixels to counts
 #define AXIS_X_LOWER 40
@@ -57,11 +57,6 @@ unsigned long nextTimeout = 0;
 
 // A variable holding the current state
 int currentState = S_READY; // S_IDLE
-
-// Errorcode
-int errCode = 0;
-
-int oldBtnState;
 
 // Position control
 float actualX = 0.0f;
@@ -139,6 +134,7 @@ void loop() {
           isCommandValid(AUTOMATIC_CONTROL)) {
         targetX = convertFromPixelsToCountsX(targetXPixels);
         targetY = convertFromPixelsToCountsY(targetYPixels);
+        setToolPosition(targetX, targetY);
         changeStateTo(S_MOVE_TO_OBJECT);
       } else if (isCommandValid(MANUAL_CONTROL)) {
         changeStateTo(S_MANUAL);
@@ -151,9 +147,6 @@ void loop() {
 
     case S_MOVE_TO_OBJECT:
       updateManualPosition();
-      setToolPosition(MOTOR_X, targetX);
-      setToolPosition(MOTOR_Y, targetY);
-
       if (onTarget()) {
         changeStateTo(S_PICK_OBJECT);
       }
@@ -162,15 +155,13 @@ void loop() {
     case S_PICK_OBJECT:
       if (pickObject()) {
         objectSorter(objectType);
+        setToolPosition(targetX, targetY);
         changeStateTo(S_MOVE_TO_DROP);
       }
       break;
 
     case S_MOVE_TO_DROP:
       updateManualPosition();
-      setToolPosition(MOTOR_X, targetX);
-      setToolPosition(MOTOR_Y, targetY);
-
       if (onTarget()) {
         changeStateTo(S_DROP_OBJECT);
       }
@@ -185,20 +176,19 @@ void loop() {
 
       if (areThereMoreObjects()) {
         objectSorter(0);
+        setToolPosition(targetX, targetY);
         changeStateTo(S_RESET);
       } else {
         objectSorter(objectType);
         targetX = convertFromPixelsToCountsX(targetXPixels);
         targetY = convertFromPixelsToCountsY(targetYPixels);
+        setToolPosition(targetX, targetY);
         changeStateTo(S_MOVE_TO_OBJECT);
       }
       break;
 
     case S_RESET:
       updateManualPosition();
-      setToolPosition(MOTOR_X, targetX);
-      setToolPosition(MOTOR_Y, targetY);
-
       if (onTarget()) {
         changeStateTo(S_READY);
       }
@@ -209,8 +199,8 @@ void loop() {
 
       manualX += (100 * inputX);
       manualY += (100 * inputY);
-      setToolPosition(MOTOR_X, manualX);
-      setToolPosition(MOTOR_Y, manualY);
+      setMotorPosition(MOTOR_X, manualX);
+      setMotorPosition(MOTOR_Y, manualY);
 
       setMotorSpeedFromController();
 
@@ -237,6 +227,7 @@ void loop() {
       changeStateTo(S_IDLE);
       break;
   }
+  emergencyStop();
   //edgeDetection();
   writeToSerial(UPDATE_SERIAL_TIME);
 }
@@ -262,7 +253,6 @@ void sendJSONDocumentToSerial() {
   doc["state"] = currentState;
   doc["x"] = actualX;
   doc["y"] = actualY;
-  doc["error"] = errCode;
   doc["command"] = recCommand;
   doc["manX"] = manualX;
   serializeJson(doc, Serial);
@@ -449,6 +439,7 @@ void setMotorSpeedFromController() {
   Initialize limit switches to inputs.
 */
 void initializeSwitches() {
+  pinMode(EMERGENCY_STOP_BUTTON, INPUT);
   pinMode(LIMIT_SWITCH_X_LEFT, INPUT);
   pinMode(LIMIT_SWITCH_X_RIGHT, INPUT);
   pinMode(LIMIT_SWITCH_Y_BOTTOM, INPUT);
@@ -679,6 +670,20 @@ void setToolPosition(double x, double y) {
   double ynew = encoderYOffset - TOOL_OFFSET_Y - y;
   setMotorPosition(MOTOR_X, xnew);
   setMotorPosition(MOTOR_X, ynew);
+}
+
+/**
+  Checks if emergency stop is pressed.
+
+  @return true if pressed,
+         else false
+*/
+void emergencyStop() {
+  int buttonState = digitalRead(EMERGENCY_STOP_BUTTON);
+  if (buttonState) {
+    terminateMotors();
+    currentState = S_READY;
+  }
 }
 
 /**

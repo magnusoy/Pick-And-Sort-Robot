@@ -67,6 +67,9 @@ int motorYEndCounts = 0;
 #define OBEJCT_POSITION_X 25000
 #define OBJECT_POSITION_Y 50000
 
+#define OBJECT_CONTAINER_X 20000
+#define OBJECT_CONTAINER_Y 4000
+
 #define CENTER_FRAME_X 40000
 #define CENTER_FRAME_Y 55000
 
@@ -96,18 +99,16 @@ void loop() {
     char c = Serial.read();
     if (c == 'o') {
       setPosition(OBEJCT_POSITION_X, OBJECT_POSITION_Y);
-      setToolPosition(MOTOR_X, targetX);
-      setToolPosition(MOTOR_Y, targetY);
+      setToolPosition(targetX, targetY);
     }
     if (c == 'h') {
       setPosition(HOME_POSITION_X, HOME_POSITION_Y);
-      setToolPosition(MOTOR_X, targetX);
-      setToolPosition(MOTOR_Y, targetY);
+      setToolPosition(targetX, targetY);
     }
+
     if (c == 'c') {
       setPosition(CENTER_FRAME_X, CENTER_FRAME_Y);
-      setToolPosition(MOTOR_X, targetX);
-      setToolPosition(MOTOR_Y, targetY);
+      setToolPosition(targetX, targetY);
     }
   }
   readMotorPositions();
@@ -341,13 +342,10 @@ void encoderCalibration() {
   TODO: Add comment
 */
 void setToolPosition(double x, double y) {
-  double xnew = encoderXOffset + x;
-  double ynew = encoderYOffset - y;
+  double xnew = encoderXOffset + TOOL_OFFSET_X + x;
+  double ynew = encoderYOffset - TOOL_OFFSET_Y - y;
   setMotorPosition(MOTOR_X, xnew);
-  setMotorPosition(MOTOR_Y, ynew);
-  Serial.print(xnew);
-  Serial.print(" | ");
-  Serial.println(ynew);
+  setMotorPosition(MOTOR_X, ynew);
 }
 
 /**

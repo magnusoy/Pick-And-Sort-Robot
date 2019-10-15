@@ -1,6 +1,8 @@
 #ifndef _IO_H
 #define _IO_H
 
+const int EMERGENCY_STOP_BUTTON = 9;
+
 // Defining limit switches
 const int LIMIT_SWITCH_Y_BOTTOM = 2;
 const int LIMIT_SWITCH_Y_TOP = 3;
