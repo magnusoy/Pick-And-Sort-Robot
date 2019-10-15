@@ -1,4 +1,4 @@
-#include <Timer.h>
+#include <ButtonTimer.h>
 
 // Defining limit switches
 const int LIMIT_SWITCH_Y_BOTTOM = 2;
@@ -6,13 +6,10 @@ const int LIMIT_SWITCH_Y_TOP = 3;
 const int LIMIT_SWITCH_X_LEFT = 4;
 const int LIMIT_SWITCH_X_RIGHT = 5;
 
-
 const unsigned long TIME_DELAY = 1000;
 
-Timer TON1(TIME_DELAY);
-Timer TON2(TIME_DELAY);
-Timer TON3(TIME_DELAY);
-Timer TON4(TIME_DELAY);
+ButtonTimer TON1(TIME_DELAY);
+ButtonTimer TON2(TIME_DELAY);
 
 void setup() {
   // put your setup code here, to run once:
@@ -33,8 +30,6 @@ void loop() {
   Initialize limit switches to inputs.
 */
 void initializeSwitches() {
-  pinMode(LIMIT_SWITCH_X_LEFT, INPUT);
-  pinMode(LIMIT_SWITCH_X_RIGHT, INPUT);
   pinMode(LIMIT_SWITCH_Y_BOTTOM, INPUT);
   pinMode(LIMIT_SWITCH_Y_TOP, INPUT);
 }

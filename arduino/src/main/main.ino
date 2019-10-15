@@ -18,7 +18,7 @@
 // Including libraries
 #include <ODriveArduino.h>
 #include <ArduinoJson.h>
-#include <Timer.h>
+#include <ButtonTimer.h>
 #include "IO.h"
 #include "OdriveParameters.h"
 #include "States.h"
@@ -29,10 +29,10 @@
 #define UPDATE_SERIAL_TIME 100 // In millis
 #define ACTIVE_END_SWITCH_TIME 20  // In millis
 
-Timer SwitchFilter1(ACTIVE_END_SWITCH_TIME);
-Timer SwitchFilter2(ACTIVE_END_SWITCH_TIME);
-Timer SwitchFilter3(ACTIVE_END_SWITCH_TIME);
-Timer SwitchFilter4(ACTIVE_END_SWITCH_TIME * 2);
+ButtonTimer SwitchFilter1(ACTIVE_END_SWITCH_TIME);
+ButtonTimer SwitchFilter2(ACTIVE_END_SWITCH_TIME);
+ButtonTimer SwitchFilter3(ACTIVE_END_SWITCH_TIME);
+ButtonTimer SwitchFilter4(ACTIVE_END_SWITCH_TIME * 2);
 
 // For mapping pixels to counts
 #define AXIS_X_LOWER 40
