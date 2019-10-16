@@ -33,6 +33,7 @@ ButtonTimer SwitchFilter1(ACTIVE_END_SWITCH_TIME);
 ButtonTimer SwitchFilter2(ACTIVE_END_SWITCH_TIME);
 ButtonTimer SwitchFilter3(ACTIVE_END_SWITCH_TIME);
 ButtonTimer SwitchFilter4(ACTIVE_END_SWITCH_TIME);
+ButtonTimer EmergencySwitch(ACTIVE_END_SWITCH_TIME);
 
 // For mapping pixels to counts
 #define AXIS_X_LOWER 40
@@ -147,9 +148,9 @@ void loop() {
 
     case S_MOVE_TO_OBJECT:
       updateManualPosition();
-      if (onTarget()) {
-        changeStateTo(S_PICK_OBJECT);
-      }
+      //if (onTarget()) {
+      //  changeStateTo(S_PICK_OBJECT);
+      //}
       break;
 
     case S_PICK_OBJECT:
@@ -429,10 +430,9 @@ void setMotorSpeedFromController() {
   if (motorSpeed != 0) {
     currentSpeed += (100 * motorSpeed);
     for (int axis = 0; axis < 2; ++axis) {
-      odrive.SetVelocity(axis, currentSpeed);
+      ODRIVE_SERIAL << "w axis" << axis << ".controller.config.vel_limit " << MOTOR_SPEED_LIMIT << '\n';
     }
   }
-
 }
 
 /**
@@ -496,22 +496,22 @@ void objectSorter(int object) {
 
     case 1:
       // Square position
-      setPosition(10000, 10000);
+      setPosition(39100, 2300);
       break;
 
     case 2:
       // Circle position
-      setPosition(10000, 10000);
+      setPosition(39100, 2300);
       break;
 
     case 3:
       // Rectangle position
-      setPosition(10000, 10000);
+      setPosition(39100, 2300);
       break;
 
     case 4:
       // Triangle position
-      setPosition(10000, 10000);
+      setPosition(39100, 2300);
       break;
 
     default:
@@ -563,7 +563,7 @@ void resetValves() {
 int convertFromPixelsToCountsX(int pixels) {
   int inputX = constrain(pixels, AXIS_X_LOWER, AXIS_X_HIGHER);
   int outputX = map(inputX, AXIS_X_LOWER, AXIS_X_HIGHER, encoderXOffset, motorXEndCounts);
-  return outputX;
+  return outputX + TOOL_OFFSET_X;
 }
 
 /**
@@ -572,8 +572,9 @@ int convertFromPixelsToCountsX(int pixels) {
 */
 int convertFromPixelsToCountsY(int pixels) {
   int inputY = constrain(pixels, AXIS_Y_LOWER, AXIS_Y_HIGHER);
-  int outputY = map(inputY, AXIS_Y_LOWER, AXIS_Y_HIGHER, motorYEndCounts, encoderYOffset);
-  return outputY;
+  //int outputY = map(inputY, AXIS_Y_LOWER, AXIS_Y_HIGHER, motorYEndCounts, encoderYOffset);
+  int outputY = map(inputY, AXIS_Y_LOWER, AXIS_Y_HIGHER, encoderYOffset, motorYEndCounts);
+  return outputY + TOOL_OFFSET_Y;
 }
 
 /**
@@ -669,7 +670,7 @@ void setToolPosition(double x, double y) {
   double xnew = encoderXOffset + TOOL_OFFSET_X + x;
   double ynew = encoderYOffset - TOOL_OFFSET_Y - y;
   setMotorPosition(MOTOR_X, xnew);
-  setMotorPosition(MOTOR_X, ynew);
+  setMotorPosition(MOTOR_Y, ynew);
 }
 
 /**
@@ -679,8 +680,7 @@ void setToolPosition(double x, double y) {
          else false
 */
 void emergencyStop() {
-  int buttonState = digitalRead(EMERGENCY_STOP_BUTTON);
-  if (buttonState) {
+  if (EmergencySwitch.isSwitchOn(EMERGENCY_STOP_BUTTON)) {
     terminateMotors();
     currentState = S_READY;
   }
