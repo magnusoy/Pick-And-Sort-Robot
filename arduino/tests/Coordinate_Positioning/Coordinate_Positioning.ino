@@ -9,8 +9,8 @@
 #define AXIS_Y_LOWER 26
 #define AXIS_Y_HIGHER 470
 
-#define TOOL_OFFSET_X 10017.5
-#define TOOL_OFFSET_Y 11575.8
+#define TOOL_OFFSET_X 10018
+#define TOOL_OFFSET_Y 11577
 
 #define MOTOR_SPEED_LIMIT 22000.0f
 #define MOTOR_CURRENT_LIMIT 40.0f
@@ -55,8 +55,8 @@ float targetX = 0.0f;
 float targetY = 0.0f;
 
 // Variables storing object data
-int targetXPixels = 158;
-int targetYPixels = 255;
+int targetXPixels = 204;
+int targetYPixels = 289;
 
 // Speed variables
 int currentSpeed = MOTOR_SPEED_LIMIT;
@@ -85,10 +85,10 @@ void setup() {
   initializeValveOperations();
 
   // Initialize motor parameters
-  //configureMotors();
+  configureMotors();
   resetValves();
-  //calibreateMotors();
-  //encoderCalibration();
+  calibreateMotors();
+  encoderCalibration();
 
   // Wait to proceed until Server connects
   while (!Serial);
@@ -118,6 +118,7 @@ void loop() {
     }
   }
   readMotorPositions();
+  emergencyStop();
 }
 
 /**
@@ -349,8 +350,8 @@ void encoderCalibration() {
   TODO: Add comment
 */
 void setToolPosition(double x, double y) {
-  double xnew = encoderXOffset + TOOL_OFFSET_X + x; // 
-  double ynew = encoderYOffset - TOOL_OFFSET_Y - y; // 
+  double xnew = encoderXOffset + TOOL_OFFSET_X + x + 7000; // 
+  double ynew = encoderYOffset + y - 27000 - TOOL_OFFSET_Y; //+ TOOL_OFFSET_Y 
   setMotorPosition(MOTOR_X, xnew);
   setMotorPosition(MOTOR_Y, ynew);
 }
