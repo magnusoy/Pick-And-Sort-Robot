@@ -37,11 +37,11 @@ ButtonTimer EmergencySwitch(ACTIVE_END_SWITCH_TIME);
 
 // For mapping pixels to counts
 #define AXIS_X_LOWER 40
-#define AXIS_X_HIGHER 26
-#define AXIS_Y_LOWER 480
+#define AXIS_X_HIGHER 480
+#define AXIS_Y_LOWER 26
 #define AXIS_Y_HIGHER 470
 
-#define TOOL_OFFSET_X 1017.5
+#define TOOL_OFFSET_X 10017.5
 #define TOOL_OFFSET_Y 11575.8
 
 
@@ -563,7 +563,8 @@ void resetValves() {
 int convertFromPixelsToCountsX(int pixels) {
   int inputX = constrain(pixels, AXIS_X_LOWER, AXIS_X_HIGHER);
   int outputX = map(inputX, AXIS_X_LOWER, AXIS_X_HIGHER, encoderXOffset, motorXEndCounts);
-  return outputX + TOOL_OFFSET_X;
+  outputX += TOOL_OFFSET_X;
+  return outputX;
 }
 
 /**
@@ -572,9 +573,10 @@ int convertFromPixelsToCountsX(int pixels) {
 */
 int convertFromPixelsToCountsY(int pixels) {
   int inputY = constrain(pixels, AXIS_Y_LOWER, AXIS_Y_HIGHER);
-  //int outputY = map(inputY, AXIS_Y_LOWER, AXIS_Y_HIGHER, motorYEndCounts, encoderYOffset);
-  int outputY = map(inputY, AXIS_Y_LOWER, AXIS_Y_HIGHER, encoderYOffset, motorYEndCounts);
-  return outputY + TOOL_OFFSET_Y;
+  int outputY = map(inputY, AXIS_Y_LOWER, AXIS_Y_HIGHER, motorYEndCounts, encoderYOffset);
+  //int outputY = map(inputY, AXIS_Y_LOWER, AXIS_Y_HIGHER, encoderYOffset, motorYEndCounts);
+  outputY += TOOL_OFFSET_Y;
+  return outputY;
 }
 
 /**

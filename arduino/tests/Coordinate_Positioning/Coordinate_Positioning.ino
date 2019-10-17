@@ -5,11 +5,11 @@
 
 // For mapping pixels to counts
 #define AXIS_X_LOWER 40
-#define AXIS_X_HIGHER 26
-#define AXIS_Y_LOWER 480
+#define AXIS_X_HIGHER 480
+#define AXIS_Y_LOWER 26
 #define AXIS_Y_HIGHER 470
 
-#define TOOL_OFFSET_X 1017.5
+#define TOOL_OFFSET_X 10017.5
 #define TOOL_OFFSET_Y 11575.8
 
 #define MOTOR_SPEED_LIMIT 22000.0f
@@ -19,6 +19,8 @@
 #define MOTOR_Y 1
 
 #define ODRIVE_SERIAL Serial1 // RX, TX (0, 1)
+
+ButtonTimer EmergencySwitch(20);
 
 // ODrive object
 ODriveArduino odrive(ODRIVE_SERIAL);
@@ -32,6 +34,8 @@ ButtonTimer SwitchFilter4(ACTIVE_END_SWITCH_TIME * 2);
 
 // Vector storing the motor 1 and 2 encoder position
 int motorPosition[] = {0, 0};
+
+const int EMERGENCY_STOP_BUTTON = 10;
 
 // Defining limit switches
 const int LIMIT_SWITCH_Y_BOTTOM = 2;
@@ -51,8 +55,8 @@ float targetX = 0.0f;
 float targetY = 0.0f;
 
 // Variables storing object data
-float targetXPixels = 0.0f;
-float targetYPixels = 0.0f;
+int targetXPixels = 158;
+int targetYPixels = 255;
 
 // Speed variables
 int currentSpeed = MOTOR_SPEED_LIMIT;
@@ -81,10 +85,10 @@ void setup() {
   initializeValveOperations();
 
   // Initialize motor parameters
-  configureMotors();
+  //configureMotors();
   resetValves();
-  calibreateMotors();
-  encoderCalibration();
+  //calibreateMotors();
+  //encoderCalibration();
 
   // Wait to proceed until Server connects
   while (!Serial);
@@ -95,17 +99,19 @@ void setup() {
 }
 
 void loop() {
+
   if (Serial.available()) {
     char c = Serial.read();
     if (c == 'o') {
-      setPosition(OBEJCT_POSITION_X, OBJECT_POSITION_Y);
+      int tarX = convertFromPixelsToCountsX(targetXPixels);
+      int tarY = convertFromPixelsToCountsY(targetYPixels);
+      setPosition(tarX, tarY);
       setToolPosition(targetX, targetY);
     }
     if (c == 'h') {
       setPosition(HOME_POSITION_X, HOME_POSITION_Y);
       setToolPosition(targetX, targetY);
     }
-
     if (c == 'c') {
       setPosition(CENTER_FRAME_X, CENTER_FRAME_Y);
       setToolPosition(targetX, targetY);
@@ -195,6 +201,7 @@ void initializeSwitches() {
   pinMode(LIMIT_SWITCH_X_RIGHT, INPUT);
   pinMode(LIMIT_SWITCH_Y_BOTTOM, INPUT);
   pinMode(LIMIT_SWITCH_Y_TOP, INPUT);
+  pinMode(EMERGENCY_STOP_BUTTON, INPUT);
 }
 
 /**
@@ -334,7 +341,7 @@ void encoderCalibration() {
     setMotorPosition(MOTOR_Y, positionY);
   }
   delay(500);
-  setMotorPosition(MOTOR_X, encoderXOffset + 39100);
+  setMotorPosition(MOTOR_X, encoderXOffset + 38000);
   setMotorPosition(MOTOR_Y, encoderYOffset - 4000);
 }
 
@@ -342,10 +349,22 @@ void encoderCalibration() {
   TODO: Add comment
 */
 void setToolPosition(double x, double y) {
-  double xnew = encoderXOffset + TOOL_OFFSET_X + x;
-  double ynew = encoderYOffset - TOOL_OFFSET_Y - y;
+  double xnew = encoderXOffset + TOOL_OFFSET_X + x; // 
+  double ynew = encoderYOffset - TOOL_OFFSET_Y - y; // 
   setMotorPosition(MOTOR_X, xnew);
-  setMotorPosition(MOTOR_X, ynew);
+  setMotorPosition(MOTOR_Y, ynew);
+}
+
+/**
+  Checks if emergency stop is pressed.
+
+  @return true if pressed,
+         else false
+*/
+void emergencyStop() {
+  if (EmergencySwitch.isSwitchOn(EMERGENCY_STOP_BUTTON)) {
+    terminateMotors();
+  }
 }
 
 /**
