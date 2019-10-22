@@ -36,9 +36,9 @@ ButtonTimer SwitchFilter4(ACTIVE_END_SWITCH_TIME);
 ButtonTimer EmergencySwitch(ACTIVE_END_SWITCH_TIME);
 
 // For mapping pixels to counts
-#define AXIS_X_LOWER 40
-#define AXIS_X_HIGHER 480
-#define AXIS_Y_LOWER 26
+#define AXIS_X_LOWER 43
+#define AXIS_X_HIGHER 408
+#define AXIS_Y_LOWER 30
 #define AXIS_Y_HIGHER 470
 
 #define TOOL_OFFSET_X 10017.5
@@ -148,6 +148,10 @@ void loop() {
 
     case S_MOVE_TO_OBJECT:
       updateManualPosition();
+      if (isCommandValid(RESET)) {
+        changeStateTo(S_READY);
+      }
+
       //if (onTarget()) {
       //  changeStateTo(S_PICK_OBJECT);
       //}
@@ -561,10 +565,10 @@ void resetValves() {
   mapped to X-Axis
 */
 int convertFromPixelsToCountsX(int pixels) {
-  int inputX = constrain(pixels, AXIS_X_LOWER, AXIS_X_HIGHER);
-  int outputX = map(inputX, AXIS_X_LOWER, AXIS_X_HIGHER, encoderXOffset, motorXEndCounts);
-  outputX += TOOL_OFFSET_X;
-  return outputX;
+  //int outputX = ((motorXEndCounts - encoderXOffset) / (AXIS_X_HIGHER - AXIS_X_LOWER)) * (inputX - AXIS_X_LOWER) + TOOL_OFFSET_X;
+  int outputX = map(pixels, AXIS_X_LOWER, AXIS_X_HIGHER, encoderXOffset - 9090, motorXEndCounts + 9090) ;
+  outputX = constrain(outputX, encoderXOffset, motorXEndCounts);
+  return outputX + 1010;
 }
 
 /**
@@ -572,13 +576,11 @@ int convertFromPixelsToCountsX(int pixels) {
   mapped to Y-Axis
 */
 int convertFromPixelsToCountsY(int pixels) {
-  int inputY = constrain(pixels, AXIS_Y_LOWER, AXIS_Y_HIGHER);
-  int outputY = map(inputY, AXIS_Y_LOWER, AXIS_Y_HIGHER, motorYEndCounts, encoderYOffset);
-  //int outputY = map(inputY, AXIS_Y_LOWER, AXIS_Y_HIGHER, encoderYOffset, motorYEndCounts);
-  outputY += TOOL_OFFSET_Y;
-  return outputY;
+  //int outputY = ((motorYEndCounts - encoderYOffset) / (AXIS_Y_HIGHER - AXIS_Y_LOWER)) * (inputY - AXIS_Y_LOWER) + TOOL_OFFSET_Y;
+  int outputY = map(pixels, AXIS_Y_LOWER, AXIS_Y_HIGHER, encoderYOffset + 10656, motorYEndCounts - 10656) ;
+  //outputY = constrain(outputY, encoderYOffset, motorYEndCounts);
+  return outputY + 2670;
 }
-
 /**
   Stop motors immediately.
 */
@@ -661,7 +663,7 @@ void encoderCalibration() {
     setMotorPosition(MOTOR_Y, positionY);
   }
   delay(500);
-  setMotorPosition(MOTOR_X, encoderXOffset + 39100);
+  setMotorPosition(MOTOR_X, encoderXOffset + 38000);
   setMotorPosition(MOTOR_Y, encoderYOffset - 4000);
 }
 
@@ -669,8 +671,8 @@ void encoderCalibration() {
   TODO: Add comment
 */
 void setToolPosition(double x, double y) {
-  double xnew = encoderXOffset + TOOL_OFFSET_X + x;
-  double ynew = encoderYOffset - TOOL_OFFSET_Y - y;
+  double xnew = x + encoderXOffset;
+  double ynew = y + encoderYOffset;
   setMotorPosition(MOTOR_X, xnew);
   setMotorPosition(MOTOR_Y, ynew);
 }
@@ -692,7 +694,7 @@ void emergencyStop() {
   Template for printing
   to ODrive v3.6
 */
-template<class T> inline Print& operator <<(Print &obj,     T arg) {
+template<class T> inline Print& operator <<(Print & obj,     T arg) {
   obj.print(arg);
   return obj;
 }
@@ -701,7 +703,7 @@ template<class T> inline Print& operator <<(Print &obj,     T arg) {
   Template for printing
   to ODrive v3.6
 */
-template<>        inline Print& operator <<(Print &obj, float arg) {
+template<>        inline Print& operator <<(Print & obj, float arg) {
   obj.print(arg, 4);
   return obj;
 }

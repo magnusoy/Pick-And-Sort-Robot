@@ -4,10 +4,10 @@
 #include <ButtonTimer.h>
 
 // For mapping pixels to counts
-#define AXIS_X_LOWER 40
-#define AXIS_X_HIGHER 480
-#define AXIS_Y_LOWER 26
-#define AXIS_Y_HIGHER 470
+#define AXIS_X_LOWER 85
+#define AXIS_X_HIGHER 375
+#define AXIS_Y_LOWER 58
+#define AXIS_Y_HIGHER 424
 
 #define TOOL_OFFSET_X 10018
 #define TOOL_OFFSET_Y 11577
@@ -55,8 +55,8 @@ float targetX = 0.0f;
 float targetY = 0.0f;
 
 // Variables storing object data
-int targetXPixels = 204;
-int targetYPixels = 289;
+int targetXPixels = 275;
+int targetYPixels = 319;
 
 // Speed variables
 int currentSpeed = MOTOR_SPEED_LIMIT;
@@ -109,11 +109,9 @@ void loop() {
       setToolPosition(targetX, targetY);
     }
     if (c == 'h') {
-      setPosition(HOME_POSITION_X, HOME_POSITION_Y);
-      setToolPosition(targetX, targetY);
-    }
-    if (c == 'c') {
-      setPosition(CENTER_FRAME_X, CENTER_FRAME_Y);
+      int tarX = convertFromPixelsToCountsX(172);
+      int tarY = convertFromPixelsToCountsY(164);
+      setPosition(tarX, tarY);
       setToolPosition(targetX, targetY);
     }
   }
@@ -267,9 +265,10 @@ void resetValves() {
   mapped to X-Axis
 */
 int convertFromPixelsToCountsX(int pixels) {
-  int inputX = constrain(pixels, AXIS_X_LOWER, AXIS_X_HIGHER);
-  int outputX = map(inputX, AXIS_X_LOWER, AXIS_X_HIGHER, encoderXOffset, motorXEndCounts);
-  return outputX;
+  //int outputX = ((motorXEndCounts - encoderXOffset) / (AXIS_X_HIGHER - AXIS_X_LOWER)) * (inputX - AXIS_X_LOWER) + TOOL_OFFSET_X;
+  int outputX = map(pixels, AXIS_X_LOWER, AXIS_X_HIGHER, encoderXOffset - 9090, motorXEndCounts + 9090) ;
+  outputX = constrain(outputX, encoderXOffset, motorXEndCounts);
+  return outputX + 1010;
 }
 
 /**
@@ -277,9 +276,10 @@ int convertFromPixelsToCountsX(int pixels) {
   mapped to Y-Axis
 */
 int convertFromPixelsToCountsY(int pixels) {
-  int inputY = constrain(pixels, AXIS_Y_LOWER, AXIS_Y_HIGHER);
-  int outputY = map(inputY, AXIS_Y_LOWER, AXIS_Y_HIGHER, motorYEndCounts, encoderYOffset);
-  return outputY;
+  //int outputY = ((motorYEndCounts - encoderYOffset) / (AXIS_Y_HIGHER - AXIS_Y_LOWER)) * (inputY - AXIS_Y_LOWER) + TOOL_OFFSET_Y;
+  int outputY = map(pixels, AXIS_Y_LOWER, AXIS_Y_HIGHER, encoderYOffset + 10656, motorYEndCounts - 10656) ;
+  //outputY = constrain(outputY, encoderYOffset, motorYEndCounts);
+  return outputY + 2670;
 }
 
 /**
@@ -341,19 +341,31 @@ void encoderCalibration() {
     }
     setMotorPosition(MOTOR_Y, positionY);
   }
+  Serial.print("X Off:");
+  Serial.print(encoderXOffset);
+  Serial.print("|");
+  Serial.print("Y Off:");
+  Serial.print(encoderYOffset);
+  Serial.print("|");
+  Serial.print("X max:");
+  Serial.print(motorXEndCounts);
+  Serial.print("|");
+  Serial.print("Y max:");
+  Serial.print(motorYEndCounts);
+
   delay(500);
   setMotorPosition(MOTOR_X, encoderXOffset + 38000);
   setMotorPosition(MOTOR_Y, encoderYOffset - 4000);
+  //setMotorPosition(MOTOR_X, 45704 + encoderXOffset);
+  //setMotorPosition(MOTOR_Y, -66640 + encoderYOffset);
 }
 
 /**
   TODO: Add comment
 */
 void setToolPosition(double x, double y) {
-  double xnew = encoderXOffset + TOOL_OFFSET_X + x + 7000; // 
-  double ynew = encoderYOffset + y - 27000 - TOOL_OFFSET_Y; //+ TOOL_OFFSET_Y 
-  setMotorPosition(MOTOR_X, xnew);
-  setMotorPosition(MOTOR_Y, ynew);
+  setMotorPosition(MOTOR_X, x);
+  setMotorPosition(MOTOR_Y, y);
 }
 
 /**
