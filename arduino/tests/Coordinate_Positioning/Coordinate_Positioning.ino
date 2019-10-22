@@ -356,8 +356,6 @@ void encoderCalibration() {
   delay(500);
   setMotorPosition(MOTOR_X, encoderXOffset + 38000);
   setMotorPosition(MOTOR_Y, encoderYOffset - 4000);
-  //setMotorPosition(MOTOR_X, 45704 + encoderXOffset);
-  //setMotorPosition(MOTOR_Y, -66640 + encoderYOffset);
 }
 
 /**

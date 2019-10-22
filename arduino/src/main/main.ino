@@ -10,8 +10,8 @@
   ButtonTimer - https://github.com/magnusoy/Arduino-ButtonTimer-Library
   -----------------------------------------------------------
   Code by: Magnus Kvendseth Øye, Vegard Solheim, Petter Drønnen
-  Date: 15.10-2019
-  Version: 2.1
+  Date: 22.10-2019
+  Version: 2.2
   Website: https://github.com/magnusoy/Pick-And-Sort-Robot
 */
 
@@ -24,26 +24,18 @@
 #include "OdriveParameters.h"
 #include "States.h"
 #include "Commands.h"
+#include "CoordinatesAndOffsets.h"
 
 
 #define UPDATE_SERIAL_TIME 100 // In millis
-#define ACTIVE_END_SWITCH_TIME 20  // In millis
+#define ACTIVE_END_SWITCH_TIME 20 // In millis
 
+// Defining button filters
 ButtonTimer SwitchFilter1(ACTIVE_END_SWITCH_TIME);
 ButtonTimer SwitchFilter2(ACTIVE_END_SWITCH_TIME);
 ButtonTimer SwitchFilter3(ACTIVE_END_SWITCH_TIME);
 ButtonTimer SwitchFilter4(ACTIVE_END_SWITCH_TIME);
 ButtonTimer EmergencySwitch(ACTIVE_END_SWITCH_TIME);
-
-// For mapping pixels to counts
-#define AXIS_X_LOWER 43
-#define AXIS_X_HIGHER 408
-#define AXIS_Y_LOWER 30
-#define AXIS_Y_HIGHER 470
-
-#define TOOL_OFFSET_X 10017.5
-#define TOOL_OFFSET_Y 11575.8
-
 
 #define ODRIVE_SERIAL Serial1 // RX, TX (0, 1)
 
@@ -70,6 +62,10 @@ float manualY = 0.0f;
 // Variables storing object data
 int objectType = 0;
 int objectsRemaining = 0;
+int numberOfPlacedSquares = 0;
+int numberOfPlacedCircles = 0;
+int numberOfPlacedRectangles = 0;
+int numberOfPlacedTriangles = 0;
 int oldCommand = 0;
 int recCommand = 0;
 float targetXPixels = 0.0f;
@@ -120,7 +116,7 @@ void loop() {
     case S_IDLE:
       readJSONDocumentFromSerial();
       if (isCommandValid(CALIBRATE)) {
-        changeStateTo(S_READY);
+        newChangeStateTo(S_READY);
       }
       break;
 
@@ -136,25 +132,25 @@ void loop() {
         targetX = convertFromPixelsToCountsX(targetXPixels);
         targetY = convertFromPixelsToCountsY(targetYPixels);
         setToolPosition(targetX, targetY);
-        changeStateTo(S_MOVE_TO_OBJECT);
+        newChangeStateTo(S_MOVE_TO_OBJECT);
       } else if (isCommandValid(MANUAL_CONTROL)) {
-        changeStateTo(S_MANUAL);
+        newChangeStateTo(S_MANUAL);
       } else if (isCommandValid(CONFIGURE)) {
-        changeStateTo(S_CONFIGURE);
+        newChangeStateTo(S_CONFIGURE);
       } else if (isCommandValid(RESET)) {
-        changeStateTo(S_IDLE);
+        setMotorsInControlMode();
       }
       break;
 
     case S_MOVE_TO_OBJECT:
       updateManualPosition();
       if (isCommandValid(RESET)) {
-        changeStateTo(S_READY);
+        newChangeStateTo(S_READY);
       }
 
-      //if (onTarget()) {
-      //  changeStateTo(S_PICK_OBJECT);
-      //}
+      if (onTarget()) {
+        changeStateTo(S_PICK_OBJECT);
+      }
       break;
 
     case S_PICK_OBJECT:
@@ -185,8 +181,6 @@ void loop() {
         changeStateTo(S_RESET);
       } else {
         objectSorter(objectType);
-        targetX = convertFromPixelsToCountsX(targetXPixels);
-        targetY = convertFromPixelsToCountsY(targetYPixels);
         setToolPosition(targetX, targetY);
         changeStateTo(S_MOVE_TO_OBJECT);
       }
@@ -213,16 +207,16 @@ void loop() {
       if (drop) dropObject();
 
       if (isCommandValid(AUTOMATIC_CONTROL)) {
-        changeStateTo(S_READY);
+        newChangeStateTo(S_READY);
       } else if (isCommandValid(CONFIGURE)) {
-        changeStateTo(S_CONFIGURE);
+        newChangeStateTo(S_CONFIGURE);
       }
       break;
 
     case S_CONFIGURE:
       // TODO: Add ODrive configurations
       if (isCommandValid(RESET)) {
-        changeStateTo(S_IDLE);
+        newChangeStateTo(S_IDLE);
       }
       break;
 
@@ -233,7 +227,7 @@ void loop() {
       break;
   }
   emergencyStop();
-  //edgeDetection();
+  edgeDetection();
   writeToSerial(UPDATE_SERIAL_TIME);
 }
 
@@ -322,10 +316,20 @@ boolean isCommandChanged() {
 
    @param newState The new state to set the statemachine to
 */
-void changeStateTo(int newState) {
-  if (isCommandChanged() || (newState == S_MANUAL)) {
+void newChangeStateTo(int newState) {
+  if (isCommandChanged()) {
     currentState = newState;
   }
+}
+
+/**
+   Change the state of the statemachine to the new state
+   given by the parameter newState
+
+   @param newState The new state to set the statemachine to
+*/
+void changeStateTo(int newState) {
+  currentState = newState;
 }
 
 /**
@@ -385,6 +389,18 @@ void calibreateMotors() {
 
   readMotorPositions();
   updateManualPosition();
+}
+
+/**
+  Sets the motors in closed loop
+  control mode.
+*/
+void setMotorsInControlMode() {
+  int requested_state;
+  requested_state = ODriveArduino::AXIS_STATE_CLOSED_LOOP_CONTROL;
+  odrive.run_state(MOTOR_X, requested_state, false); // don't wait
+  requested_state = ODriveArduino::AXIS_STATE_CLOSED_LOOP_CONTROL;
+  odrive.run_state(MOTOR_Y, requested_state, false); // don't wait
 }
 
 /**
@@ -464,14 +480,14 @@ void initializeValveOperations() {
   limit switch is pressed.
 */
 void edgeDetection() {
-  int buttonState1 = digitalRead(LIMIT_SWITCH_X_LEFT);
-  int buttonState2 = digitalRead(LIMIT_SWITCH_X_RIGHT);
-  int buttonState3 = digitalRead(LIMIT_SWITCH_Y_BOTTOM);
-  int buttonState4 = digitalRead(LIMIT_SWITCH_Y_TOP);
+  int buttonState1 = SwitchFilter1.isSwitchOn(LIMIT_SWITCH_X_LEFT);
+  int buttonState2 = SwitchFilter2.isSwitchOn(LIMIT_SWITCH_X_RIGHT);
+  int buttonState3 = SwitchFilter3.isSwitchOn(LIMIT_SWITCH_Y_BOTTOM);
+  int buttonState4 = SwitchFilter4.isSwitchOn(LIMIT_SWITCH_Y_TOP);
   if (buttonState1 || buttonState2
       || buttonState3 || buttonState4) {
     terminateMotors();
-    currentState = S_READY;
+    changeStateTo(S_READY);
   }
 }
 
@@ -490,32 +506,51 @@ void setPosition(float x, float y) {
 /**
   Assigns the drop coordinates based
   on the object type.
+
+  @param object is the type
 */
 void objectSorter(int object) {
+  int x;
+  int y;
+  // TODO: Implement that the system knows where to place more than one block in each container.
   switch (object) {
-    case 0:
+    case HOME:
       // Home position
-      setPosition(39100, 2300);
+      x = convertFromPixelsToCountsX(HOME_POSITION_X);
+      y = convertFromPixelsToCountsY(HOME_POSITION_Y);
+      setPosition(x, y);
       break;
 
-    case 1:
+    case SQUARE:
       // Square position
-      setPosition(39100, 2300);
+      x = convertFromPixelsToCountsX(SQUARE_SORTED_X);
+      y = convertFromPixelsToCountsY(SQUARE_SORTED_Y);
+      setPosition(x, y);
+      numberOfPlacedSquares += 1;
       break;
 
-    case 2:
+    case CIRCLE:
       // Circle position
-      setPosition(39100, 2300);
+      x = convertFromPixelsToCountsX(CIRCLE_SORTED_X);
+      y = convertFromPixelsToCountsY(CIRCLE_SORTED_Y);
+      setPosition(x, y);
+      numberOfPlacedCircles += 1;
       break;
 
-    case 3:
+    case RECTANGLE:
       // Rectangle position
-      setPosition(39100, 2300);
+      x = convertFromPixelsToCountsX(RECTANGLE_SORTED_X);
+      y = convertFromPixelsToCountsY(RECTANGLE_SORTED_Y);
+      setPosition(x, y);
+      numberOfPlacedRectangles += 1;
       break;
 
-    case 4:
+    case TRIANGLE:
       // Triangle position
-      setPosition(39100, 2300);
+      x = convertFromPixelsToCountsX(TRIANGLE_SORTED_X);
+      y = convertFromPixelsToCountsY(TRIANGLE_SORTED_Y);
+      setPosition(x, y);
+      numberOfPlacedTriangles += 1;
       break;
 
     default:
@@ -526,6 +561,8 @@ void objectSorter(int object) {
 
 /**
   Pick object sequence.
+
+  @return true when completed
 */
 boolean pickObject() {
   digitalWrite(PISTON_UP, LOW);
@@ -539,6 +576,8 @@ boolean pickObject() {
 
 /**
   Drop object sequence.
+
+  @return true when completed
 */
 boolean dropObject() {
   digitalWrite(PISTON_UP, LOW);
@@ -563,10 +602,14 @@ void resetValves() {
 /**
   Converts pixels to counts,
   mapped to X-Axis
+
+  @param pixels, raw pixels from
+         camera in Y axis
+
+  @return pixels mapped to counts
 */
 int convertFromPixelsToCountsX(int pixels) {
-  //int outputX = ((motorXEndCounts - encoderXOffset) / (AXIS_X_HIGHER - AXIS_X_LOWER)) * (inputX - AXIS_X_LOWER) + TOOL_OFFSET_X;
-  int outputX = map(pixels, AXIS_X_LOWER, AXIS_X_HIGHER, encoderXOffset - 9090, motorXEndCounts + 9090) ;
+  int outputX = map(pixels, AXIS_X_LOWER, AXIS_X_HIGHER, encoderXOffset - 9090, motorXEndCounts + 9090);
   outputX = constrain(outputX, encoderXOffset, motorXEndCounts);
   return outputX + 1010;
 }
@@ -574,11 +617,14 @@ int convertFromPixelsToCountsX(int pixels) {
 /**
   Converts pixels to counts,
   mapped to Y-Axis
+
+  @param pixels, raw pixels from
+         camera in Y axis
+
+  @return pixels mapped to counts
 */
 int convertFromPixelsToCountsY(int pixels) {
-  //int outputY = ((motorYEndCounts - encoderYOffset) / (AXIS_Y_HIGHER - AXIS_Y_LOWER)) * (inputY - AXIS_Y_LOWER) + TOOL_OFFSET_Y;
-  int outputY = map(pixels, AXIS_Y_LOWER, AXIS_Y_HIGHER, encoderYOffset + 10656, motorYEndCounts - 10656) ;
-  //outputY = constrain(outputY, encoderYOffset, motorYEndCounts);
+  int outputY = map(pixels, AXIS_Y_LOWER, AXIS_Y_HIGHER, encoderYOffset + 10656, motorYEndCounts - 10656);
   return outputY + 2670;
 }
 /**
@@ -668,13 +714,14 @@ void encoderCalibration() {
 }
 
 /**
-  TODO: Add comment
+  Sets both of the motors to the given positions.
+
+  @param x, x - axis set point
+  @param y, y - axis set point
 */
 void setToolPosition(double x, double y) {
-  double xnew = x + encoderXOffset;
-  double ynew = y + encoderYOffset;
-  setMotorPosition(MOTOR_X, xnew);
-  setMotorPosition(MOTOR_Y, ynew);
+  setMotorPosition(MOTOR_X, x);
+  setMotorPosition(MOTOR_Y, y);
 }
 
 /**
