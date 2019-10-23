@@ -97,7 +97,6 @@ public class RequestRemoteData {
     public synchronized JSONObject get(int index) {
         String data;
         JSONObject jsonObject = null;
-        System.out.println(this.content.length());
         if (this.content.length() > index) {
             String jsonAsString = this.content.get(index).toString();
             data = jsonAsString.substring(jsonAsString.indexOf('{'));
@@ -105,7 +104,6 @@ public class RequestRemoteData {
         } else {
             jsonObject = new JSONObject();
         }
-
         return jsonObject;
     }
 }

@@ -127,8 +127,7 @@ void loop() {
 
     case S_READY:
       readJSONDocumentFromSerial();
-      if (isCommandValid(START) ||
-          isCommandValid(AUTOMATIC_CONTROL)) {
+      if (isCommandValid(START)) {
         targetX = convertFromPixelsToCountsX(targetXPixels);
         targetY = convertFromPixelsToCountsY(targetYPixels);
         setToolPosition(targetX, targetY);
@@ -147,7 +146,6 @@ void loop() {
       if (isCommandValid(RESET)) {
         newChangeStateTo(S_READY);
       }
-
       if (onTarget()) {
         changeStateTo(S_PICK_OBJECT);
       }
@@ -174,13 +172,13 @@ void loop() {
 
     case S_COMPLETED:
       readJSONDocumentFromSerial();
-
-      if (areThereMoreObjects()) {
-        objectSorter(0);
+      if (!areThereMoreObjects()) {
+        objectSorter(HOME);
         setToolPosition(targetX, targetY);
         changeStateTo(S_RESET);
       } else {
-        objectSorter(objectType);
+        targetX = convertFromPixelsToCountsX(targetXPixels);
+        targetY = convertFromPixelsToCountsY(targetYPixels);
         setToolPosition(targetX, targetY);
         changeStateTo(S_MOVE_TO_OBJECT);
       }
@@ -253,7 +251,7 @@ void sendJSONDocumentToSerial() {
   doc["x"] = actualX;
   doc["y"] = actualY;
   doc["command"] = recCommand;
-  doc["manX"] = manualX;
+  doc["targetX"] = targetX;
   serializeJson(doc, Serial);
   Serial.print("\n");
 }
@@ -318,6 +316,7 @@ boolean isCommandChanged() {
 */
 void newChangeStateTo(int newState) {
   if (isCommandChanged()) {
+    oldCommand = recCommand;
     currentState = newState;
   }
 }
@@ -503,6 +502,10 @@ void setPosition(float x, float y) {
   targetY = y;
 }
 
+void parseObjectType(String) {
+
+}
+
 /**
   Assigns the drop coordinates based
   on the object type.
@@ -510,10 +513,11 @@ void setPosition(float x, float y) {
   @param object is the type
 */
 void objectSorter(int object) {
+  int currentState = object - 10;
   int x;
   int y;
   // TODO: Implement that the system knows where to place more than one block in each container.
-  switch (object) {
+  switch (currentState) {
     case HOME:
       // Home position
       x = convertFromPixelsToCountsX(HOME_POSITION_X);
@@ -568,9 +572,10 @@ boolean pickObject() {
   digitalWrite(PISTON_UP, LOW);
   digitalWrite(PISTON_DOWN, HIGH);
   digitalWrite(VACUUM, HIGH);
-  delay(20);
+  delay(200);
   digitalWrite(PISTON_DOWN, LOW);
   digitalWrite(PISTON_UP, HIGH);
+  delay(300);
   return true;
 }
 
@@ -583,7 +588,7 @@ boolean dropObject() {
   digitalWrite(PISTON_UP, LOW);
   digitalWrite(PISTON_DOWN, HIGH);
   digitalWrite(VACUUM, LOW);
-  delay(20);
+  delay(200);
   digitalWrite(PISTON_DOWN, LOW);
   digitalWrite(PISTON_UP, HIGH);
   return true;
@@ -655,9 +660,9 @@ void updateManualPosition() {
          else false
 */
 boolean onTarget() {
-  float errorX = abs(targetX - actualX);
-  float errorY = abs(targetY - actualY);
-  return ((errorX == 0) && (errorY == 0)) ? true : false;
+  int errorX = abs(targetX - actualX);
+  int errorY = abs(targetY - actualY);
+  return ((errorX < 200) && (errorY < 200)) ? true : false;
 }
 
 /**
@@ -733,7 +738,8 @@ void setToolPosition(double x, double y) {
 void emergencyStop() {
   if (EmergencySwitch.isSwitchOn(EMERGENCY_STOP_BUTTON)) {
     terminateMotors();
-    currentState = S_READY;
+    resetValves();
+    changeStateTo(S_READY);
   }
 }
 

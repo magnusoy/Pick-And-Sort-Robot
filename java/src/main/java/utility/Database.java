@@ -113,8 +113,8 @@ public class Database {
             this.jsonToTeensy.put("drop", this.controllerHandler.getButtonX());
         }
         this.jsonToTeensy.put("size", this.movementPlanner.getSize());
-        System.out.println(this.jsonFromTeensy.toString());
-        //System.out.println(this.jsonToTeensy.toString());
+        //System.out.println(this.jsonFromTeensy.toString());
+        System.out.println(this.jsonToTeensy.toString());
         return this.jsonToTeensy;
     }
 }

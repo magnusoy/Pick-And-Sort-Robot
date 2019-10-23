@@ -54,13 +54,14 @@ public class MovementPlanner {
     public JSONObject getShape() {
         String shapeType = "";
         JSONObject shape = null;
+        JSONObject temp = null;
         this.remoteData.update();
         this.size = this.remoteData.getSize();
 
         if (this.size > 0) {
             switch (this.shapeType) {
                 case 10:
-                    shape = this.remoteData.get(0);
+                    temp = this.remoteData.get(0);
                     break;
 
                 case 11:
@@ -87,10 +88,34 @@ public class MovementPlanner {
                 JSONArray jsonArray = this.remoteData.getAll();
                 shape = this.getShapeByType(shapeType, jsonArray);
             }
+            shape = parseObjectType(temp);
         } else {
             shape = new JSONObject();
         }
         return shape;
+    }
+
+    private JSONObject parseObjectType(JSONObject obj) {
+        String type = (String) obj.get("type");
+        switch (type) {
+            case "circle":
+                obj.put("type", 12);
+                break;
+            case "rectangle":
+                obj.put("type", 13);
+                break;
+            case "square":
+                obj.put("type", 11);
+                break;
+            case "triangle":
+                obj.put("type", 14);
+                break;
+
+            default:
+
+                break;
+        }
+        return obj;
     }
 
     /**
