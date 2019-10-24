@@ -10,9 +10,48 @@ body {
   margin-left: -100px;
 }
 
+body {
+  display: grid;
+  grid-template-columns: 1fr 3fr 1fr;
+  grid-template-rows: 1fr 18fr 1fr;
+  grid-template-areas: "header header header"
+    "controls videostream objectlist"
+    "footer footer footer"
+}
+
+.horizontal {
+  display: flex;
+  flex-direction: row;
+}
+
+#start,
+#stop,
+#reset,
+#manual,
+#calibrate {
+  margin: .25rem;
+}
+
+.fields,
+.space-around {
+  display: flex;
+  justify-content: space-around;
+}
+
+#object_list {
+  grid-area: objectlist;
+}
+
+#controls {
+  grid-area: controls;
+  padding: 2rem;
+}
+
 #footer {
-  position: absolute;
+  grid-area: footer;
+  /* position: absolute;
   bottom: 0;
   width: 100%;
-  height: 40px; /* Height of the footer */
+  height: 40px; */
+  /* Height of the footer */
 }

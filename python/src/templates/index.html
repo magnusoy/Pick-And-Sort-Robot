@@ -1,30 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    {% block head %}
-    <!-- Header content -->
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <meta name="description" content="Pick-and-Sort-Robot Controlpanel" />
-    <meta name="author" content="magnusoy" />
-    <title>Pick-and-Sort-Robot</title>
-    <link rel='icon' href="{{ url_for('static', filename='assets/icons/favicon.png') }}" type='image/x-icon'/ >
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <!-- Cemantic core -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.css"
-    />
-    <link
-      href="{{ url_for('static', filename='css/style.css') }}"
-      rel="stylesheet"
-    />
-    {% endblock %}
-  </head>
 
-  <body class="vertical segment">
-    <!-- Main content -->
+<head>
+  {% block head %}
+  <!-- Header content -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <meta name="description" content="Pick-and-Sort-Robot Controlpanel" />
+  <meta name="author" content="magnusoy" />
+  <title>Pick-and-Sort-Robot</title>
+  <link rel='icon' href="{{ url_for('static', filename='assets/icons/favicon.png') }}" type='image/x-icon' />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <!-- Cemantic core -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.css" />
+  <!-- <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" /> -->
+  <link rel="stylesheet" href="../static/css/style.css" />
+  {% endblock %}
+</head>
+
+<body class="vertical segment">
+  <!-- Main content -->
+  <div id=controls>
     <div id="content">
       {% block content %}
       <div id="state">{{ state }}</div>
@@ -56,134 +53,45 @@
               <label>Triangles</label>
             </div>
           </div>
-        </div>
-        <div class="field">
-          <div class="ui slider checkbox checked">
-            <a href=# id="rectangles"><input type="radio" name="throughput" /></a>
-            <label>Rectangles</label>
+          <div class="field">
+            <div class="ui slider checkbox checked">
+              <a href=# id="rectangles"><input type="radio" name="throughput" /></a>
+              <label>Rectangles</label>
+            </div>
           </div>
         </div>
       </div>
     </div>
     <div class="ui vertical buttons">
-      <form>
-          <a href=# id=start><button class="positive massive ui button">Start</button></a>
-          <a href=# id=stop><button class="negative massive ui button">Stop</button></a>
-          <a href=# id=reset><button class="yellow ui massive button">Reset</button></a>
-      </form>
+      <div class="horizontal space-around">
+        <a href=# id=start><button class="positive massive ui button">Start</button></a>
+        <a href=# id=stop><button class="negative massive ui button">Stop</button></a>
+        <a href=# id=reset><button class="yellow ui massive button">Reset</button></a>
+      </div>
     </div>
     <div class="functions">
-        <form>
-            <a href=# id=manual><button class="massive ui button">Manual override</button></a>
-            <a href=# id=calibrate><button class="massive ui button">Calibrate motors</button></a>
-        </form>
+      <div class="horizontal space-around">
+        <a href=# id=manual><button class="massive ui button">Manual override</button></a>
+        <a href=# id=calibrate><button class="massive ui button">Calibrate motors</button></a>
       </div>
+    </div>
+  </div>
 
-<script type=text/javascript>
-      $(function() {
-        $('a#start').bind('click', function() {
-          $.getJSON('/start',
-              function(data) {
-            //do nothing
-          });
-      return false;
-    });
-  });
-  $(function() {
-        $('a#stop').bind('click', function() {
-          $.getJSON('/stop',
-              function(data) {
-            //do nothing
-          });
-      return false;
-    });
-  });
-  $(function() {
-        $('a#reset').bind('click', function() {
-          $.getJSON('/reset',
-              function(data) {
-            //do nothing
-          });
-      return false;
-    });
-  });
-  $(function() {
-        $('a#calibrate').bind('click', function() {
-          $.getJSON('/calibrate',
-              function(data) {
-            //do nothing
-          });
-      return false;
-    });
-  });
-  $(function() {
-        $('a#manual').bind('click', function() {
-          $.getJSON('/manual',
-              function(data) {
-            //do nothing
-          });
-      return false;
-    });
-  });
-  $(function() {
-        $('a#automatic').bind('click', function() {
-          $.getJSON('/automatic',
-              function(data) {
-            //do nothing
-          });
-      return false;
-    });
-  });
-  $(function() {
-        $('a#all').bind('click', function() {
-          $.getJSON('/all',
-              function(data) {
-            //do nothing
-          });
-      return false;
-    });
-  });
-  $(function() {
-        $('a#circles').bind('click', function() {
-          $.getJSON('/circles',
-              function(data) {
-            //do nothing
-          });
-      return false;
-    });
-  });
-  $(function() {
-        $('a#squares').bind('click', function() {
-          $.getJSON('/squares',
-              function(data) {
-            //do nothing
-          });
-      return false;
-    });
-  });
-  $(function() {
-        $('a#rectangles').bind('click', function() {
-          $.getJSON('/rectangles',
-              function(data) {
-            //do nothing
-          });
-      return false;
-    });
-  });
-  $(function() {
-        $('a#triangles').bind('click', function() {
-          $.getJSON('/triangles',
-              function(data) {
-            //do nothing
-          });
-      return false;
-    });
-  });
-</script>
-  
-
-    <div class="centered">
-      <h1>Videostream</h1>
+  <script type=text/javascript> $(function() { $('a#start').bind('click', function() { $.getJSON('/start',
+    function(data) { //do nothing }); return false; }); }); $(function() { $('a#stop').bind('click', function() {
+    $.getJSON('/stop', function(data) { //do nothing }); return false; }); }); $(function() { $('a#reset').bind('click',
+    function() { $.getJSON('/reset', function(data) { //do nothing }); return false; }); }); $(function() {
+    $('a#calibrate').bind('click', function() { $.getJSON('/calibrate', function(data) { //do nothing }); return false;
+    }); }); $(function() { $('a#manual').bind('click', function() { $.getJSON('/manual', function(data) { //do nothing
+    }); return false; }); }); $(function() { $('a#automatic').bind('click', function() { $.getJSON('/automatic',
+    function(data) { //do nothing }); return false; }); }); $(function() { $('a#all').bind('click', function() {
+    $.getJSON('/all', function(data) { //do nothing }); return false; }); }); $(function() {
+    $('a#circles').bind('click', function() { $.getJSON('/circles', function(data) { //do nothing }); return false; });
+    }); $(function() { $('a#squares').bind('click', function() { $.getJSON('/squares', function(data) { //do nothing });
+    return false; }); }); $(function() { $('a#rectangles').bind('click', function() { $.getJSON('/rectangles',
+    function(data) { //do nothing }); return false; }); }); $(function() { $('a#triangles').bind('click', function() {
+    $.getJSON('/triangles', function(data) { //do nothing }); return false; }); }); </script> <div class="centered">
+    <h1>Videostream</h1>
       <img id="video" src="{{ url_for('video_viewer') }}" />
     </div>
 
@@ -193,15 +101,15 @@
 
     <!-- Javascripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.js"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-  </body>
-  {% block footer %}
-  <!-- Footer content -->
-  <footer id="footer" class="ui inverted vertical segment">
-    Graphical User Interface for Pick-and-Sort-Robot by
-    <a href="https://github.com/magnusoy/Pick-And-Sort-Robot">
-      Real Time Programming Course, Group 3</a
-    >.
-  </footer>
-  {% endblock %}
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+{% block footer %}
+<!-- Footer content -->
+<footer id="footer" class="ui inverted vertical segment">
+  Graphical User Interface for Pick-and-Sort-Robot by
+  <a href="https://github.com/magnusoy/Pick-And-Sort-Robot">
+    Real Time Programming Course, Group 3</a>.
+</footer>
+{% endblock %}
+
 </html>
