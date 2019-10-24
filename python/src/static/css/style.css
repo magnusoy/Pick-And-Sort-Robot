@@ -48,6 +48,7 @@ body {
 }
 
 #footer {
+  padding: 2rem;
   grid-area: footer;
   /* position: absolute;
   bottom: 0;
