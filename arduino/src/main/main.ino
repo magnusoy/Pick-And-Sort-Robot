@@ -10,8 +10,8 @@
   ButtonTimer - https://github.com/magnusoy/Arduino-ButtonTimer-Library
   -----------------------------------------------------------
   Code by: Magnus Kvendseth Øye, Vegard Solheim, Petter Drønnen
-  Date: 22.10-2019
-  Version: 2.2
+  Date: 28.10-2019
+  Version: 2.3
   Website: https://github.com/magnusoy/Pick-And-Sort-Robot
 */
 
@@ -26,10 +26,9 @@
 #include "Commands.h"
 #include "CoordinatesAndOffsets.h"
 
-int completed = 0;
 
 #define UPDATE_SERIAL_TIME 100 // In millis
-#define ACTIVE_END_SWITCH_TIME 20 // In millis
+#define ACTIVE_END_SWITCH_TIME 15 // In millis
 
 // Defining button filters
 ButtonTimer SwitchFilter1(ACTIVE_END_SWITCH_TIME);
@@ -124,13 +123,13 @@ void loop() {
 
     case S_CALIBRATION:
       calibreateMotors();
-      changeStateTo(S_READY); // S_READY
+      changeStateTo(S_READY);
       break;
 
     case S_READY:
       readJSONDocumentFromSerial();
       if (isCommandValid(START) && isCommandChanged()) {
-        if (areThereMoreObjects()) {
+        if ((areThereMoreObjects()) && (!isContainerFull(objectType))) {
           targetX = convertFromPixelsToCountsX(targetXPixels);
           targetY = convertFromPixelsToCountsY(targetYPixels);
           setToolPosition(targetX, targetY);
@@ -178,7 +177,6 @@ void loop() {
       break;
 
     case S_COMPLETED:
-      completed++;
       if (onTarget()) {
         readJSONDocumentFromSerial();
 
@@ -266,12 +264,15 @@ void sendJSONDocumentToSerial() {
   doc["state"] = currentState;
   doc["x"] = actualX;
   doc["y"] = actualY;
-  doc["command"] = completed;
-  doc["targetX"] = targetX;
+  doc["command"] = recCommand;
   serializeJson(doc, Serial);
   Serial.print("\n");
 }
 
+/**
+  Reads content sent from the Teensy and
+  flushes it, as it is for no use.
+*/
 void flushSerial() {
   if (Serial.available() > 0) {
     const size_t capacity = 15 * JSON_ARRAY_SIZE(2) + JSON_ARRAY_SIZE(10) + 11 * JSON_OBJECT_SIZE(3) + 520;
@@ -290,6 +291,9 @@ void readJSONDocumentFromSerial() {
     const size_t capacity = 15 * JSON_ARRAY_SIZE(2) + JSON_ARRAY_SIZE(10) + 11 * JSON_OBJECT_SIZE(3) + 520;
     DynamicJsonDocument doc(capacity);
     DeserializationError error = deserializeJson(doc, Serial);
+    if (error) {
+      return;
+    }
 
     JsonObject obj = doc.as<JsonObject>();
 
@@ -304,7 +308,6 @@ void readJSONDocumentFromSerial() {
       targetXPixels = HOME_POSITION_X;
       targetYPixels = HOME_POSITION_Y;
     }
-
 
     inputX = obj["manX"];
     inputY = obj["manY"];
@@ -540,10 +543,10 @@ void setPosition(float x, float y) {
   @param object is the type
 */
 void objectSorter(int object) {
-  int currentState = object - 10;
+  int sortState = object - 10;
   int x;
   int y;
-  switch (currentState) {
+  switch (sortState) {
     case HOME:
       // Home position
       x = convertFromPixelsToCountsX(HOME_POSITION_X);
@@ -553,12 +556,15 @@ void objectSorter(int object) {
 
     case SQUARE:
       // Square position
-      if (numberOfPlacedSquares > 0) {
+      if (numberOfPlacedSquares == 0) {
+        x = convertFromPixelsToCountsX(SQUARE_SORTED_X);
+        y = convertFromPixelsToCountsY(SQUARE_SORTED_Y);
+      } else if (numberOfPlacedSquares == 1) {
         x = convertFromPixelsToCountsX(SQUARE_SORTED_X + 35);
         y = convertFromPixelsToCountsY(SQUARE_SORTED_Y - 30);
       } else {
-        x = convertFromPixelsToCountsX(SQUARE_SORTED_X);
-        y = convertFromPixelsToCountsY(SQUARE_SORTED_Y);
+        x = convertFromPixelsToCountsX(HOME_POSITION_X);
+        y = convertFromPixelsToCountsY(HOME_POSITION_Y);
       }
       setPosition(x, y);
       numberOfPlacedSquares += 1;
@@ -566,12 +572,15 @@ void objectSorter(int object) {
 
     case CIRCLE:
       // Circle position
-      if (numberOfPlacedCircles > 0) {
+      if (numberOfPlacedCircles == 0) {
+        x = convertFromPixelsToCountsX(CIRCLE_SORTED_X);
+        y = convertFromPixelsToCountsY(CIRCLE_SORTED_Y);
+      } else if (numberOfPlacedCircles == 1) {
         x = convertFromPixelsToCountsX(CIRCLE_SORTED_X + 35);
         y = convertFromPixelsToCountsY(CIRCLE_SORTED_Y - 30);
       } else {
-        x = convertFromPixelsToCountsX(CIRCLE_SORTED_X);
-        y = convertFromPixelsToCountsY(CIRCLE_SORTED_Y);
+        x = convertFromPixelsToCountsX(HOME_POSITION_X);
+        y = convertFromPixelsToCountsY(HOME_POSITION_Y);
       }
       setPosition(x, y);
       numberOfPlacedCircles += 1;
@@ -579,12 +588,15 @@ void objectSorter(int object) {
 
     case RECTANGLE:
       // Rectangle position
-      if (numberOfPlacedRectangles > 0) {
+      if (numberOfPlacedRectangles == 0) {
+        x = convertFromPixelsToCountsX(RECTANGLE_SORTED_X);
+        y = convertFromPixelsToCountsY(RECTANGLE_SORTED_Y);
+      } else if (numberOfPlacedRectangles == 1) {
         x = convertFromPixelsToCountsX(RECTANGLE_SORTED_X + 35);
         y = convertFromPixelsToCountsY(RECTANGLE_SORTED_Y - 30 );
       } else {
-        x = convertFromPixelsToCountsX(RECTANGLE_SORTED_X);
-        y = convertFromPixelsToCountsY(RECTANGLE_SORTED_Y);
+        x = convertFromPixelsToCountsX(HOME_POSITION_X);
+        y = convertFromPixelsToCountsY(HOME_POSITION_Y);
       }
       setPosition(x, y);
       numberOfPlacedRectangles += 1;
@@ -592,21 +604,21 @@ void objectSorter(int object) {
 
     case TRIANGLE:
       // Triangle position
-      if (numberOfPlacedTriangles > 0) {
+      if (numberOfPlacedTriangles == 0) {
+        x = convertFromPixelsToCountsX(TRIANGLE_SORTED_X);
+        y = convertFromPixelsToCountsY(TRIANGLE_SORTED_Y);
+      } else if (numberOfPlacedTriangles == 1) {
         x = convertFromPixelsToCountsX(TRIANGLE_SORTED_X + 35);
         y = convertFromPixelsToCountsY(TRIANGLE_SORTED_Y - 30 );
       } else {
-        x = convertFromPixelsToCountsX(TRIANGLE_SORTED_X);
-        y = convertFromPixelsToCountsY(TRIANGLE_SORTED_Y);
+        x = convertFromPixelsToCountsX(HOME_POSITION_X);
+        y = convertFromPixelsToCountsY(HOME_POSITION_Y);
       }
       setPosition(x, y);
       numberOfPlacedTriangles += 1;
       break;
 
     default:
-      x = convertFromPixelsToCountsX(HOME_POSITION_X);
-      y = convertFromPixelsToCountsY(HOME_POSITION_Y);
-      setPosition(x, y);
       changeStateTo(S_IDLE);
       break;
   }
@@ -804,25 +816,45 @@ void emptyContainers() {
 }
 
 /**
-  TODO: Add logic
+  Checks if the type to be sorted is full.
+
+  @param type as integer
+
+  @return full, true if it is full
+                else false
 */
 boolean isContainerFull(int type) {
-  switch (type) {
+  boolean full = false;
+  int typeState = type - 10;
+  switch (typeState) {
     case SQUARE:
+      if (numberOfPlacedSquares >= 2) {
+        full = true;
+      }
       break;
 
     case CIRCLE:
+      if (numberOfPlacedCircles >= 2) {
+        full = true;
+      }
       break;
 
     case RECTANGLE:
+      if (numberOfPlacedRectangles >= 2) {
+        full = true;
+      }
       break;
 
     case TRIANGLE:
+      if (numberOfPlacedTriangles >= 2) {
+        full = true;
+      }
       break;
 
     default:
       break;
   }
+  return full;
 }
 
 /**
