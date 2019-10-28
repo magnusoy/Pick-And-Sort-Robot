@@ -26,6 +26,7 @@
 #include "Commands.h"
 #include "CoordinatesAndOffsets.h"
 
+int completed = 0;
 
 #define UPDATE_SERIAL_TIME 100 // In millis
 #define ACTIVE_END_SWITCH_TIME 20 // In millis
@@ -107,6 +108,7 @@ void loop() {
   if (isCommandValid(STOP)) {
     changeStateTo(S_READY);
   }
+  flushSerial();
 
   // Read motor position at any given state
   readMotorPositions();
@@ -127,17 +129,20 @@ void loop() {
 
     case S_READY:
       readJSONDocumentFromSerial();
-      if (isCommandValid(START)) {
-        targetX = convertFromPixelsToCountsX(targetXPixels);
-        targetY = convertFromPixelsToCountsY(targetYPixels);
-        setToolPosition(targetX, targetY);
-        newChangeStateTo(S_MOVE_TO_OBJECT);
+      if (isCommandValid(START) && isCommandChanged()) {
+        if (areThereMoreObjects()) {
+          targetX = convertFromPixelsToCountsX(targetXPixels);
+          targetY = convertFromPixelsToCountsY(targetYPixels);
+          setToolPosition(targetX, targetY);
+          newChangeStateTo(S_MOVE_TO_OBJECT);
+        }
       } else if (isCommandValid(MANUAL_CONTROL)) {
         newChangeStateTo(S_MANUAL);
       } else if (isCommandValid(CONFIGURE)) {
         newChangeStateTo(S_CONFIGURE);
       } else if (isCommandValid(RESET)) {
         setMotorsInControlMode();
+        oldCommand = recCommand;
       }
       break;
 
@@ -167,20 +172,31 @@ void loop() {
       break;
 
     case S_DROP_OBJECT:
-      if (dropObject()) changeStateTo(S_COMPLETED);
+      if (dropObject()) {
+        changeStateTo(S_COMPLETED);
+      }
       break;
 
     case S_COMPLETED:
-      readJSONDocumentFromSerial();
-      if (!areThereMoreObjects()) {
-        objectSorter(HOME);
-        setToolPosition(targetX, targetY);
-        changeStateTo(S_RESET);
-      } else {
-        targetX = convertFromPixelsToCountsX(targetXPixels);
-        targetY = convertFromPixelsToCountsY(targetYPixels);
-        setToolPosition(targetX, targetY);
-        changeStateTo(S_MOVE_TO_OBJECT);
+      completed++;
+      if (onTarget()) {
+        readJSONDocumentFromSerial();
+
+        if (!areThereMoreObjects()) {
+          objectSorter(HOME);
+          setToolPosition(targetX, targetY);
+          changeStateTo(S_RESET);
+        } else if (targetXPixels == HOME_POSITION_X) {
+          targetX = convertFromPixelsToCountsX(targetXPixels);
+          targetY = convertFromPixelsToCountsY(targetYPixels);
+          setToolPosition(targetX, targetY);
+          changeStateTo(S_READY);
+        } else {
+          targetX = convertFromPixelsToCountsX(targetXPixels);
+          targetY = convertFromPixelsToCountsY(targetYPixels);
+          setToolPosition(targetX, targetY);
+          changeStateTo(S_MOVE_TO_OBJECT);
+        }
       }
       break;
 
@@ -250,10 +266,20 @@ void sendJSONDocumentToSerial() {
   doc["state"] = currentState;
   doc["x"] = actualX;
   doc["y"] = actualY;
-  doc["command"] = recCommand;
+  doc["command"] = completed;
   doc["targetX"] = targetX;
   serializeJson(doc, Serial);
   Serial.print("\n");
+}
+
+void flushSerial() {
+  if (Serial.available() > 0) {
+    const size_t capacity = 15 * JSON_ARRAY_SIZE(2) + JSON_ARRAY_SIZE(10) + 11 * JSON_OBJECT_SIZE(3) + 520;
+    DynamicJsonDocument doc(capacity);
+    DeserializationError error = deserializeJson(doc, Serial);
+
+    JsonObject obj = doc.as<JsonObject>();
+  }
 }
 
 /**
@@ -264,23 +290,28 @@ void readJSONDocumentFromSerial() {
     const size_t capacity = 15 * JSON_ARRAY_SIZE(2) + JSON_ARRAY_SIZE(10) + 11 * JSON_OBJECT_SIZE(3) + 520;
     DynamicJsonDocument doc(capacity);
     DeserializationError error = deserializeJson(doc, Serial);
-    if (error) {
-      return;
-    }
+
     JsonObject obj = doc.as<JsonObject>();
 
     recCommand = obj["command"];
     objectType = obj["type"];
     objectsRemaining = obj["size"];
 
-    targetXPixels = obj["x"];
-    targetYPixels = obj["y"];
+    if (obj.containsKey("x")) {
+      targetXPixels = obj["x"];
+      targetYPixels = obj["y"];
+    } else {
+      targetXPixels = HOME_POSITION_X;
+      targetYPixels = HOME_POSITION_Y;
+    }
+
 
     inputX = obj["manX"];
     inputY = obj["manY"];
     motorSpeed = obj["speed"];
     pick = obj["pick"];
     drop = obj["drop"];
+
   }
 }
 
@@ -502,10 +533,6 @@ void setPosition(float x, float y) {
   targetY = y;
 }
 
-void parseObjectType(String) {
-
-}
-
 /**
   Assigns the drop coordinates based
   on the object type.
@@ -516,7 +543,6 @@ void objectSorter(int object) {
   int currentState = object - 10;
   int x;
   int y;
-  // TODO: Implement that the system knows where to place more than one block in each container.
   switch (currentState) {
     case HOME:
       // Home position
@@ -527,37 +553,60 @@ void objectSorter(int object) {
 
     case SQUARE:
       // Square position
-      x = convertFromPixelsToCountsX(SQUARE_SORTED_X);
-      y = convertFromPixelsToCountsY(SQUARE_SORTED_Y);
+      if (numberOfPlacedSquares > 0) {
+        x = convertFromPixelsToCountsX(SQUARE_SORTED_X + 35);
+        y = convertFromPixelsToCountsY(SQUARE_SORTED_Y - 30);
+      } else {
+        x = convertFromPixelsToCountsX(SQUARE_SORTED_X);
+        y = convertFromPixelsToCountsY(SQUARE_SORTED_Y);
+      }
       setPosition(x, y);
       numberOfPlacedSquares += 1;
       break;
 
     case CIRCLE:
       // Circle position
-      x = convertFromPixelsToCountsX(CIRCLE_SORTED_X);
-      y = convertFromPixelsToCountsY(CIRCLE_SORTED_Y);
+      if (numberOfPlacedCircles > 0) {
+        x = convertFromPixelsToCountsX(CIRCLE_SORTED_X + 35);
+        y = convertFromPixelsToCountsY(CIRCLE_SORTED_Y - 30);
+      } else {
+        x = convertFromPixelsToCountsX(CIRCLE_SORTED_X);
+        y = convertFromPixelsToCountsY(CIRCLE_SORTED_Y);
+      }
       setPosition(x, y);
       numberOfPlacedCircles += 1;
       break;
 
     case RECTANGLE:
       // Rectangle position
-      x = convertFromPixelsToCountsX(RECTANGLE_SORTED_X);
-      y = convertFromPixelsToCountsY(RECTANGLE_SORTED_Y);
+      if (numberOfPlacedRectangles > 0) {
+        x = convertFromPixelsToCountsX(RECTANGLE_SORTED_X + 35);
+        y = convertFromPixelsToCountsY(RECTANGLE_SORTED_Y - 30 );
+      } else {
+        x = convertFromPixelsToCountsX(RECTANGLE_SORTED_X);
+        y = convertFromPixelsToCountsY(RECTANGLE_SORTED_Y);
+      }
       setPosition(x, y);
       numberOfPlacedRectangles += 1;
       break;
 
     case TRIANGLE:
       // Triangle position
-      x = convertFromPixelsToCountsX(TRIANGLE_SORTED_X);
-      y = convertFromPixelsToCountsY(TRIANGLE_SORTED_Y);
+      if (numberOfPlacedTriangles > 0) {
+        x = convertFromPixelsToCountsX(TRIANGLE_SORTED_X + 35);
+        y = convertFromPixelsToCountsY(TRIANGLE_SORTED_Y - 30 );
+      } else {
+        x = convertFromPixelsToCountsX(TRIANGLE_SORTED_X);
+        y = convertFromPixelsToCountsY(TRIANGLE_SORTED_Y);
+      }
       setPosition(x, y);
       numberOfPlacedTriangles += 1;
       break;
 
     default:
+      x = convertFromPixelsToCountsX(HOME_POSITION_X);
+      y = convertFromPixelsToCountsY(HOME_POSITION_Y);
+      setPosition(x, y);
       changeStateTo(S_IDLE);
       break;
   }
@@ -614,9 +663,9 @@ void resetValves() {
   @return pixels mapped to counts
 */
 int convertFromPixelsToCountsX(int pixels) {
-  int outputX = map(pixels, AXIS_X_LOWER, AXIS_X_HIGHER, encoderXOffset - 9090, motorXEndCounts + 9090);
+  int outputX = map(pixels, AXIS_X_LOWER, AXIS_X_HIGHER, encoderXOffset - TOOL_OFFSET_X, motorXEndCounts + TOOL_OFFSET_X);
   outputX = constrain(outputX, encoderXOffset, motorXEndCounts);
-  return outputX + 1010;
+  return outputX + OFFSET_X;
 }
 
 /**
@@ -629,8 +678,8 @@ int convertFromPixelsToCountsX(int pixels) {
   @return pixels mapped to counts
 */
 int convertFromPixelsToCountsY(int pixels) {
-  int outputY = map(pixels, AXIS_Y_LOWER, AXIS_Y_HIGHER, encoderYOffset + 10656, motorYEndCounts - 10656);
-  return outputY + 2670;
+  int outputY = map(pixels, AXIS_Y_LOWER, AXIS_Y_HIGHER, encoderYOffset + TOOL_OFFSET_Y, motorYEndCounts - TOOL_OFFSET_Y);
+  return outputY + OFFSET_Y;
 }
 /**
   Stop motors immediately.
@@ -662,7 +711,7 @@ void updateManualPosition() {
 boolean onTarget() {
   int errorX = abs(targetX - actualX);
   int errorY = abs(targetY - actualY);
-  return ((errorX < 200) && (errorY < 200)) ? true : false;
+  return ((errorX < 150) && (errorY < 150)) ? true : false;
 }
 
 /**
@@ -740,6 +789,39 @@ void emergencyStop() {
     terminateMotors();
     resetValves();
     changeStateTo(S_READY);
+  }
+}
+
+/**
+  Reset the number of stored objects
+  in the containers.
+*/
+void emptyContainers() {
+  numberOfPlacedSquares = 0;
+  numberOfPlacedCircles = 0;
+  numberOfPlacedRectangles = 0;
+  numberOfPlacedTriangles = 0;
+}
+
+/**
+  TODO: Add logic
+*/
+boolean isContainerFull(int type) {
+  switch (type) {
+    case SQUARE:
+      break;
+
+    case CIRCLE:
+      break;
+
+    case RECTANGLE:
+      break;
+
+    case TRIANGLE:
+      break;
+
+    default:
+      break;
   }
 }
 
