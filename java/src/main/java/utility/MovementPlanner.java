@@ -1,5 +1,6 @@
 package main.java.utility;
 
+import main.java.communication.Commands;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -88,6 +89,7 @@ public class MovementPlanner {
                 JSONArray jsonArray = this.remoteData.getAll();
                 shape = this.getShapeByType(shapeType, jsonArray);
             }
+            assert temp != null;
             shape = parseObjectType(temp);
         } else {
             shape = new JSONObject();
@@ -95,6 +97,14 @@ public class MovementPlanner {
         return shape;
     }
 
+    /**
+     * Changes the object type to an integer code,
+     * as this is what the Teensy expects.
+     *
+     * @param obj JSON to be sent
+     *
+     * @return modified JSON with correct format
+     */
     private JSONObject parseObjectType(JSONObject obj) {
         String type = (String) obj.get("type");
         switch (type) {
@@ -112,7 +122,6 @@ public class MovementPlanner {
                 break;
 
             default:
-
                 break;
         }
         return obj;

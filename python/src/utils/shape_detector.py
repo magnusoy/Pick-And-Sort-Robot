@@ -97,18 +97,6 @@ class RemoteShapeDetector(Thread):
         return jpeg.tobytes()
 
 
-"""
-# Example of usage
-if __name__ == "__main__":
-    detector = RemoteShapeDetector('83.243.219.245', 8089)  # 83.243.219.245
-    detector.connect()
-    while True:
-        detector.runEverything()
-        cv2.imshow("show", detector.frame)
-        cv2.waitKey(1)
-"""
-
-
 # Example of usage
 if __name__ == "__main__":
     from visual import FrameDrawer

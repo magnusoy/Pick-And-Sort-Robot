@@ -137,8 +137,6 @@ void loop() {
         }
       } else if (isCommandValid(MANUAL_CONTROL)) {
         newChangeStateTo(S_MANUAL);
-      } else if (isCommandValid(CONFIGURE)) {
-        newChangeStateTo(S_CONFIGURE);
       } else if (isCommandValid(RESET)) {
         setMotorsInControlMode();
         oldCommand = recCommand;
@@ -274,12 +272,18 @@ void sendJSONDocumentToSerial() {
   flushes it, as it is for no use.
 */
 void flushSerial() {
-  if (Serial.available() > 0) {
-    const size_t capacity = 15 * JSON_ARRAY_SIZE(2) + JSON_ARRAY_SIZE(10) + 11 * JSON_OBJECT_SIZE(3) + 520;
-    DynamicJsonDocument doc(capacity);
-    DeserializationError error = deserializeJson(doc, Serial);
-
-    JsonObject obj = doc.as<JsonObject>();
+  if (currentState != (S_IDLE || S_READY || S_COMPLETED || S_MANUAL)) {
+    return;
+  } else {
+    if (Serial.available() > 0) {
+      const size_t capacity = 15 * JSON_ARRAY_SIZE(2) + JSON_ARRAY_SIZE(10) + 11 * JSON_OBJECT_SIZE(3) + 520;
+      DynamicJsonDocument doc(capacity);
+      DeserializationError error = deserializeJson(doc, Serial);
+      if (error) {
+        return;
+      }
+      JsonObject obj = doc.as<JsonObject>();
+    }
   }
 }
 
@@ -396,7 +400,6 @@ void startSerial() {
   // Start Serial Communication
   Serial.begin(115200);
 }
-
 
 /**
   Calibreates motors.
@@ -723,7 +726,7 @@ void updateManualPosition() {
 boolean onTarget() {
   int errorX = abs(targetX - actualX);
   int errorY = abs(targetY - actualY);
-  return ((errorX < 150) && (errorY < 150)) ? true : false;
+  return ((errorX < 100) && (errorY < 100)) ? true : false;
 }
 
 /**

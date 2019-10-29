@@ -5,8 +5,9 @@ import java.net.*;
 import java.util.Scanner;
 
 /**
- * Connects to the Server through a socket.
- * Can send text and expects replies from server.
+ * Connects to a TCP - Server through a socket.
+ * Has its own input- and outputstream to write
+ * and read data from the server.
  */
 public class Client {
 
@@ -17,10 +18,12 @@ public class Client {
     private Socket socket;                              // Connection socket
 
     /**
-     * Client constructor.
+     * Client constructor. Initializes the input-
+     * and outputstream and tries to connect the
+     * given host.
      *
-     * @param host where to connect
-     * @param port communication port
+     * @param host where to connect (localhost)
+     * @param port communication port (5056)
      * @throws IOException, Exception
      */
     public Client(String host, int port) throws IOException {
@@ -42,7 +45,11 @@ public class Client {
 
     /**
      * Establishing connection and
-     * communication with the server is now possible.
+     * communication with the TCP server
+     * through the assigned socket.
+     *
+     * Stays connected until the client writes
+     * "Exit" to disconnect.
      */
     public void connect()  {
         try {

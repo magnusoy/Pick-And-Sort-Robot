@@ -19,7 +19,7 @@ public class Server {
     private final Database database;      // Shared resource
 
     /**
-     * Server constructor. Initialize socket and
+     * Server constructor. Initialize a server socket and
      * assign the given port to the socket.
      *
      * @param port, socket port
@@ -37,7 +37,9 @@ public class Server {
 
     /**
      * Start the server and creates a new thread for
-     * new client requests.
+     * every new client connecting. Assigning a new
+     * clientHandler so the client can GET and POST
+     * data.
      *
      * @throws IOException, Exception
      */
