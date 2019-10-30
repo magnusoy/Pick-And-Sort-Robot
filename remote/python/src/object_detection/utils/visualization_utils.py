@@ -860,13 +860,13 @@ def write_objects_to_file(data):
     for box, figure in data.items():
       ymin, xmin, ymax, xmax = box
       x = int((xmax+xmin)/2*464) # Change to fit resolution
-      y = int((ymax+ymin)/2*380) # Change to fit resolution
+      y = int((ymax+ymin)/2*330) # Change to fit resolution
       text = str(figure[0])
       out = text.replace(": ", ",").replace("%", "").split(",")
       figure = out[0]
       probability = out[1]
       index += 1
-      write_to_file = {"object": index, "type": figure, "x": x-4, "y": y+100, "probability": probability}
+      write_to_file = {"object": index, "type": figure, "x": x-4, "y": y+150, "probability": probability}
       f.write(str(json.dumps(write_to_file)) + "-")
     f.close()
 

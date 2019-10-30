@@ -139,6 +139,7 @@ void loop() {
         newChangeStateTo(S_MANUAL);
       } else if (isCommandValid(RESET)) {
         setMotorsInControlMode();
+        emptyContainers();
         oldCommand = recCommand;
       }
       break;
@@ -236,6 +237,7 @@ void loop() {
       changeStateTo(S_IDLE);
       break;
   }
+  updateManualPosition();
   emergencyStop();
   edgeDetection();
   writeToSerial(UPDATE_SERIAL_TIME);

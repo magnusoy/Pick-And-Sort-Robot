@@ -13,8 +13,8 @@ class FrameDrawer():
         self.shapecolor = (0, 165, 255)
         self.circlethickness = 2
         self.linethickness = 2
-        self.linebegin = (5, 100)  # x1, y1
-        self.lineend = (460, 100)  # x2, , y2
+        self.linebegin = (5, 150)  # x1, y1
+        self.lineend = (460, 150)  # x2, , y2
         self.linecolor = (0, 255, 0)
         self.font = cv2.FONT_HERSHEY_SIMPLEX
         self.fontscale = 0.5
