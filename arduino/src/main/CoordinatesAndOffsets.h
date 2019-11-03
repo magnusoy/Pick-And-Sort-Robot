@@ -23,8 +23,8 @@
 #define AXIS_Y_LOWER 58
 #define AXIS_Y_HIGHER 424
 
-#define OFFSET_X 1010
-#define OFFSET_Y 2670
+#define OFFSET_X -791
+#define OFFSET_Y 3780
 
 #define TOOL_OFFSET_X 9090
 #define TOOL_OFFSET_Y 10656

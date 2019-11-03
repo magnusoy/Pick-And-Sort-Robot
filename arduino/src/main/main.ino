@@ -207,8 +207,8 @@ void loop() {
     case S_MANUAL:
       readJSONDocumentFromSerial();
 
-      manualX += (100 * inputX);
-      manualY += (100 * inputY);
+      manualX += (1000 * inputX);
+      manualY += (1000 * inputY);
       setMotorPosition(MOTOR_X, manualX);
       setMotorPosition(MOTOR_Y, manualY);
 
@@ -274,18 +274,14 @@ void sendJSONDocumentToSerial() {
   flushes it, as it is for no use.
 */
 void flushSerial() {
-  if (currentState != (S_IDLE || S_READY || S_COMPLETED || S_MANUAL)) {
-    return;
-  } else {
-    if (Serial.available() > 0) {
-      const size_t capacity = 15 * JSON_ARRAY_SIZE(2) + JSON_ARRAY_SIZE(10) + 11 * JSON_OBJECT_SIZE(3) + 520;
-      DynamicJsonDocument doc(capacity);
-      DeserializationError error = deserializeJson(doc, Serial);
-      if (error) {
-        return;
-      }
-      JsonObject obj = doc.as<JsonObject>();
+  if (Serial.available() > 0) {
+    const size_t capacity = 15 * JSON_ARRAY_SIZE(2) + JSON_ARRAY_SIZE(10) + 11 * JSON_OBJECT_SIZE(3) + 520;
+    DynamicJsonDocument doc(capacity);
+    DeserializationError error = deserializeJson(doc, Serial);
+    if (error) {
+      return;
     }
+    JsonObject obj = doc.as<JsonObject>();
   }
 }
 
@@ -653,10 +649,11 @@ boolean pickObject() {
 boolean dropObject() {
   digitalWrite(PISTON_UP, LOW);
   digitalWrite(PISTON_DOWN, HIGH);
-  digitalWrite(VACUUM, LOW);
   delay(200);
   digitalWrite(PISTON_DOWN, LOW);
+  digitalWrite(VACUUM, LOW);
   digitalWrite(PISTON_UP, HIGH);
+  delay(200);
   return true;
 }
 
@@ -728,7 +725,7 @@ void updateManualPosition() {
 boolean onTarget() {
   int errorX = abs(targetX - actualX);
   int errorY = abs(targetY - actualY);
-  return ((errorX < 100) && (errorY < 100)) ? true : false;
+  return ((errorX < 75) && (errorY < 75)) ? true : false;
 }
 
 /**
