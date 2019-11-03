@@ -10,8 +10,8 @@
   ButtonTimer - https://github.com/magnusoy/Arduino-ButtonTimer-Library
   -----------------------------------------------------------
   Code by: Magnus Kvendseth Øye, Vegard Solheim, Petter Drønnen
-  Date: 28.10-2019
-  Version: 2.3
+  Date: 03.11-2019
+  Version: 2.4
   Website: https://github.com/magnusoy/Pick-And-Sort-Robot
 */
 
@@ -20,6 +20,7 @@
 #include <ODriveArduino.h>
 #include <ArduinoJson.h>
 #include <ButtonTimer.h>
+#include <Ticker.h>
 #include "IO.h"
 #include "OdriveParameters.h"
 #include "States.h"
@@ -27,15 +28,23 @@
 #include "CoordinatesAndOffsets.h"
 
 
-#define UPDATE_SERIAL_TIME 100 // In millis
-#define ACTIVE_END_SWITCH_TIME 15 // In millis
+// Durations and intervals in millis
+#define UPDATE_SERIAL_INTERVAL 100
+#define ACTIVE_END_SWITCH_DURATION 15
+#define VACCUM_DELAY_DURATION 200
+#define PICK_DELAY_DURATION 200
+#define DROP_DELAY_DURATION 300
 
 // Defining button filters
-ButtonTimer SwitchFilter1(ACTIVE_END_SWITCH_TIME);
-ButtonTimer SwitchFilter2(ACTIVE_END_SWITCH_TIME);
-ButtonTimer SwitchFilter3(ACTIVE_END_SWITCH_TIME);
-ButtonTimer SwitchFilter4(ACTIVE_END_SWITCH_TIME);
-ButtonTimer EmergencySwitch(ACTIVE_END_SWITCH_TIME);
+ButtonTimer switchFilter1(ACTIVE_END_SWITCH_DURATION);
+ButtonTimer switchFilter2(ACTIVE_END_SWITCH_DURATION);
+ButtonTimer switchFilter3(ACTIVE_END_SWITCH_DURATION);
+ButtonTimer switchFilter4(ACTIVE_END_SWITCH_DURATION);
+ButtonTimer emergencySwitch(ACTIVE_END_SWITCH_DURATION);
+
+// Defining pick and drop timers
+Ticker pickAndDropTimer;
+Ticker vacuumTimer;
 
 #define ODRIVE_SERIAL Serial1 // RX, TX (0, 1)
 
@@ -150,6 +159,7 @@ void loop() {
         newChangeStateTo(S_READY);
       }
       if (onTarget()) {
+        pickAndDropTimer.startTimer(PICK_DELAY_DURATION);
         changeStateTo(S_PICK_OBJECT);
       }
       break;
@@ -165,6 +175,7 @@ void loop() {
     case S_MOVE_TO_DROP:
       updateManualPosition();
       if (onTarget()) {
+        pickAndDropTimer.startTimer(DROP_DELAY_DURATION);
         changeStateTo(S_DROP_OBJECT);
       }
       break;
@@ -207,15 +218,15 @@ void loop() {
     case S_MANUAL:
       readJSONDocumentFromSerial();
 
-      manualX += (1000 * inputX);
-      manualY += (1000 * inputY);
+      manualX += (currentSpeed * inputX);
+      manualY += (currentSpeed * inputY);
       setMotorPosition(MOTOR_X, manualX);
       setMotorPosition(MOTOR_Y, manualY);
 
       setMotorSpeedFromController();
 
-      if (pick) pickObject();
-      if (drop) dropObject();
+      if (pick) manualPickObject();
+      if (drop) manualDropObject();
 
       if (isCommandValid(AUTOMATIC_CONTROL)) {
         newChangeStateTo(S_READY);
@@ -240,7 +251,7 @@ void loop() {
   updateManualPosition();
   emergencyStop();
   edgeDetection();
-  writeToSerial(UPDATE_SERIAL_TIME);
+  writeToSerial(UPDATE_SERIAL_INTERVAL);
 }
 
 /**
@@ -482,11 +493,9 @@ void configureMotors() {
 */
 void setMotorSpeedFromController() {
   if (motorSpeed != 0) {
-    currentSpeed += (100 * motorSpeed);
-    for (int axis = 0; axis < 2; ++axis) {
-      ODRIVE_SERIAL << "w axis" << axis << ".controller.config.vel_limit " << MOTOR_SPEED_LIMIT << '\n';
-    }
+    currentSpeed += (MOTOR_SPEED_MULTIPLIER * motorSpeed);
   }
+  currentSpeed = constrain(currentSpeed, MOTOR_SPEED_LOWER, MOTOR_SPEED_UPPER);
 }
 
 /**
@@ -514,10 +523,10 @@ void initializeValveOperations() {
   limit switch is pressed.
 */
 void edgeDetection() {
-  int buttonState1 = SwitchFilter1.isSwitchOn(LIMIT_SWITCH_X_LEFT);
-  int buttonState2 = SwitchFilter2.isSwitchOn(LIMIT_SWITCH_X_RIGHT);
-  int buttonState3 = SwitchFilter3.isSwitchOn(LIMIT_SWITCH_Y_BOTTOM);
-  int buttonState4 = SwitchFilter4.isSwitchOn(LIMIT_SWITCH_Y_TOP);
+  int buttonState1 = switchFilter1.isSwitchOn(LIMIT_SWITCH_X_LEFT);
+  int buttonState2 = switchFilter2.isSwitchOn(LIMIT_SWITCH_X_RIGHT);
+  int buttonState3 = switchFilter3.isSwitchOn(LIMIT_SWITCH_Y_BOTTOM);
+  int buttonState4 = switchFilter4.isSwitchOn(LIMIT_SWITCH_Y_TOP);
   if (buttonState1 || buttonState2
       || buttonState3 || buttonState4) {
     terminateMotors();
@@ -631,14 +640,21 @@ void objectSorter(int object) {
   @return true when completed
 */
 boolean pickObject() {
-  digitalWrite(PISTON_UP, LOW);
-  digitalWrite(PISTON_DOWN, HIGH);
-  digitalWrite(VACUUM, HIGH);
-  delay(200);
-  digitalWrite(PISTON_DOWN, LOW);
-  digitalWrite(PISTON_UP, HIGH);
-  delay(300);
-  return true;
+  boolean picked = false;
+
+  if (pickAndDropTimer.hasTimerExpired()) {
+    digitalWrite(PISTON_DOWN, LOW);
+    digitalWrite(PISTON_UP, HIGH);
+    vacuumTimer.startTimer(VACCUM_DELAY_DURATION);
+  } else {
+    digitalWrite(PISTON_UP, LOW);
+    digitalWrite(PISTON_DOWN, HIGH);
+    digitalWrite(VACUUM, HIGH);
+  }
+  if ((pickAndDropTimer.hasTimerExpired()) && (vacuumTimer.hasTimerExpired())) {
+    picked = true;
+  }
+  return picked;
 }
 
 /**
@@ -647,6 +663,40 @@ boolean pickObject() {
   @return true when completed
 */
 boolean dropObject() {
+  boolean dropped = false;
+
+  if (pickAndDropTimer.hasTimerExpired()) {
+    digitalWrite(PISTON_DOWN, LOW);
+    digitalWrite(VACUUM, LOW);
+    digitalWrite(PISTON_UP, HIGH);
+    vacuumTimer.startTimer(VACCUM_DELAY_DURATION);
+  } else {
+    digitalWrite(PISTON_UP, LOW);
+    digitalWrite(PISTON_DOWN, HIGH);
+  }
+  if ((pickAndDropTimer.hasTimerExpired()) && (vacuumTimer.hasTimerExpired())) {
+    dropped = true;
+  }
+  return dropped;
+}
+
+/**
+  Manual Pick object sequence.
+*/
+void manualPickObject() {
+  digitalWrite(PISTON_UP, LOW);
+  digitalWrite(PISTON_DOWN, HIGH);
+  digitalWrite(VACUUM, HIGH);
+  delay(200);
+  digitalWrite(PISTON_DOWN, LOW);
+  digitalWrite(PISTON_UP, HIGH);
+  delay(300);
+}
+
+/**
+  Manual Drop object sequence.
+*/
+void manualDropObject() {
   digitalWrite(PISTON_UP, LOW);
   digitalWrite(PISTON_DOWN, HIGH);
   delay(200);
@@ -654,7 +704,6 @@ boolean dropObject() {
   digitalWrite(VACUUM, LOW);
   digitalWrite(PISTON_UP, HIGH);
   delay(200);
-  return true;
 }
 
 /**
@@ -746,14 +795,14 @@ boolean areThereMoreObjects() {
 */
 void encoderCalibration() {
   for (int counts = 0; counts > -80000; counts -= 10) {
-    if (SwitchFilter1.isSwitchOn(LIMIT_SWITCH_X_LEFT)) {
+    if (switchFilter1.isSwitchOn(LIMIT_SWITCH_X_LEFT)) {
       encoderXOffset = counts;
       break;
     }
     setMotorPosition(MOTOR_X, counts);
   }
   for (int counts = 0; counts < 80000; counts += 10) {
-    if (SwitchFilter2.isSwitchOn(LIMIT_SWITCH_Y_BOTTOM)) {
+    if (switchFilter2.isSwitchOn(LIMIT_SWITCH_Y_BOTTOM)) {
       encoderYOffset = counts;
       break;
     }
@@ -762,7 +811,7 @@ void encoderCalibration() {
   for (int counts = 0; counts < 80000; counts += 10) {
     int positionX = encoderXOffset + counts;
 
-    if (SwitchFilter3.isSwitchOn(LIMIT_SWITCH_X_RIGHT)) {
+    if (switchFilter3.isSwitchOn(LIMIT_SWITCH_X_RIGHT)) {
       motorXEndCounts = positionX;
       break;
     }
@@ -770,7 +819,7 @@ void encoderCalibration() {
   }
   for (int counts = 0; counts > -120000; counts -= 10) {
     int positionY = encoderYOffset + counts;
-    if (SwitchFilter4.isSwitchOn(LIMIT_SWITCH_Y_TOP)) {
+    if (switchFilter4.isSwitchOn(LIMIT_SWITCH_Y_TOP)) {
       motorYEndCounts = positionY;
       break;
     }
@@ -799,7 +848,7 @@ void setToolPosition(double x, double y) {
          else false
 */
 void emergencyStop() {
-  if (EmergencySwitch.isSwitchOn(EMERGENCY_STOP_BUTTON)) {
+  if (emergencySwitch.isSwitchOn(EMERGENCY_STOP_BUTTON)) {
     terminateMotors();
     resetValves();
     changeStateTo(S_READY);

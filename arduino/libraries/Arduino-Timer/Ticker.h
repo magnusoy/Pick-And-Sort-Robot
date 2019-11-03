@@ -1,5 +1,5 @@
-#ifndef _TIMER_H_
-#define _TIMER_H_
+#ifndef _TICKER_H_
+#define _TICKER_H_
 
 #if (ARDUINO >= 100)
 #include "Arduino.h"
@@ -8,16 +8,16 @@
 #endif
 
 
-class Timer
+class Ticker
 {
 public:
-    Timer();
+    Ticker();
     bool hasTimerExpired();
     void startTimer(unsigned long duration);
 
 private:
     // Time for next timeout, in milliseconds
     unsigned long nextTimeout;
-}
+};
 
-#endif // _TIMER_H_
+#endif // _TICKER_H_

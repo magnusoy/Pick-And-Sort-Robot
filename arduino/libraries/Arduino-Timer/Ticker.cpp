@@ -1,9 +1,9 @@
-#include "Timer.h"
+#include "Ticker.h"
 
 /**
   Timer Constructor.
 */
-Timer::Timer() {}
+Ticker::Ticker() {}
 
 /**
    Starts the timer and set the timer to expire after the
@@ -11,7 +11,7 @@ Timer::Timer() {}
    
    @param duration The number of milliseconds until the timer expires.
 */
-void Timer::startTimer(unsigned long duration)
+void Ticker::startTimer(unsigned long duration)
 {
     this->nextTimeout = millis() + duration;
 }
@@ -23,7 +23,7 @@ void Timer::startTimer(unsigned long duration)
 
    @return true if timer has expired, false if not
 */
-bool Timer::hasTimerExpired()
+bool Ticker::hasTimerExpired()
 {
     return (millis() > this->nextTimeout) ? true : false;
 }
