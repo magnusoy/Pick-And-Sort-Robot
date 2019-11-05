@@ -45,6 +45,7 @@ ButtonTimer emergencySwitch(ACTIVE_END_SWITCH_DURATION);
 // Defining pick and drop timers
 Ticker pickAndDropTimer;
 Ticker vacuumTimer;
+Ticker completedTimer;
 
 #define ODRIVE_SERIAL Serial1 // RX, TX (0, 1)
 
@@ -79,6 +80,8 @@ int oldCommand = 0;
 int recCommand = 0;
 float targetXPixels = 0.0f;
 float targetYPixels = 0.0f;
+
+boolean vacuum_timer_started = false;
 
 // Manual control variables
 float inputX = 0.0f;
@@ -182,28 +185,31 @@ void loop() {
 
     case S_DROP_OBJECT:
       if (dropObject()) {
+        completedTimer.startTimer(2000);
         changeStateTo(S_COMPLETED);
       }
       break;
 
     case S_COMPLETED:
-      if (onTarget()) {
-        readJSONDocumentFromSerial();
+      readJSONDocumentFromSerial();
+      if (completedTimer.hasTimerExpired()) {
+        if (onTarget()) {
 
-        if (!areThereMoreObjects()) {
-          objectSorter(HOME);
-          setToolPosition(targetX, targetY);
-          changeStateTo(S_RESET);
-        } else if (targetXPixels == HOME_POSITION_X) {
-          targetX = convertFromPixelsToCountsX(targetXPixels);
-          targetY = convertFromPixelsToCountsY(targetYPixels);
-          setToolPosition(targetX, targetY);
-          changeStateTo(S_READY);
-        } else {
-          targetX = convertFromPixelsToCountsX(targetXPixels);
-          targetY = convertFromPixelsToCountsY(targetYPixels);
-          setToolPosition(targetX, targetY);
-          changeStateTo(S_MOVE_TO_OBJECT);
+          if (!areThereMoreObjects()) {
+            objectSorter(HOME);
+            setToolPosition(targetX, targetY);
+            changeStateTo(S_RESET);
+          } else if (targetXPixels == HOME_POSITION_X) {
+            targetX = convertFromPixelsToCountsX(targetXPixels);
+            targetY = convertFromPixelsToCountsY(targetYPixels);
+            setToolPosition(targetX, targetY);
+            changeStateTo(S_READY);
+          } else {
+            targetX = convertFromPixelsToCountsX(targetXPixels);
+            targetY = convertFromPixelsToCountsY(targetYPixels);
+            setToolPosition(targetX, targetY);
+            changeStateTo(S_MOVE_TO_OBJECT);
+          }
         }
       }
       break;
@@ -645,7 +651,11 @@ boolean pickObject() {
   if (pickAndDropTimer.hasTimerExpired()) {
     digitalWrite(PISTON_DOWN, LOW);
     digitalWrite(PISTON_UP, HIGH);
-    vacuumTimer.startTimer(VACCUM_DELAY_DURATION);
+    if (!vacuum_timer_started) {
+      vacuum_timer_started = true;
+      vacuumTimer.startTimer(VACCUM_DELAY_DURATION);
+    }
+
   } else {
     digitalWrite(PISTON_UP, LOW);
     digitalWrite(PISTON_DOWN, HIGH);
@@ -653,6 +663,7 @@ boolean pickObject() {
   }
   if ((pickAndDropTimer.hasTimerExpired()) && (vacuumTimer.hasTimerExpired())) {
     picked = true;
+    vacuum_timer_started = false;
   }
   return picked;
 }
@@ -669,13 +680,17 @@ boolean dropObject() {
     digitalWrite(PISTON_DOWN, LOW);
     digitalWrite(VACUUM, LOW);
     digitalWrite(PISTON_UP, HIGH);
-    vacuumTimer.startTimer(VACCUM_DELAY_DURATION);
+    if (!vacuum_timer_started) {
+      vacuum_timer_started = true;
+      vacuumTimer.startTimer(VACCUM_DELAY_DURATION);
+    }
   } else {
     digitalWrite(PISTON_UP, LOW);
     digitalWrite(PISTON_DOWN, HIGH);
   }
   if ((pickAndDropTimer.hasTimerExpired()) && (vacuumTimer.hasTimerExpired())) {
     dropped = true;
+    vacuum_timer_started = false;
   }
   return dropped;
 }

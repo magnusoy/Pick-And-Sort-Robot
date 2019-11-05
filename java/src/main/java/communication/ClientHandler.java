@@ -65,8 +65,11 @@ public class ClientHandler extends Thread {
                         break;
 
                     case "GET/Objects":
+                        long startT = System.nanoTime();
                         toReturn = this.database.getAllShapes().toList().toString();
                         this.dataOutputStream.writeUTF(toReturn);
+                        long stopT = System.nanoTime();
+                        System.out.println(stopT-startT);
                         break;
 
                     case "POST/Nothing":

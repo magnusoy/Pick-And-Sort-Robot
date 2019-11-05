@@ -37,5 +37,5 @@ if __name__ == "__main__":
         frame = rsds.get_frame()
 
         if len(frame) > 280:  # Check if resolution match
-            object_detector.run(frame, debug=True)
+            object_detector.run(frame, debug=False)
         cv2.waitKey(1)

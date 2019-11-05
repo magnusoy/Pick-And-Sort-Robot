@@ -15,7 +15,7 @@ import java.net.*;
  */
 public class RequestRemoteData {
 
-    private static final String REMOTE_URL = "http://83.243.253.223:5000/";  // End point
+    private static final String REMOTE_URL = "http://83.243.168.10:5000/";  // End point
     private URL url;                                                         // URL object
     private JSONArray content;                                               // Stores fetched data
 
@@ -36,7 +36,7 @@ public class RequestRemoteData {
      * Fetches data from the REST Server.
      * Stores the data as JSON in content.
      */
-    public synchronized void update() {
+    public void update() {
         JSONArray result = new JSONArray();
         HttpURLConnection conn = null;
         try {
@@ -75,7 +75,7 @@ public class RequestRemoteData {
      *
      * @return All of the stored data
      */
-    public synchronized JSONArray getAll() {
+    public JSONArray getAll() {
         return this.content;
     }
 
@@ -84,7 +84,7 @@ public class RequestRemoteData {
      *
      * @return number of json strings
      */
-    public synchronized int getSize() {
+    public int getSize() {
         return this.content.length();
     }
 
@@ -94,7 +94,7 @@ public class RequestRemoteData {
      * @param index where to extract object
      * @return JSONObject from given index.
      */
-    public synchronized JSONObject get(int index) {
+    public JSONObject get(int index) {
         String data;
         JSONObject jsonObject = null;
         if (this.content.length() > index) {
