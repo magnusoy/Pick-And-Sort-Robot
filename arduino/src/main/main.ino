@@ -31,9 +31,9 @@
 // Durations and intervals in millis
 #define UPDATE_SERIAL_INTERVAL 100
 #define ACTIVE_END_SWITCH_DURATION 15
-#define VACCUM_DELAY_DURATION 200
-#define PICK_DELAY_DURATION 200
-#define DROP_DELAY_DURATION 300
+#define VACCUM_DELAY_DURATION 400
+#define PICK_DELAY_DURATION 400
+#define DROP_DELAY_DURATION 400
 
 // Defining button filters
 ButtonTimer switchFilter1(ACTIVE_END_SWITCH_DURATION);
@@ -185,7 +185,7 @@ void loop() {
 
     case S_DROP_OBJECT:
       if (dropObject()) {
-        completedTimer.startTimer(2000);
+        completedTimer.startTimer(1000);
         changeStateTo(S_COMPLETED);
       }
       break;
@@ -320,9 +320,20 @@ void readJSONDocumentFromSerial() {
     objectType = obj["type"];
     objectsRemaining = obj["size"];
 
+    int offsetY = 0;
+    int offsetX = 2;
+    if ((objectType == 14) || (objectType == 13)) {
+      offsetY = 3;
+    }
+
     if (obj.containsKey("x")) {
       targetXPixels = obj["x"];
       targetYPixels = obj["y"];
+      if (targetXPixels > 220) {
+        offsetX = -2;
+      }
+      targetXPixels += offsetX;
+      targetYPixels += offsetY;
     } else {
       targetXPixels = HOME_POSITION_X;
       targetYPixels = HOME_POSITION_Y;
