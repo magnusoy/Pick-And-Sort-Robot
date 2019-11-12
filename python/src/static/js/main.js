@@ -1,7 +1,7 @@
 setInterval(function() {
   // load the data from your endpoint into the div
   $("#object_list").load("/objects");
-}, 1000);
+}, 100);
 
 setInterval(function() {
   // load the data from your endpoint into the div

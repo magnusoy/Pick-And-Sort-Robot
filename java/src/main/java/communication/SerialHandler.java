@@ -24,6 +24,7 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
     private static final String[] PORT_NAMES = {
             "COM8"// Windows
     };
+
     private SerialPort serialPort;                  // Serial object
     private BufferedReader input;                   // Read in from Serial
     private OutputStream output;                    // Write out to Serial

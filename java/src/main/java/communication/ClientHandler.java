@@ -8,7 +8,7 @@ import java.net.Socket;
 
 
 /**
- * ClientHandler uses a socket for communication with the server.
+ * ClientHandler uses a socket connection from the client.
  * Each client can GET and POST data. This makes it possible
  * to hand the commands to other processes and threads.
  */
@@ -21,12 +21,12 @@ public class ClientHandler extends Thread {
 
 
     /**
-     * ClientHandler constructor. Assign the given
-     * input- and outputstreams to the client.
+     * ClientHandler constructor.
      *
-     * @param socket           connected to the server
-     * @param dataInputStream  inputstream object
-     * @param dataOutputStream outputstream object
+     * @param socket           client connection
+     * @param dataInputStream  client inputstream
+     * @param dataOutputStream client outputstream
+     * @param database         shared resource
      */
     public ClientHandler(Socket socket, DataInputStream dataInputStream,
                          DataOutputStream dataOutputStream, Database database) {
@@ -37,8 +37,9 @@ public class ClientHandler extends Thread {
     }
 
     /**
-     * Starts a new thread that runs as long
-     * the client is connected to the server.
+     * This works as an API for the clients. Making them able to
+     * communicate fetch and send data to other resources within
+     * the application.
      */
     @Override
     public void run() {
@@ -55,7 +56,6 @@ public class ClientHandler extends Thread {
                 if (received.substring(2).startsWith("POST/Controller")) {
                     JSONObject controllerData = extractControllerInputs(received);
                     this.database.putXboxControllerData(controllerData);
-                    //return;
                 }
 
                 switch (received) {
@@ -70,79 +70,79 @@ public class ClientHandler extends Thread {
                         break;
 
                     case "POST/Nothing":
-                        this.database.setUserCommand(0);
+                        this.database.setUserCommand(Commands.NOTHING.ordinal());
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Start":
-                        this.database.setUserCommand(1);
+                        this.database.setUserCommand(Commands.START.ordinal());
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Stop":
-                        this.database.setUserCommand(2);
+                        this.database.setUserCommand(Commands.STOP.ordinal());
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Reset":
-                        this.database.setUserCommand(3);
+                        this.database.setUserCommand(Commands.RESET.ordinal());
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Manual":
-                        this.database.setUserCommand(4);
+                        this.database.setUserCommand(Commands.MANUAL_CONTROL.ordinal());
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Automatic":
-                        this.database.setUserCommand(5);
+                        this.database.setUserCommand(Commands.AUTOMATIC_CONTROL.ordinal());
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Calibrate":
-                        this.database.setUserCommand(6);
+                        this.database.setUserCommand(Commands.CALIBRATE.ordinal());
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Configure":
-                        this.database.setUserCommand(7);
+                        this.database.setUserCommand(Commands.CONFIGURE.ordinal());
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/All":
-                        this.database.putType(10);
+                        this.database.putType(Commands.ALL_OBJECTS.ordinal());
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Squares":
-                        this.database.putType(11);
+                        this.database.putType(Commands.SQUARES.ordinal());
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Circles":
-                        this.database.putType(12);
+                        this.database.putType(Commands.CIRCLES.ordinal());
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Rectangles":
-                        this.database.putType(13);
+                        this.database.putType(Commands.RECTANGLES.ordinal());
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;
 
                     case "POST/Triangles":
-                        this.database.putType(14);
+                        this.database.putType(Commands.TRIANGLES.ordinal());
                         toReturn = "received";
                         this.dataOutputStream.writeUTF(toReturn);
                         break;

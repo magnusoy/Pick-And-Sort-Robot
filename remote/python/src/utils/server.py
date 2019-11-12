@@ -7,8 +7,6 @@ import socket
 import struct
 import cv2
 
-from .file_handler import FileHandler
-
 
 class RemoteShapeDetectorServer:
     """This class is a TCP Server used to 
@@ -21,8 +19,6 @@ class RemoteShapeDetectorServer:
         self.initialize(host, port)
         self.data = b''
         self.payload_size = struct.calcsize("L")
-        self.data_reader = FileHandler(
-            "C:\\Users\\Petter\\Documents\\Pick-And-Sort-Robot\\resources\\remote\\objects.json")
 
     def initialize(self, host="0.0.0.0", port=8089):
         """Initializes the server."""

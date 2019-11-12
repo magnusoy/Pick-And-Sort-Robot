@@ -7,10 +7,11 @@
   Libraries used:
   Odrive - https://github.com/madcowswe/ODrive/tree/master/Arduino/ODriveArduino
   ArduinoJSON - https://github.com/bblanchon/ArduinoJson
+  ButtonTimer - https://github.com/magnusoy/Arduino-ButtonTimer-Library
   -----------------------------------------------------------
   Code by: Magnus Kvendseth Øye, Vegard Solheim, Petter Drønnen
-  Date: 14.10-2019
-  Version: 2.0
+  Date: 03.11-2019
+  Version: 2.4
   Website: https://github.com/magnusoy/Pick-And-Sort-Robot
 */
 
@@ -18,22 +19,33 @@
 // Including libraries
 #include <ODriveArduino.h>
 #include <ArduinoJson.h>
+#include <ButtonTimer.h>
+#include <Ticker.h>
 #include "IO.h"
 #include "OdriveParameters.h"
 #include "States.h"
 #include "Commands.h"
-#include "Errors.h"
+#include "CoordinatesAndOffsets.h"
 
 
-#define UPDATE_SERIAL_TIME 100 // In millis
-#define ACTIVE_END_SWITCH_TIME 10  // In millis
+// Durations and intervals in millis
+#define UPDATE_SERIAL_INTERVAL 100
+#define ACTIVE_END_SWITCH_DURATION 15
+#define VACCUM_DELAY_DURATION 400
+#define PICK_DELAY_DURATION 400
+#define DROP_DELAY_DURATION 400
 
-// For mapping pixels to counts
-#define AXIS_X_LOWER 40
-#define AXIS_X_HIGHER 26
-#define AXIS_Y_LOWER 480
-#define AXIS_Y_HIGHER 470
+// Defining button filters
+ButtonTimer switchFilter1(ACTIVE_END_SWITCH_DURATION);
+ButtonTimer switchFilter2(ACTIVE_END_SWITCH_DURATION);
+ButtonTimer switchFilter3(ACTIVE_END_SWITCH_DURATION);
+ButtonTimer switchFilter4(ACTIVE_END_SWITCH_DURATION);
+ButtonTimer emergencySwitch(ACTIVE_END_SWITCH_DURATION);
 
+// Defining pick and drop timers
+Ticker pickAndDropTimer;
+Ticker vacuumTimer;
+Ticker completedTimer;
 
 #define ODRIVE_SERIAL Serial1 // RX, TX (0, 1)
 
@@ -45,15 +57,9 @@ int motorPosition[] = {0, 0};
 
 // Time for next timeout, in milliseconds
 unsigned long nextTimeout = 0;
-unsigned long nextButtonTimeout = 0;
 
 // A variable holding the current state
 int currentState = S_READY; // S_IDLE
-
-// Errorcode
-int errCode = 0;
-
-int oldBtnState;
 
 // Position control
 float actualX = 0.0f;
@@ -66,10 +72,16 @@ float manualY = 0.0f;
 // Variables storing object data
 int objectType = 0;
 int objectsRemaining = 0;
+int numberOfPlacedSquares = 0;
+int numberOfPlacedCircles = 0;
+int numberOfPlacedRectangles = 0;
+int numberOfPlacedTriangles = 0;
 int oldCommand = 0;
 int recCommand = 0;
 float targetXPixels = 0.0f;
 float targetYPixels = 0.0f;
+
+boolean vacuum_timer_started = false;
 
 // Manual control variables
 float inputX = 0.0f;
@@ -107,6 +119,7 @@ void loop() {
   if (isCommandValid(STOP)) {
     changeStateTo(S_READY);
   }
+  flushSerial();
 
   // Read motor position at any given state
   readMotorPositions();
@@ -116,37 +129,40 @@ void loop() {
     case S_IDLE:
       readJSONDocumentFromSerial();
       if (isCommandValid(CALIBRATE)) {
-        changeStateTo(S_READY);
+        newChangeStateTo(S_READY);
       }
       break;
 
     case S_CALIBRATION:
       calibreateMotors();
-      changeStateTo(S_READY); // S_READY
+      changeStateTo(S_READY);
       break;
 
     case S_READY:
       readJSONDocumentFromSerial();
-      if (isCommandValid(START) ||
-          isCommandValid(AUTOMATIC_CONTROL)) {
-        targetX = convertFromPixelsToCountsX(targetXPixels);
-        targetY = convertFromPixelsToCountsY(targetYPixels);
-        changeStateTo(S_MOVE_TO_OBJECT);
+      if (isCommandValid(START) && isCommandChanged()) {
+        if ((areThereMoreObjects()) && (!isContainerFull(objectType))) {
+          targetX = convertFromPixelsToCountsX(targetXPixels);
+          targetY = convertFromPixelsToCountsY(targetYPixels);
+          setToolPosition(targetX, targetY);
+          newChangeStateTo(S_MOVE_TO_OBJECT);
+        }
       } else if (isCommandValid(MANUAL_CONTROL)) {
-        changeStateTo(S_MANUAL);
-      } else if (isCommandValid(CONFIGURE)) {
-        changeStateTo(S_CONFIGURE);
+        newChangeStateTo(S_MANUAL);
       } else if (isCommandValid(RESET)) {
-        changeStateTo(S_IDLE);
+        setMotorsInControlMode();
+        emptyContainers();
+        oldCommand = recCommand;
       }
       break;
 
     case S_MOVE_TO_OBJECT:
       updateManualPosition();
-      setMotorPosition(MOTOR_X, targetX);
-      setMotorPosition(MOTOR_Y, targetY);
-
+      if (isCommandValid(RESET)) {
+        newChangeStateTo(S_READY);
+      }
       if (onTarget()) {
+        pickAndDropTimer.startTimer(PICK_DELAY_DURATION);
         changeStateTo(S_PICK_OBJECT);
       }
       break;
@@ -154,43 +170,52 @@ void loop() {
     case S_PICK_OBJECT:
       if (pickObject()) {
         objectSorter(objectType);
+        setToolPosition(targetX, targetY);
         changeStateTo(S_MOVE_TO_DROP);
       }
       break;
 
     case S_MOVE_TO_DROP:
       updateManualPosition();
-      setMotorPosition(MOTOR_X, targetX);
-      setMotorPosition(MOTOR_Y, targetY);
-
       if (onTarget()) {
+        pickAndDropTimer.startTimer(DROP_DELAY_DURATION);
         changeStateTo(S_DROP_OBJECT);
       }
       break;
 
     case S_DROP_OBJECT:
-      if (dropObject()) changeStateTo(S_COMPLETED);
+      if (dropObject()) {
+        completedTimer.startTimer(1000);
+        changeStateTo(S_COMPLETED);
+      }
       break;
 
     case S_COMPLETED:
       readJSONDocumentFromSerial();
+      if (completedTimer.hasTimerExpired()) {
+        if (onTarget()) {
 
-      if (areThereMoreObjects()) {
-        objectSorter(0);
-        changeStateTo(S_RESET);
-      } else {
-        objectSorter(objectType);
-        targetX = convertFromPixelsToCountsX(targetXPixels);
-        targetY = convertFromPixelsToCountsY(targetYPixels);
-        changeStateTo(S_MOVE_TO_OBJECT);
+          if (!areThereMoreObjects()) {
+            objectSorter(HOME);
+            setToolPosition(targetX, targetY);
+            changeStateTo(S_RESET);
+          } else if (targetXPixels == HOME_POSITION_X) {
+            targetX = convertFromPixelsToCountsX(targetXPixels);
+            targetY = convertFromPixelsToCountsY(targetYPixels);
+            setToolPosition(targetX, targetY);
+            changeStateTo(S_READY);
+          } else {
+            targetX = convertFromPixelsToCountsX(targetXPixels);
+            targetY = convertFromPixelsToCountsY(targetYPixels);
+            setToolPosition(targetX, targetY);
+            changeStateTo(S_MOVE_TO_OBJECT);
+          }
+        }
       }
       break;
 
     case S_RESET:
       updateManualPosition();
-      setMotorPosition(MOTOR_X, targetX);
-      setMotorPosition(MOTOR_Y, targetY);
-
       if (onTarget()) {
         changeStateTo(S_READY);
       }
@@ -199,27 +224,27 @@ void loop() {
     case S_MANUAL:
       readJSONDocumentFromSerial();
 
-      manualX += (100 * inputX);
-      manualY += (100 * inputY);
+      manualX += (currentSpeed * inputX);
+      manualY += (currentSpeed * inputY);
       setMotorPosition(MOTOR_X, manualX);
       setMotorPosition(MOTOR_Y, manualY);
 
       setMotorSpeedFromController();
 
-      if (pick) pickObject();
-      if (drop) dropObject();
+      if (pick) manualPickObject();
+      if (drop) manualDropObject();
 
       if (isCommandValid(AUTOMATIC_CONTROL)) {
-        changeStateTo(S_READY);
+        newChangeStateTo(S_READY);
       } else if (isCommandValid(CONFIGURE)) {
-        changeStateTo(S_CONFIGURE);
+        newChangeStateTo(S_CONFIGURE);
       }
       break;
 
     case S_CONFIGURE:
       // TODO: Add ODrive configurations
       if (isCommandValid(RESET)) {
-        changeStateTo(S_IDLE);
+        newChangeStateTo(S_IDLE);
       }
       break;
 
@@ -229,8 +254,10 @@ void loop() {
       changeStateTo(S_IDLE);
       break;
   }
-  //edgeDetection();
-  writeToSerial(UPDATE_SERIAL_TIME);
+  updateManualPosition();
+  emergencyStop();
+  edgeDetection();
+  writeToSerial(UPDATE_SERIAL_INTERVAL);
 }
 
 /**
@@ -254,11 +281,25 @@ void sendJSONDocumentToSerial() {
   doc["state"] = currentState;
   doc["x"] = actualX;
   doc["y"] = actualY;
-  doc["error"] = errCode;
   doc["command"] = recCommand;
-  doc["manX"] = manualX;
   serializeJson(doc, Serial);
   Serial.print("\n");
+}
+
+/**
+  Reads content sent from the Teensy and
+  flushes it, as it is for no use.
+*/
+void flushSerial() {
+  if (Serial.available() > 0) {
+    const size_t capacity = 15 * JSON_ARRAY_SIZE(2) + JSON_ARRAY_SIZE(10) + 11 * JSON_OBJECT_SIZE(3) + 520;
+    DynamicJsonDocument doc(capacity);
+    DeserializationError error = deserializeJson(doc, Serial);
+    if (error) {
+      return;
+    }
+    JsonObject obj = doc.as<JsonObject>();
+  }
 }
 
 /**
@@ -272,20 +313,38 @@ void readJSONDocumentFromSerial() {
     if (error) {
       return;
     }
+
     JsonObject obj = doc.as<JsonObject>();
 
     recCommand = obj["command"];
     objectType = obj["type"];
     objectsRemaining = obj["size"];
 
-    targetXPixels = obj["x"];
-    targetYPixels = obj["y"];
+    int offsetY = 0;
+    int offsetX = 2;
+    if ((objectType == 14) || (objectType == 13)) {
+      offsetY = 3;
+    }
+
+    if (obj.containsKey("x")) {
+      targetXPixels = obj["x"];
+      targetYPixels = obj["y"];
+      if (targetXPixels > 220) {
+        offsetX = -2;
+      }
+      targetXPixels += offsetX;
+      targetYPixels += offsetY;
+    } else {
+      targetXPixels = HOME_POSITION_X;
+      targetYPixels = HOME_POSITION_Y;
+    }
 
     inputX = obj["manX"];
     inputY = obj["manY"];
     motorSpeed = obj["speed"];
     pick = obj["pick"];
     drop = obj["drop"];
+
   }
 }
 
@@ -319,10 +378,21 @@ boolean isCommandChanged() {
 
    @param newState The new state to set the statemachine to
 */
-void changeStateTo(int newState) {
-  if (isCommandChanged() || (newState == S_MANUAL)) {
+void newChangeStateTo(int newState) {
+  if (isCommandChanged()) {
+    oldCommand = recCommand;
     currentState = newState;
   }
+}
+
+/**
+   Change the state of the statemachine to the new state
+   given by the parameter newState
+
+   @param newState The new state to set the statemachine to
+*/
+void changeStateTo(int newState) {
+  currentState = newState;
 }
 
 /**
@@ -334,27 +404,6 @@ void changeStateTo(int newState) {
 */
 boolean timerHasExpired() {
   return (millis() > nextTimeout) ? true : false;
-}
-
-/**
-   Starts the timer and set the timer to expire after the
-   number of milliseconds given by the parameter duration.
-
-   @param duration The number of milliseconds until the timer expires.
-*/
-void startButtonTimer(unsigned long duration) {
-  nextButtonTimeout = millis() + duration;
-}
-
-/**
-   Checks if the timer has expired. If the timer has expired,
-   true is returned. If the timer has not yet expired,
-   false is returned.
-
-   @return true if timer has expired, false if not
-*/
-boolean buttonTimerHasExpired() {
-  return (millis() > nextButtonTimeout) ? true : false;
 }
 
 /**
@@ -377,7 +426,6 @@ void startSerial() {
   // Start Serial Communication
   Serial.begin(115200);
 }
-
 
 /**
   Calibreates motors.
@@ -403,6 +451,18 @@ void calibreateMotors() {
 
   readMotorPositions();
   updateManualPosition();
+}
+
+/**
+  Sets the motors in closed loop
+  control mode.
+*/
+void setMotorsInControlMode() {
+  int requested_state;
+  requested_state = ODriveArduino::AXIS_STATE_CLOSED_LOOP_CONTROL;
+  odrive.run_state(MOTOR_X, requested_state, false); // don't wait
+  requested_state = ODriveArduino::AXIS_STATE_CLOSED_LOOP_CONTROL;
+  odrive.run_state(MOTOR_Y, requested_state, false); // don't wait
 }
 
 /**
@@ -450,18 +510,16 @@ void configureMotors() {
 */
 void setMotorSpeedFromController() {
   if (motorSpeed != 0) {
-    currentSpeed += (100 * motorSpeed);
-    for (int axis = 0; axis < 2; ++axis) {
-      odrive.SetVelocity(axis, currentSpeed);
-    }
+    currentSpeed += (MOTOR_SPEED_MULTIPLIER * motorSpeed);
   }
-
+  currentSpeed = constrain(currentSpeed, MOTOR_SPEED_LOWER, MOTOR_SPEED_UPPER);
 }
 
 /**
   Initialize limit switches to inputs.
 */
 void initializeSwitches() {
+  pinMode(EMERGENCY_STOP_BUTTON, INPUT);
   pinMode(LIMIT_SWITCH_X_LEFT, INPUT);
   pinMode(LIMIT_SWITCH_X_RIGHT, INPUT);
   pinMode(LIMIT_SWITCH_Y_BOTTOM, INPUT);
@@ -482,14 +540,14 @@ void initializeValveOperations() {
   limit switch is pressed.
 */
 void edgeDetection() {
-  int buttonState1 = digitalRead(LIMIT_SWITCH_X_LEFT);
-  int buttonState2 = digitalRead(LIMIT_SWITCH_X_RIGHT);
-  int buttonState3 = digitalRead(LIMIT_SWITCH_Y_BOTTOM);
-  int buttonState4 = digitalRead(LIMIT_SWITCH_Y_TOP);
+  int buttonState1 = switchFilter1.isSwitchOn(LIMIT_SWITCH_X_LEFT);
+  int buttonState2 = switchFilter2.isSwitchOn(LIMIT_SWITCH_X_RIGHT);
+  int buttonState3 = switchFilter3.isSwitchOn(LIMIT_SWITCH_Y_BOTTOM);
+  int buttonState4 = switchFilter4.isSwitchOn(LIMIT_SWITCH_Y_TOP);
   if (buttonState1 || buttonState2
       || buttonState3 || buttonState4) {
     terminateMotors();
-    currentState = S_READY;
+    changeStateTo(S_READY);
   }
 }
 
@@ -508,32 +566,83 @@ void setPosition(float x, float y) {
 /**
   Assigns the drop coordinates based
   on the object type.
+
+  @param object is the type
 */
 void objectSorter(int object) {
-  switch (object) {
-    case 0:
+  int sortState = object - 10;
+  int x;
+  int y;
+  switch (sortState) {
+    case HOME:
       // Home position
-      setPosition(10000, 10000);
+      x = convertFromPixelsToCountsX(HOME_POSITION_X);
+      y = convertFromPixelsToCountsY(HOME_POSITION_Y);
+      setPosition(x, y);
       break;
 
-    case 1:
+    case SQUARE:
       // Square position
-      setPosition(10000, 10000);
+      if (numberOfPlacedSquares == 0) {
+        x = convertFromPixelsToCountsX(SQUARE_SORTED_X);
+        y = convertFromPixelsToCountsY(SQUARE_SORTED_Y);
+      } else if (numberOfPlacedSquares == 1) {
+        x = convertFromPixelsToCountsX(SQUARE_SORTED_X + 35);
+        y = convertFromPixelsToCountsY(SQUARE_SORTED_Y - 30);
+      } else {
+        x = convertFromPixelsToCountsX(HOME_POSITION_X);
+        y = convertFromPixelsToCountsY(HOME_POSITION_Y);
+      }
+      setPosition(x, y);
+      numberOfPlacedSquares += 1;
       break;
 
-    case 2:
+    case CIRCLE:
       // Circle position
-      setPosition(10000, 10000);
+      if (numberOfPlacedCircles == 0) {
+        x = convertFromPixelsToCountsX(CIRCLE_SORTED_X);
+        y = convertFromPixelsToCountsY(CIRCLE_SORTED_Y);
+      } else if (numberOfPlacedCircles == 1) {
+        x = convertFromPixelsToCountsX(CIRCLE_SORTED_X + 35);
+        y = convertFromPixelsToCountsY(CIRCLE_SORTED_Y - 30);
+      } else {
+        x = convertFromPixelsToCountsX(HOME_POSITION_X);
+        y = convertFromPixelsToCountsY(HOME_POSITION_Y);
+      }
+      setPosition(x, y);
+      numberOfPlacedCircles += 1;
       break;
 
-    case 3:
+    case RECTANGLE:
       // Rectangle position
-      setPosition(10000, 10000);
+      if (numberOfPlacedRectangles == 0) {
+        x = convertFromPixelsToCountsX(RECTANGLE_SORTED_X);
+        y = convertFromPixelsToCountsY(RECTANGLE_SORTED_Y);
+      } else if (numberOfPlacedRectangles == 1) {
+        x = convertFromPixelsToCountsX(RECTANGLE_SORTED_X + 35);
+        y = convertFromPixelsToCountsY(RECTANGLE_SORTED_Y - 30 );
+      } else {
+        x = convertFromPixelsToCountsX(HOME_POSITION_X);
+        y = convertFromPixelsToCountsY(HOME_POSITION_Y);
+      }
+      setPosition(x, y);
+      numberOfPlacedRectangles += 1;
       break;
 
-    case 4:
+    case TRIANGLE:
       // Triangle position
-      setPosition(10000, 10000);
+      if (numberOfPlacedTriangles == 0) {
+        x = convertFromPixelsToCountsX(TRIANGLE_SORTED_X);
+        y = convertFromPixelsToCountsY(TRIANGLE_SORTED_Y);
+      } else if (numberOfPlacedTriangles == 1) {
+        x = convertFromPixelsToCountsX(TRIANGLE_SORTED_X + 35);
+        y = convertFromPixelsToCountsY(TRIANGLE_SORTED_Y - 30 );
+      } else {
+        x = convertFromPixelsToCountsX(HOME_POSITION_X);
+        y = convertFromPixelsToCountsY(HOME_POSITION_Y);
+      }
+      setPosition(x, y);
+      numberOfPlacedTriangles += 1;
       break;
 
     default:
@@ -544,28 +653,83 @@ void objectSorter(int object) {
 
 /**
   Pick object sequence.
+
+  @return true when completed
 */
 boolean pickObject() {
-  digitalWrite(PISTON_UP, LOW);
-  digitalWrite(PISTON_DOWN, HIGH);
-  digitalWrite(VACUUM, HIGH);
-  delay(20);
-  digitalWrite(PISTON_DOWN, LOW);
-  digitalWrite(PISTON_UP, HIGH);
-  return true;
+  boolean picked = false;
+
+  if (pickAndDropTimer.hasTimerExpired()) {
+    digitalWrite(PISTON_DOWN, LOW);
+    digitalWrite(PISTON_UP, HIGH);
+    if (!vacuum_timer_started) {
+      vacuum_timer_started = true;
+      vacuumTimer.startTimer(VACCUM_DELAY_DURATION);
+    }
+
+  } else {
+    digitalWrite(PISTON_UP, LOW);
+    digitalWrite(PISTON_DOWN, HIGH);
+    digitalWrite(VACUUM, HIGH);
+  }
+  if ((pickAndDropTimer.hasTimerExpired()) && (vacuumTimer.hasTimerExpired())) {
+    picked = true;
+    vacuum_timer_started = false;
+  }
+  return picked;
 }
 
 /**
   Drop object sequence.
+
+  @return true when completed
 */
 boolean dropObject() {
+  boolean dropped = false;
+
+  if (pickAndDropTimer.hasTimerExpired()) {
+    digitalWrite(PISTON_DOWN, LOW);
+    digitalWrite(VACUUM, LOW);
+    digitalWrite(PISTON_UP, HIGH);
+    if (!vacuum_timer_started) {
+      vacuum_timer_started = true;
+      vacuumTimer.startTimer(VACCUM_DELAY_DURATION);
+    }
+  } else {
+    digitalWrite(PISTON_UP, LOW);
+    digitalWrite(PISTON_DOWN, HIGH);
+  }
+  if ((pickAndDropTimer.hasTimerExpired()) && (vacuumTimer.hasTimerExpired())) {
+    dropped = true;
+    vacuum_timer_started = false;
+  }
+  return dropped;
+}
+
+/**
+  Manual Pick object sequence.
+*/
+void manualPickObject() {
   digitalWrite(PISTON_UP, LOW);
   digitalWrite(PISTON_DOWN, HIGH);
-  digitalWrite(VACUUM, LOW);
-  delay(20);
+  digitalWrite(VACUUM, HIGH);
+  delay(200);
   digitalWrite(PISTON_DOWN, LOW);
   digitalWrite(PISTON_UP, HIGH);
-  return true;
+  delay(300);
+}
+
+/**
+  Manual Drop object sequence.
+*/
+void manualDropObject() {
+  digitalWrite(PISTON_UP, LOW);
+  digitalWrite(PISTON_DOWN, HIGH);
+  delay(200);
+  digitalWrite(PISTON_DOWN, LOW);
+  digitalWrite(VACUUM, LOW);
+  digitalWrite(PISTON_UP, HIGH);
+  delay(200);
 }
 
 /**
@@ -581,23 +745,31 @@ void resetValves() {
 /**
   Converts pixels to counts,
   mapped to X-Axis
+
+  @param pixels, raw pixels from
+         camera in Y axis
+
+  @return pixels mapped to counts
 */
 int convertFromPixelsToCountsX(int pixels) {
-  int inputX = constrain(pixels, AXIS_X_LOWER, AXIS_X_HIGHER);
-  int outputX = map(inputX, AXIS_X_LOWER, AXIS_X_HIGHER, encoderXOffset, motorXEndCounts);
-  return outputX;
+  int outputX = map(pixels, AXIS_X_LOWER, AXIS_X_HIGHER, encoderXOffset - TOOL_OFFSET_X, motorXEndCounts + TOOL_OFFSET_X);
+  outputX = constrain(outputX, encoderXOffset, motorXEndCounts);
+  return outputX + OFFSET_X;
 }
 
 /**
   Converts pixels to counts,
   mapped to Y-Axis
+
+  @param pixels, raw pixels from
+         camera in Y axis
+
+  @return pixels mapped to counts
 */
 int convertFromPixelsToCountsY(int pixels) {
-  int inputY = constrain(pixels, AXIS_Y_LOWER, AXIS_Y_HIGHER);
-  int outputY = map(inputY, AXIS_Y_LOWER, AXIS_Y_HIGHER, motorYEndCounts, encoderYOffset);
-  return outputY;
+  int outputY = map(pixels, AXIS_Y_LOWER, AXIS_Y_HIGHER, encoderYOffset + TOOL_OFFSET_Y, motorYEndCounts - TOOL_OFFSET_Y);
+  return outputY + OFFSET_Y;
 }
-
 /**
   Stop motors immediately.
 */
@@ -626,9 +798,9 @@ void updateManualPosition() {
          else false
 */
 boolean onTarget() {
-  float errorX = abs(targetX - actualX);
-  float errorY = abs(targetY - actualY);
-  return ((errorX == 0) && (errorY == 0)) ? true : false;
+  int errorX = abs(targetX - actualX);
+  int errorY = abs(targetY - actualY);
+  return ((errorX < 75) && (errorY < 75)) ? true : false;
 }
 
 /**
@@ -648,64 +820,125 @@ boolean areThereMoreObjects() {
   the offset.
 */
 void encoderCalibration() {
-  for (int counts = 0; counts > -80000; counts -= 5) {
-    if (digitalRead(LIMIT_SWITCH_X_LEFT)) {
+  for (int counts = 0; counts > -80000; counts -= 10) {
+    if (switchFilter1.isSwitchOn(LIMIT_SWITCH_X_LEFT)) {
       encoderXOffset = counts;
       break;
     }
     setMotorPosition(MOTOR_X, counts);
   }
-  for (int counts = 0; counts < 80000; counts += 5) {
-    if (digitalRead(LIMIT_SWITCH_Y_BOTTOM)) {
+  for (int counts = 0; counts < 80000; counts += 10) {
+    if (switchFilter2.isSwitchOn(LIMIT_SWITCH_Y_BOTTOM)) {
       encoderYOffset = counts;
       break;
     }
     setMotorPosition(MOTOR_Y, counts);
   }
-  for (int counts = 0; counts < 80000; counts += 5) {
+  for (int counts = 0; counts < 80000; counts += 10) {
     int positionX = encoderXOffset + counts;
 
-    if (digitalRead(LIMIT_SWITCH_X_RIGHT)) {
+    if (switchFilter3.isSwitchOn(LIMIT_SWITCH_X_RIGHT)) {
       motorXEndCounts = positionX;
       break;
     }
     setMotorPosition(MOTOR_X, positionX);
   }
-  for (int counts = 0; counts > -80000; counts -= 5) {
+  for (int counts = 0; counts > -120000; counts -= 10) {
     int positionY = encoderYOffset + counts;
-    if (isSwitchOn(LIMIT_SWITCH_Y_TOP)) {
+    if (switchFilter4.isSwitchOn(LIMIT_SWITCH_Y_TOP)) {
       motorYEndCounts = positionY;
       break;
     }
     setMotorPosition(MOTOR_Y, positionY);
   }
+  delay(500);
+  setMotorPosition(MOTOR_X, encoderXOffset + 38000);
+  setMotorPosition(MOTOR_Y, encoderYOffset - 4000);
 }
 
 /**
-  Check if a switch is HIGH for longer
-  than the given duration.
+  Sets both of the motors to the given positions.
 
-  @param btn, end switch
-
-  @return true if its high over the
-          exceeded time limit,
-          else false
+  @param x, x - axis set point
+  @param y, y - axis set point
 */
-boolean isSwitchOn(int btn) {
-  int btnState = digitalRead(btn);
-  if (btnState != oldBtnState) {
-    oldBtnState = btnState;
-    startButtonTimer(ACTIVE_END_SWITCH_TIME);
-  }
-  return ((buttonTimerHasExpired()) && (btnState)) ? true : false;
+void setToolPosition(double x, double y) {
+  setMotorPosition(MOTOR_X, x);
+  setMotorPosition(MOTOR_Y, y);
 }
 
+/**
+  Checks if emergency stop is pressed.
+
+  @return true if pressed,
+         else false
+*/
+void emergencyStop() {
+  if (emergencySwitch.isSwitchOn(EMERGENCY_STOP_BUTTON)) {
+    terminateMotors();
+    resetValves();
+    changeStateTo(S_READY);
+  }
+}
+
+/**
+  Reset the number of stored objects
+  in the containers.
+*/
+void emptyContainers() {
+  numberOfPlacedSquares = 0;
+  numberOfPlacedCircles = 0;
+  numberOfPlacedRectangles = 0;
+  numberOfPlacedTriangles = 0;
+}
+
+/**
+  Checks if the type to be sorted is full.
+
+  @param type as integer
+
+  @return full, true if it is full
+                else false
+*/
+boolean isContainerFull(int type) {
+  boolean full = false;
+  int typeState = type - 10;
+  switch (typeState) {
+    case SQUARE:
+      if (numberOfPlacedSquares >= 2) {
+        full = true;
+      }
+      break;
+
+    case CIRCLE:
+      if (numberOfPlacedCircles >= 2) {
+        full = true;
+      }
+      break;
+
+    case RECTANGLE:
+      if (numberOfPlacedRectangles >= 2) {
+        full = true;
+      }
+      break;
+
+    case TRIANGLE:
+      if (numberOfPlacedTriangles >= 2) {
+        full = true;
+      }
+      break;
+
+    default:
+      break;
+  }
+  return full;
+}
 
 /**
   Template for printing
   to ODrive v3.6
 */
-template<class T> inline Print& operator <<(Print &obj,     T arg) {
+template<class T> inline Print& operator <<(Print & obj,     T arg) {
   obj.print(arg);
   return obj;
 }
@@ -714,7 +947,7 @@ template<class T> inline Print& operator <<(Print &obj,     T arg) {
   Template for printing
   to ODrive v3.6
 */
-template<>        inline Print& operator <<(Print &obj, float arg) {
+template<>        inline Print& operator <<(Print & obj, float arg) {
   obj.print(arg, 4);
   return obj;
 }

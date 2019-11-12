@@ -53,7 +53,7 @@ class RemoteShapeDetector(Thread):
         """Convert and send frame as bytes."""
         self.frame = self.video_camera.run()
         # Create a region of interest that excludes the sorted zone
-        roi = self.frame[100: 480, 0: 460]
+        roi = self.frame[150: 480, 0: 460]
         data = pickle.dumps(roi)
         # Change to "L" if windows <-> Windows
         message_size = struct.pack("=L", len(data))
@@ -95,18 +95,6 @@ class RemoteShapeDetector(Thread):
         """ Returns current videoframe."""
         _, jpeg = cv2.imencode('.jpg', self.frame)
         return jpeg.tobytes()
-
-
-"""
-# Example of usage
-if __name__ == "__main__":
-    detector = RemoteShapeDetector('83.243.219.245', 8089)  # 83.243.219.245
-    detector.connect()
-    while True:
-        detector.runEverything()
-        cv2.imshow("show", detector.frame)
-        cv2.waitKey(1)
-"""
 
 
 # Example of usage

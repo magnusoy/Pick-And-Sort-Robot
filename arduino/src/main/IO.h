@@ -12,4 +12,7 @@ const int PISTON_DOWN = 6;
 const int PISTON_UP = 7;
 const int VACUUM = 8;
 
+// Defining emergency stop
+const int EMERGENCY_STOP_BUTTON = 10;
+
 #endif // _IO_H 

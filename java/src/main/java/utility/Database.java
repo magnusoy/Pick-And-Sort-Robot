@@ -19,6 +19,7 @@ public class Database {
     private final ControllerHandler controllerHandler;  // Parses data from Xbox controller
     private JSONObject jsonFromTeensy;                  // JSON format of the tracked object
     private JSONObject jsonToTeensy;                    // JSON format of the data that the Teensy will have
+    private int cycle;
 
     /**
      * Database constructor, initializes the variables
@@ -113,8 +114,8 @@ public class Database {
             this.jsonToTeensy.put("drop", this.controllerHandler.getButtonX());
         }
         this.jsonToTeensy.put("size", this.movementPlanner.getSize());
-        System.out.println(this.jsonFromTeensy.toString());
-        //System.out.println(this.jsonToTeensy.toString());
+        //System.out.println(this.jsonFromTeensy.toString());
+        System.out.println(this.jsonToTeensy.toString() + cycle++);
         return this.jsonToTeensy;
     }
 }

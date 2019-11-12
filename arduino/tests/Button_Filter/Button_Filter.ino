@@ -1,10 +1,10 @@
-#define ACTIVE_END_SWITCH_TIME 10  // In millis
+#define ACTIVE_END_SWITCH_TIME 1000  // In millis
 
 // Defining button pin
-const int BTN = 2;
+const int BTN = 3;
 
 // Time for next timeout, in milliseconds
-unsigned long nextButtonTimeout = 0; ¨
+unsigned long nextButtonTimeout = 0;
 
 // Storing old button state
 int oldBtnState;
