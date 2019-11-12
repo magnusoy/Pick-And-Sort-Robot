@@ -1,6 +1,5 @@
-import com.github.strikerx3.jxinput.XInputDevice;
-import com.github.strikerx3.jxinput.XInputDevice14;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -8,26 +7,17 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
-
 import java.util.Optional;
 
 public class Main extends Application {
-
-    private static XInputDevice14 device = null;
-
 
     public static void main(String[] args){
         launch(args);
     }
 
-    public static XInputDevice getDevice(){
-        return device;
-    }
-
     public void start(Stage primaryStage) throws Exception {
 
         Parent root = FXMLLoader.load(getClass().getResource("xboxClientGUI.fxml"));
-
         primaryStage.setTitle("Xbox Controller Client");
         primaryStage.setScene(new Scene(root, 800, 600));
         primaryStage.show();
@@ -43,7 +33,8 @@ public class Main extends Application {
         primaryStage.setOnCloseRequest(event -> {
             event.consume();
             closeDialog(primaryStage);
-
+            Platform.exit();
+            System.exit(0);
         });
     }
 
@@ -52,7 +43,11 @@ public class Main extends Application {
      * @param primaryStage the Stage to confirm close for.
      */
     private static void closeDialog(Stage primaryStage){
-        if (confirmBox("Xbox Client",null, "Are you sure you want to quit?")){
+        String title = "Xbox Client";
+        String content = "Are you sure you want to quit?";
+        String header = "";
+
+        if (confirmBox(title, header, content)){
             primaryStage.close();
         }
     }
@@ -75,14 +70,12 @@ public class Main extends Application {
         alert.setContentText(content);
 
         Optional<ButtonType> result = alert.showAndWait();
-
-        if (result.get() == ButtonType.OK){
-            answer = true;
-        }else {
-            answer = false;
+        if (result.isPresent()){
+            if (result.get() == ButtonType.OK){
+                answer = true;
+            }
         }
 
         return answer;
     }
-
 }

@@ -7,7 +7,8 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="org.json:json:20190722" level="project" />
+    <orderEntry type="library" exported="" name="org.json:json:20190722" level="project" />
     <orderEntry type="library" name="jxinput-1.0.0" level="project" />
+    <orderEntry type="library" name="org.controlsfx:controlsfx:8.40.15" level="project" />
   </component>
 </module>
