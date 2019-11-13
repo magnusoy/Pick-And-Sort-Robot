@@ -75,20 +75,23 @@ public class Controller {
      */
     private ControllerListener controllerListener = new ControllerListener() {
         @Override
-        public void gotData(StorageBox<JSONObject> jsonObject) {
+        public void gotData(StorageBox<JSONObject> storageBox) {
 
-            String jsonString = jsonObject.get().toString(2);
-            // Update xbox console from GUI thread
-            Platform.runLater(() -> xboxConsoleTextArea.setText(jsonString));
+            JSONObject jsonObject  = storageBox.get();
 
-            if (connectedToServer){ // Send data to remote server only if its connected
-                try {
-                    client.send(jsonString);
-                }catch (Exception e){
-                    connectedToServer = false;
-                    console.println("Could not reach server.. Please reconnect.");
+            Platform.runLater(() -> {
+                // Update xbox console from GUI thread
+                xboxConsoleTextArea.setText(jsonObject.toString(2));
+                if (connectedToServer){ // Send data to remote server only when connected
+                    try {
+                        client.send(jsonObject.toString());
+                    }catch (Exception e){
+                        connectedToServer = false;
+                        console.println("Could not reach server.. Please reconnect.");
+                        connectToServer(); // Disconnect from server
+                    }
                 }
-            }
+            });
         }
 
         @Override
