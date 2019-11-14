@@ -164,6 +164,7 @@ public class ClientHandler extends Thread {
                     this.dataOutputStream.close();
                     this.socket.close();
                     System.err.println("Lost connection: " + this.socket);
+                    e.printStackTrace();
                     break;
                 } catch (IOException ex) {
                     ex.printStackTrace();

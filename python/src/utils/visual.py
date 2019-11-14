@@ -13,8 +13,8 @@ class FrameDrawer():
         self.shapecolor = (0, 165, 255)
         self.circlethickness = 2
         self.linethickness = 2
-        self.linebegin = (5, 150)  # x1, y1
-        self.lineend = (460, 150)  # x2, , y2
+        self.linebegin = (83, 150)  # x1, y1
+        self.lineend = (373, 150)  # x2, , y2
         self.linecolor = (0, 255, 0)
         self.font = cv2.FONT_HERSHEY_SIMPLEX
         self.fontscale = 0.5
@@ -37,9 +37,9 @@ class FrameDrawer():
         resolution = 285
         cv2.line(result, self.linebegin, self.lineend,
                  self.linecolor, self.linethickness)
-        cv2.line(result, (int(resolution*0.01), 150), (int(resolution*0.01), 0),
+        cv2.line(result, (int(resolution*0.29), 400), (int(resolution*1.31), 400),
                  self.linecolor, self.linethickness)
-        cv2.line(result, (int(resolution*0.29), 150), (int(resolution*0.29), 0),
+        cv2.line(result, (int(resolution*0.29), 400), (int(resolution*0.29), 0),
                  self.linecolor, self.linethickness)
         cv2.line(result, (int(resolution*0.57), 150), (int(resolution*0.57), 0),
                  self.linecolor, self.linethickness)
@@ -47,9 +47,7 @@ class FrameDrawer():
                  self.linecolor, self.linethickness)
         cv2.line(result, (int(resolution*1.06), 150), (int(resolution*1.06), 0),
                  self.linecolor, self.linethickness)
-        cv2.line(result, (int(resolution*1.31), 150), (int(resolution*1.31), 0),
-                 self.linecolor, self.linethickness)
-        cv2.line(result, (int(resolution*1.62), 150), (int(resolution*1.62), 0),
+        cv2.line(result, (int(resolution*1.31), 400), (int(resolution*1.31), 0),
                  self.linecolor, self.linethickness)
         cv2.putText(result, "Rectangle", (84, 20), self.font,
                     self.fontscale, self.fontcolor, self.linethickness)

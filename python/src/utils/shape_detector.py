@@ -102,15 +102,15 @@ if __name__ == "__main__":
     from visual import FrameDrawer
     from formater import JsonConverter
 
-    vc = VideoCamera()
+    vc = VideoCamera(1)
     drawer = FrameDrawer()
-    converter = JsonConverter()
-    obj = '["{"object": 0, "type": "triangle", "x": 203, "y": 256, "probability": "99"}, {"object": 1, "type": "rectangle", "x": 105, "y": 78, "probability": "91"}, "]'
+    #converter = JsonConverter()
+    #obj = '["{"object": 0, "type": "triangle", "x": 203, "y": 256, "probability": "99"}, {"object": 1, "type": "rectangle", "x": 105, "y": 78, "probability": "91"}, "]'
 
     while True:
         frame = vc.run()
-        data = converter.convert_to_json(obj)
+        #data = converter.convert_to_json(obj)
         result1 = drawer.draw_containers(frame)
-        result2 = drawer.draw_circles(result1, data)
-        cv2.imshow("show", result2)
+     #   result2 = drawer.draw_circles(result1, data)
+        cv2.imshow("show", result1)
         cv2.waitKey(1)

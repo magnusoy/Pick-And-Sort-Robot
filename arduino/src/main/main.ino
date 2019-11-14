@@ -48,7 +48,6 @@ Ticker vacuumTimer;
 Ticker completedTimer;
 
 #define ODRIVE_SERIAL Serial1 // RX, TX (0, 1)
-
 // ODrive object
 ODriveArduino odrive(ODRIVE_SERIAL);
 
@@ -185,7 +184,7 @@ void loop() {
 
     case S_DROP_OBJECT:
       if (dropObject()) {
-        completedTimer.startTimer(1000);
+        completedTimer.startTimer(500);
         changeStateTo(S_COMPLETED);
       }
       break;
@@ -471,13 +470,9 @@ void setMotorsInControlMode() {
   variable.
 */
 void readMotorPositions() {
-  static const unsigned long duration = 5;
-  unsigned long start = millis();
-  while (millis() - start < duration) {
-    for (int motorNumber = 0; motorNumber < 2; ++motorNumber) {
-      ODRIVE_SERIAL << "r axis" << motorNumber << ".encoder.pos_estimate\n";
-      motorPosition[motorNumber] = odrive.readFloat();
-    }
+  for (int motorNumber = 0; motorNumber < 2; ++motorNumber) {
+    ODRIVE_SERIAL << "r axis" << motorNumber << ".encoder.pos_estimate\n";
+    motorPosition[motorNumber] = odrive.readFloat();
   }
   actualX = motorPosition[0];
   actualY = motorPosition[1];
@@ -717,6 +712,8 @@ void manualPickObject() {
   digitalWrite(PISTON_DOWN, LOW);
   digitalWrite(PISTON_UP, HIGH);
   delay(300);
+  pick = false;
+  drop = false;
 }
 
 /**
@@ -730,6 +727,8 @@ void manualDropObject() {
   digitalWrite(VACUUM, LOW);
   digitalWrite(PISTON_UP, HIGH);
   delay(200);
+  pick = false;
+  drop = false;
 }
 
 /**
