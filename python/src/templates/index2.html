@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+  {% block head %}
+  <!-- Header content -->
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="description" content="Pick-and-Sort-Robot Controlpanel" />
+  <meta name="author" content="magnusoy" />
+  <title>Pick-and-Sort-Robot</title>
+  <link rel='icon' href="{{ url_for('static', filename='assets/icons/favicon.png') }}" type='image/x-icon'/ >
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <!-- Cemantic core -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.css"
+    />
+  {% endblock %}
+</head>
+<body>
+
+  <div class="ui text container center aligned page">
+      <h1 class="ui dividing header">Pick and Sort Robot</h1>
+      <div class="ui horizontal buttons">
+            <form>
+                <a href=# id=all><button class="primary ui button active">All</button></a>
+                <a href=# id=squares><button class="primary ui button">Squares</button></a>
+                <a href=# id=circles><button class="primary ui button">Circles</button></a>
+                <a href=# id=triangles><button class="primary ui button">Triangles</button></a>
+                <a href=# id=rectangles><button class="primary ui button">Rectangles</button></a>
+            </form>
+      </div>
+
+      <h2 class="first">Control operations</h2>
+      <div class="ui horizontal buttons">
+        <form>
+            <a href=# id=start><button class="positive massive ui button">Start</button></a>
+            <a href=# id=stop><button class="negative massive ui button">Stop</button></a>
+            <a href=# id=reset><button class="yellow massive ui button">Reset</button></a>
+        </form>
+      </div>
+      <form>
+            <a href=# id=manual><button class="secondary huge ui button">Manual override</button></a>
+            <a href=# id=calibrate><button class="secondary huge ui button">Calibrate motors</button></a>
+      </form>
+  </div>
+
+  <script type=text/javascript>
+    $(function() {
+      $('a#start').bind('click', function() {
+        $.getJSON('/start',
+            function(data) {
+          //do nothing
+        });
+    return false;
+  });
+});
+$(function() {
+      $('a#stop').bind('click', function() {
+        $.getJSON('/stop',
+            function(data) {
+          //do nothing
+        });
+    return false;
+  });
+});
+$(function() {
+      $('a#reset').bind('click', function() {
+        $.getJSON('/reset',
+            function(data) {
+          //do nothing
+        });
+    return false;
+  });
+});
+$(function() {
+      $('a#calibrate').bind('click', function() {
+        $.getJSON('/calibrate',
+            function(data) {
+          //do nothing
+        });
+    return false;
+  });
+});
+$(function() {
+      $('a#manual').bind('click', function() {
+        $.getJSON('/manual',
+            function(data) {
+          //do nothing
+        });
+    return false;
+  });
+});
+$(function() {
+      $('a#automatic').bind('click', function() {
+        $.getJSON('/automatic',
+            function(data) {
+          //do nothing
+        });
+    return false;
+  });
+});
+$(function() {
+      $('a#all').bind('click', function() {
+        $.getJSON('/all',
+            function(data) {
+          //do nothing
+        });
+    return false;
+  });
+});
+$(function() {
+      $('a#circles').bind('click', function() {
+        $.getJSON('/circles',
+            function(data) {
+          //do nothing
+        });
+    return false;
+  });
+});
+$(function() {
+      $('a#squares').bind('click', function() {
+        $.getJSON('/squares',
+            function(data) {
+          //do nothing
+        });
+    return false;
+  });
+});
+$(function() {
+      $('a#rectangles').bind('click', function() {
+        $.getJSON('/rectangles',
+            function(data) {
+          //do nothing
+        });
+    return false;
+  });
+});
+$(function() {
+      $('a#triangles').bind('click', function() {
+        $.getJSON('/triangles',
+            function(data) {
+          //do nothing
+        });
+    return false;
+  });
+});
+</script>
+
+  <div class="ui container center aligned page">
+    <!-- <img id="video" class="center aligned page" src="{{ url_for('video_viewer') }}" /> -->
+      <img class="centered" src="https://images.pexels.com/photos/998641/pexels-photo-998641.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" alt="">
+  </div>
+
+
+  <div id="object_list">{{ objects }}</div>  
+
+  <div id="debug" class="ui text container center aligned page">
+        <div class="ui horizontal buttons">
+            <form>
+                <a href=/states id=debug><button class="black massive ui button">Debug</button></a>
+            </form>
+        </div>
+    </div>
+    {% endblock %}
+
+    <!-- Javascripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+
+  {% block footer %}
+  <!-- Footer content -->
+<footer id="footer" class="ui inverted vertical segment">
+    Graphical User Interface for Pick-and-Sort-Robot by
+    <a href="https://github.com/magnusoy/Pick-And-Sort-Robot">
+      Real Time Programming Course, Group 3</a>.
+</footer>
+  {% endblock %}
+
+<style type="text/css">
+
+/* Some basic formatting */
+code {
+  background-color: #E0E0E0;
+  padding: 0.25em 0.3em;
+  font-family: 'Lato';
+  font-weight: bold;
+}
+.container {
+  padding: 2em 0em;
+}
+
+.centered {
+  position: fixed;
+  left: 34%;
+}
+
+#footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 40px; /* Height of the footer */
+}
+
+#debug {
+  position: absolute;
+  bottom: 10%;
+  left: 19%;
+  width: 100%;
+  height: 40px; /* Height of the footer */
+}
+
+.ui.dividing.header,
+.first {
+  margin-top: 2em;
+}
+
+.ui.dividing.header:first-child {
+  margin-top: 0em;
+}
+
+h1,
+h3 {
+  margin-top: 10em;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+img + img {
+  margin-top: 0.5em;
+}
+
+/* Shows content box (not negative margins) */
+.grid {
+  position: relative;
+}
+.grid:before {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background-color: #F0F0F0;
+  content: '';
+  width: calc(100% - 2rem);
+  height: calc(100% - 2rem);
+  box-shadow: 0px 0px 0px 1px #DDDDDD inset;
+}
+.ui.divided.grid:before,
+.celled.grid:before {
+  display: none;
+}
+.ui.aligned .column:after {
+  display: none !important;
+}
+.grid .column:not(.row):not(.grid):after {
+  background-color: rgba(86, 61, 124, .15);
+  box-shadow: 0px 0px 0px 1px rgba(86, 61, 124, 0.2) inset;
+  content: "";
+  display: block;
+  min-height: 50px;
+}
+@media only screen and (max-width: 768px) {
+  .stackable.grid:before {
+    width: 100%;
+    left: 0em;
+  }
+}
+</style>
+
+</html>
