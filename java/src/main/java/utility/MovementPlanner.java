@@ -2,6 +2,7 @@ package main.java.utility;
 
 import main.java.communication.Commands;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Iterator;
@@ -87,9 +88,10 @@ public class MovementPlanner {
             }
             if (this.shapeType != 10) {
                 JSONArray jsonArray = this.remoteData.getAll();
-                shape = this.getShapeByType(shapeType, jsonArray);
+                temp = this.getShapeByType(shapeType, jsonArray);
             }
             assert temp != null;
+
             shape = parseObjectType(temp);
         } else {
             shape = new JSONObject();
@@ -106,23 +108,26 @@ public class MovementPlanner {
      * @return modified JSON with correct format
      */
     private JSONObject parseObjectType(JSONObject obj) {
-        String type = (String) obj.get("type");
-        switch (type) {
-            case "circle":
-                obj.put("type", 12);
-                break;
-            case "rectangle":
-                obj.put("type", 13);
-                break;
-            case "square":
-                obj.put("type", 11);
-                break;
-            case "triangle":
-                obj.put("type", 14);
-                break;
-
-            default:
-                break;
+        try {
+            String type = (String) obj.get("type");
+            switch (type) {
+                case "circle":
+                    obj.put("type", 12);
+                    break;
+                case "rectangle":
+                    obj.put("type", 13);
+                    break;
+                case "square":
+                    obj.put("type", 11);
+                    break;
+                case "triangle":
+                    obj.put("type", 14);
+                    break;
+                default:
+                    break;
+            }
+        } catch (JSONException e) {
+            obj.put("type", 0);
         }
         return obj;
     }
@@ -138,11 +143,23 @@ public class MovementPlanner {
     private JSONObject getShapeByType(String type, JSONArray shapeList) {
         JSONObject shape = null;
         Iterator it = shapeList.iterator();
+        int i = 0;
         while ((it.hasNext()) && (shape == null)) {
-            JSONObject temp = (JSONObject) it.next();
-            if (temp.get("type").toString().equalsIgnoreCase(type)) {
-                shape = temp;
+            JSONObject temp = null;
+            String tmpString = it.next().toString();
+            if (tmpString.length() > 15) {
+                if (i == 0) {
+                    temp = new JSONObject(tmpString.substring(1));
+                } else {
+                    temp = new JSONObject(tmpString);
+                }
+                if (temp.get("type").toString().equalsIgnoreCase(type)) {
+                    shape = temp;
+                }
+            } else {
+                shape = new JSONObject();
             }
+            i += 1;
         }
         return shape;
     }

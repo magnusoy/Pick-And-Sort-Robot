@@ -9,6 +9,8 @@ public enum Commands {
     AUTOMATIC_CONTROL,
     CALIBRATE,
     CONFIGURE,
+    NONE,
+    NORMAL,
     ALL_OBJECTS,
     SQUARES,
     CIRCLES,
