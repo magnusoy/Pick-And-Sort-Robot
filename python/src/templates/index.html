@@ -29,42 +29,18 @@
       {% block content %}
       <div id="state">{{ state }}</div>
 
-      <div id="modes" class="ui form">
-        <h1>Pick options</h1>
-        <div class="grouped fields">
-          <div class="field">
-            <div class="ui slider checkbox">
-              <a href=# id="all"><input type="radio" name="throughput" checked="checked" /></a>
-              <label>All objects</label>
-            </div>
-          </div>
-          <div class="field">
-            <div class="ui slider checkbox">
-              <a href=# id="squares"><input type="radio" name="throughput" /></a>
-              <label>Squares</label>
-            </div>
-          </div>
-          <div class="field">
-            <div class="ui slider checkbox">
-              <a href=# id="circles"><input type="radio" name="throughput" /></a>
-              <label>Circles</label>
-            </div>
-          </div>
-          <div class="field">
-            <div class="ui slider checkbox checked">
-              <a href=# id="triangles"><input type="radio" name="throughput" /></a>
-              <label>Triangles</label>
-            </div>
-          </div>
-        </div>
-        <div class="field">
-          <div class="ui slider checkbox checked">
-            <a href=# id="rectangles"><input type="radio" name="throughput" /></a>
-            <label>Rectangles</label>
-          </div>
-        </div>
-      </div>
+
+    <div class="ui horizontal buttons">
+      <form>
+          <h1>Pick options</h1>
+	  <a href=# id=all><button class="ui button">All objects</button></a>
+	  <a href=# id=squares><button class="ui button">Squares</button></a>
+          <a href=# id=circles><button class="ui button">Circles</button></a>
+          <a href=# id=triangles><button class="ui button">Triangles</button></a>
+          <a href=# id=rectangles><button class="ui button">Rectangles</button></a>
+      </form>
     </div>
+
     <div class="ui vertical buttons">
       <form>
           <a href=# id=start><button class="positive massive ui button">Start</button></a>
@@ -72,6 +48,7 @@
           <a href=# id=reset><button class="yellow ui massive button">Reset</button></a>
       </form>
     </div>
+
     <div class="functions">
         <form>
             <a href=# id=manual><button class="massive ui button">Manual override</button></a>

@@ -19,7 +19,7 @@
   {% endblock %}
 </head>
 <body>
-
+{% block content %}
   <div class="ui text container center aligned page">
       <h1 class="ui dividing header">Pick and Sort Robot</h1>
       <div class="ui horizontal buttons">
@@ -149,8 +149,8 @@ $(function() {
 </script>
 
   <div class="ui container center aligned page">
-    <!-- <img id="video" class="center aligned page" src="{{ url_for('video_viewer') }}" /> -->
-      <img class="centered" src="https://images.pexels.com/photos/998641/pexels-photo-998641.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" alt="">
+    <img id="video" class="centered" src="{{ url_for('video_viewer') }}" /> 
+      <!--  <img class="centered" src="https://images.pexels.com/photos/998641/pexels-photo-998641.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" alt=""> -->
   </div>
 
 
@@ -194,7 +194,7 @@ code {
 
 .centered {
   position: fixed;
-  left: 34%;
+  left: 37%;
 }
 
 #footer {
@@ -207,9 +207,13 @@ code {
 #debug {
   position: absolute;
   bottom: 10%;
-  left: 19%;
+  left: 22%;
   width: 100%;
-  height: 40px; /* Height of the footer */
+  height: 40px;
+}
+
+#object_list {
+  display: none;
 }
 
 .ui.dividing.header,

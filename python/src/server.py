@@ -48,7 +48,7 @@ def video_stream():
     if video_camera == None:
         drawer = FrameDrawer()
         video_camera = RemoteShapeDetector(
-            '83.243.253.223', 8089)  #
+            '83.243.168.10', 8089)  #
         video_camera.connect()
 
     while True:
@@ -69,7 +69,7 @@ def video_stream():
 @app.route('/')
 def index():
     """Route to main page."""
-    return render_template('index.html')
+    return render_template('index2.html')
 
 
 @app.route('/video_viewer')
@@ -171,7 +171,7 @@ def all():
 @app.route('/squares')
 def squares():
     """Sends a pick all squares call to the system."""
-    command = "POST/Square"
+    command = "POST/Squares"
     command_client.write(command)
     content = command_client.read()
     return "nothing"
@@ -180,7 +180,7 @@ def squares():
 @app.route('/triangles')
 def triangles():
     """Sends a pick all triangle call to the system."""
-    command = "POST/Triangle"
+    command = "POST/Triangles"
     command_client.write(command)
     content = command_client.read()
     return "nothing"
@@ -189,7 +189,7 @@ def triangles():
 @app.route('/circles')
 def circles():
     """Sends a pick all circle call to the system."""
-    command = "POST/Circle"
+    command = "POST/Circles"
     command_client.write(command)
     content = command_client.read()
     return "nothing"
@@ -198,7 +198,7 @@ def circles():
 @app.route('/rectangles')
 def rectangles():
     """Sends a pick all circle call to the system."""
-    command = "POST/Rectangle"
+    command = "POST/Rectangles"
     command_client.write(command)
     content = command_client.read()
     return "nothing"
