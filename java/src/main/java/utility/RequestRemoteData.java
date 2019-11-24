@@ -16,8 +16,8 @@ import java.net.*;
 public class RequestRemoteData {
 
     private static final String REMOTE_URL = "http://83.243.168.10:5000/";  // End point
-    private URL url;                                                         // URL object
-    private JSONArray content;                                               // Stores fetched data
+    private URL url;                                                        // URL object
+    private JSONArray content;                                              // Stores fetched data
 
     /**
      * RequestRemoteData constructor, initializes

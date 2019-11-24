@@ -32,8 +32,7 @@ public class Database {
         this.jsonFromTeensy = new JSONObject();
         this.jsonToTeensy = new JSONObject();
         this.controllerHandler = new ControllerHandler();
-        this.shapeType = 10;                            // Has to be 10 to match picker state machine
-    }
+        this.shapeType = 10;                            // Initialize with 10, to match all objects
 
     /**
      * Returns all of the stored shapes.
@@ -114,7 +113,6 @@ public class Database {
             this.jsonToTeensy.put("drop", this.controllerHandler.getButtonX());
         }
         this.jsonToTeensy.put("size", this.movementPlanner.getSize());
-        //System.out.println(this.jsonFromTeensy.toString());
         System.out.println(this.jsonToTeensy.toString() + cycle++);
         return this.jsonToTeensy;
     }

@@ -40,6 +40,7 @@ public class Main extends Application {
 
     /**
      * Views a close dialog and closes the application if the user confirms (s)he wants to quit.
+     *
      * @param primaryStage the Stage to confirm close for.
      */
     private static void closeDialog(Stage primaryStage){
@@ -75,7 +76,6 @@ public class Main extends Application {
                 answer = true;
             }
         }
-
         return answer;
     }
 }

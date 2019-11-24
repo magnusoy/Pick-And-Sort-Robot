@@ -32,24 +32,22 @@ import java.util.concurrent.TimeUnit;
  */
 public class Controller {
 
-    @FXML TextArea consoleTextArea; // Shows Info
-    @FXML TextArea xboxConsoleTextArea; // Shows Xbox data
-    private PrintStream console; // All info to GUI goes through here
+    @FXML TextArea consoleTextArea;                   // Shows Info
+    @FXML TextArea xboxConsoleTextArea;               // Shows Xbox data
+    private PrintStream console;                      // All info to GUI goes through here
 
     private ScheduledThreadPoolExecutor scheduler;
     private ScheduledFuture<?> xboxControllerHandler;
     private XboxController xboxController;
-    private Client client; // Client for sending xbox data to a remote host
+    private Client client;                            // Client for sending xbox data to a remote host
 
-    private boolean connectedToController = false; // xbox controller connection flag
-    private boolean connectedToServer = false; // Server / Remote host connection flag
+    private boolean connectedToController = false;    // xbox controller connection flag
+    private boolean connectedToServer = false;        // Server / Remote host connection flag
 
     // Notifications
     private Notifications serverConnectNotification;
     private Notifications serverDisconnectNotification;
-    // TODO - Add notifications for lost connection and reconnect
-    // private Notifications serverReconnectionNotification;
-    // private Notifications serverLostConnectionNotification;
+
     private Notifications controllerConnectNotification;
     private Notifications controllerDisconnectNotification;
 
@@ -65,13 +63,15 @@ public class Controller {
         setupNotifications();
         // Stores the initial text from xbox selection header so it can be manipulated later on
         controllerSelectionLabelText = xboxControllerLabel.getText();
-        updateNumberOfAvailableControllers(); // Show how many xbox controllers are available at startup
+        updateNumberOfAvailableControllers();           // Show how many xbox controllers are available at startup
         scheduler = new ScheduledThreadPoolExecutor(3); // Main scheduler for running all tasks with
         console.println("Application Initialized");
     }
 
     /**
      * Controller listener for receiving xbox controller data (Buttons, axes) and connection statuses.
+     *
+     * @param storageBox is a shared resource
      */
     private ControllerListener controllerListener = new ControllerListener() {
         @Override
@@ -109,6 +109,7 @@ public class Controller {
 
     /**
      * Toggles the vibration on the connected xbox controller.
+     *
      */
     public void toggleVibration(){
 
@@ -221,7 +222,6 @@ public class Controller {
      * is already connected, a new call will result in disconnection
      */
     public void connectToServer() {
-        // TODO - add support for auto reconnect after losing connection
         if (!connectedToServer){
             // Get ip, port number and header from GUI
             String ip = serverIPTextField.getText();
@@ -231,7 +231,7 @@ public class Controller {
             try { // create a client to server connection
                 client = new Client(ip, port, header);
                 client.start();
-                scheduler.submit(client); // TODO - Fix Client threading
+                scheduler.submit(client);
                 connectedToServer = !connectedToServer;
                 serverConnectNotification.show();
                 console.println("Connected to server at " + ip + ":" + port);
@@ -369,6 +369,7 @@ public class Controller {
     /**
      * Opens a specific URI in a built-in desktop browser. If for some reason the computer
      * running this does not have a built in browser it will fail and return false.
+     *
      * @param uri URI to open
      * @return true when successful in redirecting URI to browser.
      */

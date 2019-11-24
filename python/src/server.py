@@ -1,6 +1,16 @@
 # #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+This script is the backend for the Web server.
+It combines the socket communication to the local
+Java TCP/IP server, and the remote Python TCP/IP server.
+
+It also handles the image processing
+and connection up to the front end, that is
+the GUI for the system.
+"""
+
 # Importing packages
 from flask import Flask, render_template, Response
 import logging

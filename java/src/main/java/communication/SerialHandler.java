@@ -13,10 +13,11 @@ import org.json.JSONObject;
 
 import main.java.utility.Database;
 
-
 /**
- * SerialHandler communicates with the Teensy through
- * the UART protocol.
+ * This class implements SerialPort and a
+ * SerialPortEventListener to handle incoming and
+ * outcoming data. This is done through the RX/TX 
+ * communication protocol.
  */
 public class SerialHandler extends Thread implements SerialPortEventListener  {
 
@@ -46,6 +47,9 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
 
     /**
      * Run SerialHandler in a thread.
+     * Will try to connect to assigned serial
+     * port every TIME_OUT, until established
+     * connection.
      */
     @Override
     public void run() {
@@ -71,7 +75,7 @@ public class SerialHandler extends Thread implements SerialPortEventListener  {
         CommPortIdentifier portId = null;
         Enumeration portEnum = CommPortIdentifier.getPortIdentifiers();
 
-        //First, Find an instance of serial port as set in PORT_NAMES.
+        //First, find an instance of serial port as set in PORT_NAMES.
         while (portEnum.hasMoreElements()) {
             CommPortIdentifier currPortId = (CommPortIdentifier) portEnum.nextElement();
             for (String portName : PORT_NAMES) {

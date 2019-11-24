@@ -1,6 +1,13 @@
 # #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+This script combines the TCP/IP Server and the CNN model.
+It pares the received input from the client, and sends it
+over to the CNN to do its computations before it saves the
+result in an file.
+"""
+
 # Import packages
 import cv2
 import os

@@ -10,7 +10,8 @@ import java.net.Socket;
 /**
  * ClientHandler uses a socket connection from the client.
  * Each client can GET and POST data. This makes it possible
- * to hand the commands to other processes and threads.
+ * to hand the commands to other processes and threads
+ * in the system.
  */
 public class ClientHandler extends Thread {
 
@@ -21,7 +22,8 @@ public class ClientHandler extends Thread {
 
 
     /**
-     * ClientHandler constructor.
+     * ClientHandler constructor. Receives an already
+     * connected socket, with assigned input stream and output stream.
      *
      * @param socket           client connection
      * @param dataInputStream  client inputstream
@@ -38,8 +40,8 @@ public class ClientHandler extends Thread {
 
     /**
      * This works as an API for the clients. Making them able to
-     * communicate fetch and send data to other resources within
-     * the application.
+     * communicate, fetch and send data to other resources within
+     * the system.
      */
     @Override
     public void run() {
@@ -181,7 +183,8 @@ public class ClientHandler extends Thread {
     }
 
     /**
-     * Parses the input from client to desired form.
+     * Parses the input from client to desired
+     * JSON format.
      *
      * @param input received input
      * @return JSONObject with parsed input

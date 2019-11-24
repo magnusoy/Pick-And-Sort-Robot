@@ -28,7 +28,7 @@ public class Main {
                 while (true) {
                     serialHandler.sendData(database.getJsonToTeensy());
                     try {
-                        Thread.sleep(20);
+                        Thread.sleep(10);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

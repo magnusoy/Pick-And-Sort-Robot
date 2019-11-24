@@ -1,6 +1,12 @@
 # #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+This script is the REST/API, that reads from the
+file that stores the CNN output. Then pulls it up
+where anyone can access the data.
+"""
+
 # Importing Flask components
 from flask import Flask, jsonify
 # Importing util

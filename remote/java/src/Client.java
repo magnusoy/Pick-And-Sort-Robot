@@ -14,12 +14,11 @@ public class Client extends Thread {
     // Define socket and input, output streams
     private InetAddress ip;                             // Host name to server
     private int port;
-    private boolean connected = false;              // Connection flag
-    private DataInputStream dataInputStream;      // Input from Serial
-    private DataOutputStream dataOutputStream;    // Output to Serial
-    private Socket socket;
+    private boolean connected = false;                  // Connection flag
+    private DataInputStream dataInputStream;            // Input from Serial
+    private DataOutputStream dataOutputStream;          // Output to Serial
+    private Socket socket;                              // Connection socket
     private String header;                              // Header when sending to server
-    // Connection socket
 
     /**
      * Client constructor.
@@ -41,7 +40,7 @@ public class Client extends Thread {
                 System.out.println("Could not connect to server...");
             }
         }else{
-            // ip cannot be reached
+            // Ip cannot be reached
             throw new IOException();
         }
 
@@ -51,7 +50,8 @@ public class Client extends Thread {
     }
 
     /**
-     * Connects the client to the already given ip address and port number
+     * Connects the client to the already given ip address and port number.
+     *
      * @throws IOException when connection can not be made.
      */
     public void connect() throws IOException{
@@ -80,6 +80,7 @@ public class Client extends Thread {
     /**
      * Send a string of data to the host. If a connection has not been made before sending, it will result
      * in a IOException being thrown.
+     *
      * @param data data to be sent
      * @throws IOException when sending unsuccessfully.
      */
@@ -88,8 +89,6 @@ public class Client extends Thread {
         String dataToSend = header + data + "\n";
         this.dataOutputStream.writeUTF(dataToSend);
     }
-
-
 
     @Override
     public void run() {

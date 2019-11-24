@@ -3,7 +3,7 @@ package main.java.utility;
 import org.json.JSONObject;
 
 /**
- * Parses data from Xbox controller.
+ * This class parses data from Xbox controller.
  */
 public class ControllerHandler {
 

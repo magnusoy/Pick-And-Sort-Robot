@@ -199,7 +199,8 @@ public class XboxController implements Runnable {
     }
 
     /**
-     * Filters and formats a value to its third power and rounds it off to three decimals
+     * Filters and formats a value to its third power and rounds it off to three decimals.
+     *
      * @param value value for filtering and formatting
      * @return the filtered and formatted value
      */

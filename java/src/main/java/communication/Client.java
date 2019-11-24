@@ -5,26 +5,25 @@ import java.net.*;
 import java.util.Scanner;
 
 /**
- * Connects to a TCP - Server through a socket.
- * Has its own input- and outputstream to write
- * and read data from the server.
+ * This class implements client socket (also called just "socket"). 
+ * A socket is an endpoint for communication between two machines.
  */
 public class Client {
-
+    
     private InetAddress ip;                             // Host name to server
     private final Scanner in;                           // Scanner for userinput
-    private final DataInputStream dataInputStream;      // Input from Serial
-    private final DataOutputStream dataOutputStream;    // Output to Serial
+    private final DataInputStream dataInputStream;      // Input from user
+    private final DataOutputStream dataOutputStream;    // Output to server
     private Socket socket;                              // Connection socket
 
     /**
-     * Client constructor. Initializes the input-
-     * and outputstream and tries to connect the
-     * given host.
+     * Client constructor.
+     * Creates a stream socket and connects it to the
+     * specified port number at the specified IP address.
      *
      * @param host where to connect (localhost)
      * @param port communication port (5056)
-     * @throws IOException, Exception
+     * @throws IOException, failed or interrupted I/O operation
      */
     public Client(String host, int port) throws IOException {
         this.in = new Scanner(System.in);
