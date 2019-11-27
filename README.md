@@ -22,7 +22,7 @@ The aim for this project is to build a prototype of an autonomous industrial rob
 
 ## Report
 
-[Report, coming](https://www.overleaf.com/project)
+[Report](https://github.com/magnusoy/Pick-And-Sort-Robot/blob/master/resources/Pick_and_Sort_Robot.pdf)
 
 
 ## Built With
