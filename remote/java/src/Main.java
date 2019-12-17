@@ -25,7 +25,7 @@ public class Main extends Application {
         Image icon = new Image("xboxIcon.png", 225, 0, false, false);
         primaryStage.getIcons().add(icon);
         setUserAgentStylesheet(STYLESHEET_MODENA);
-        
+
         /*
          * Catches and consumes the event where the user presses the built in option to quit the application,
          * and then views a confirmation dialog to the user asking if (s)he really wants to quit.

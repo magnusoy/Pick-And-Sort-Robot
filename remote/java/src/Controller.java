@@ -70,8 +70,6 @@ public class Controller {
 
     /**
      * Controller listener for receiving xbox controller data (Buttons, axes) and connection statuses.
-     *
-     * @param storageBox is a shared resource
      */
     private ControllerListener controllerListener = new ControllerListener() {
         @Override
