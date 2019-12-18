@@ -228,7 +228,6 @@ public class Controller {
 
             try { // create a client to server connection
                 client = new Client(ip, port, header);
-                client.start();
                 scheduler.submit(client);
                 connectedToServer = !connectedToServer;
                 serverConnectNotification.show();

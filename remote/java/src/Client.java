@@ -4,21 +4,25 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Connects to the Server through a socket.
  * Can send text and expects replies from server.
  */
-public class Client extends Thread {
+public class Client implements Runnable {
 
     // Define socket and input, output streams
     private InetAddress ip;                             // Host name to server
     private int port;
-    private boolean connected = false;                  // Connection flag
+    private volatile boolean connected = false;                  // Connection flag
     private DataInputStream dataInputStream;            // Input from Serial
     private DataOutputStream dataOutputStream;          // Output to Serial
     private Socket socket;                              // Connection socket
     private String header;                              // Header when sending to server
+    private volatile boolean newData = false;
+    private ReentrantLock lock;                         // Adds threads safe operation on new data to send
+    private String dataToSend;
 
     /**
      * Client constructor.
@@ -31,6 +35,7 @@ public class Client extends Thread {
         this.ip = InetAddress.getByName(host);
         this.port = port;
         this.header = header;
+        this.lock = new ReentrantLock();
 
         if (ip.isReachable(1000)){
             try {
@@ -78,20 +83,39 @@ public class Client extends Thread {
     }
 
     /**
-     * Send a string of data to the host. If a connection has not been made before sending, it will result
-     * in a IOException being thrown.
+     * Send a string of data to the host.
      *
      * @param data data to be sent
-     * @throws IOException when sending unsuccessfully.
      */
-    public void send(String data) throws IOException {
-        //String header = "POST/Controller";
-        String dataToSend = header + data + "\n";
-        this.dataOutputStream.writeUTF(dataToSend);
+    public void send(String data){
+        lock.lock();
+        this.dataToSend = header + data + "\n";
+        this.newData = true;
+        lock.unlock();
+        notify(); // Notifies the client so it can send the new data
     }
 
+    /**
+     *
+     */
     @Override
-    public void run() {
-        System.out.println("I ran");
+    public void run(){
+        while(this.connected){
+            if(newData){
+                try {
+                    lock.lock();
+                    this.dataOutputStream.writeUTF(this.dataToSend);
+                    lock.unlock();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }else {
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }
