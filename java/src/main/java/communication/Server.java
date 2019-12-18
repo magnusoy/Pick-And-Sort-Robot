@@ -7,16 +7,19 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.*;
 
 /**
  * Server works as the core of the system.
  * Handling calls from clients and directing
  * the tasks to different processes and threads.
  */
-public class Server {
+public class Server extends Thread{
 
     private ServerSocket serverSocket;    // Initialize socket
     private final Database database;      // Shared resource
+    private ThreadPoolExecutor executor;  // Handle threads in the to pool
+
 
     /**
      * Server constructor. Initialize a server socket and
@@ -26,6 +29,8 @@ public class Server {
      * @param database, shared resource
      */
     public Server(int port, Database database) {
+
+        this.executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
         this.database = database;
         // Socket port
         try {
@@ -41,11 +46,10 @@ public class Server {
      * clientHandler so the client can GET and POST
      * data.
      *
-     * @throws IOException, Exception
      */
-    public void start() throws IOException {
+    public void run() {
         while (true) {
-            Socket socket = null;
+           Socket socket = null;
 
             try {
                 socket = serverSocket.accept();
@@ -55,15 +59,15 @@ public class Server {
                 DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
 
                 // Assigning new thread for this client
-                Thread clientThread = new ClientHandler(socket,
-                                                        dataInputStream,
-                                                        dataOutputStream,
-                                                        this.database);
+                this.executor.submit(new ClientHandler(socket, dataInputStream, dataOutputStream, this.database));
 
-                clientThread.start();
             } catch (Exception e) {
                 assert socket != null;
-                socket.close();
+                try {
+                    socket.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
                 e.printStackTrace();
             }
         }

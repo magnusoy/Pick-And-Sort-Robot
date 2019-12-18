@@ -19,7 +19,7 @@ import main.java.utility.Database;
  * outcoming data. This is done through the RX/TX 
  * communication protocol.
  */
-public class SerialHandler extends Thread implements SerialPortEventListener  {
+public class SerialHandler extends Thread implements SerialPortEventListener, Runnable  {
 
     /** The port we're normally going to use. */
     private static final String[] PORT_NAMES = {

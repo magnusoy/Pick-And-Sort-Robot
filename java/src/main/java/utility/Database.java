@@ -33,6 +33,7 @@ public class Database {
         this.jsonToTeensy = new JSONObject();
         this.controllerHandler = new ControllerHandler();
         this.shapeType = 10;                            // Initialize with 10, to match all objects
+    }
 
     /**
      * Returns all of the stored shapes.

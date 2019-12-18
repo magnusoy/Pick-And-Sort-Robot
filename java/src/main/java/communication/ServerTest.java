@@ -12,10 +12,6 @@ public class ServerTest {
     public static void main(String[] args) {
         Database db = new Database();
         Server server = new Server(5056, db);
-        try {
-            server.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        server.start();
     }
 }
