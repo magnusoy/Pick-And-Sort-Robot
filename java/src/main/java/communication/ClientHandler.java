@@ -5,6 +5,7 @@ import org.json.JSONObject;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.concurrent.Semaphore;
 
 
 /**
@@ -13,12 +14,13 @@ import java.net.Socket;
  * to hand the commands to other processes and threads
  * in the system.
  */
-public class ClientHandler extends Thread {
+public class ClientHandler implements Runnable {
 
     private final DataInputStream dataInputStream;      // Input from client
     private final DataOutputStream dataOutputStream;    // Output to client
     private final Socket socket;                        // Client socket
     private final Database database;                    // Shared resource
+    private final Semaphore semaphore;                  // Limits the number of threads
 
 
     /**
@@ -32,6 +34,7 @@ public class ClientHandler extends Thread {
      */
     public ClientHandler(Socket socket, DataInputStream dataInputStream,
                          DataOutputStream dataOutputStream, Database database) {
+        this.semaphore = new Semaphore(5, true);
         this.database = database;
         this.dataInputStream = dataInputStream;
         this.dataOutputStream = dataOutputStream;
@@ -45,6 +48,9 @@ public class ClientHandler extends Thread {
      */
     @Override
     public void run() {
+        try {
+            semaphore.acquire();
+
         String received;
         String toReturn;
 
@@ -179,6 +185,12 @@ public class ClientHandler extends Thread {
 
         } catch (IOException ioe) {
             ioe.printStackTrace();
+        }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        finally {
+            semaphore.release();
         }
     }
 

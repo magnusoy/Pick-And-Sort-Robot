@@ -4,7 +4,9 @@ import main.java.communication.SerialHandler;
 import main.java.communication.Server;
 import main.java.utility.Database;
 
-import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Test experiment too see if code works
@@ -13,30 +15,16 @@ import java.io.IOException;
 public class Main {
 
     public static void main(String[] args) {
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         Database database = new Database();
         Server server = new Server(5056, database);
         SerialHandler serialHandler = new SerialHandler(database);
 
-        try {
-            serialHandler.run();
-            new Thread(() -> {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                while (true) {
-                    serialHandler.sendData(database.getJsonToTeensy());
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
-            server.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        serialHandler.run();
+        executor.scheduleAtFixedRate(() -> {
+            serialHandler.sendData(database.getJsonToTeensy());
+        }, 2000, 10, TimeUnit.MILLISECONDS);
+
+        server.start();
     }
 }
