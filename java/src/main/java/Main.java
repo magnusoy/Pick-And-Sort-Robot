@@ -23,7 +23,7 @@ public class Main {
         serialHandler.run();
         executor.scheduleAtFixedRate(() -> {
             serialHandler.sendData(database.getJsonToTeensy());
-        }, 500, 10, TimeUnit.MILLISECONDS);
+        }, 2000, 10, TimeUnit.MILLISECONDS);
 
         server.start();
     }

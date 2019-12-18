@@ -189,7 +189,9 @@ public class ClientHandler implements Runnable {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        semaphore.release();
+        finally {
+            semaphore.release();
+        }
     }
 
     /**
